@@ -19,13 +19,13 @@
 - Build 2 (1.0.0) yüklendi, sürüme bağlandı; metinler, ekran görüntüleri, yaş derecelendirmesi, fiyat, kategori tamam
 - App Privacy: "Data Not Collected" yayımlandı
 - TestFlight: "Mr. Anduv! Ekibi" (dahili) + "Mr. Anduv! Testçiler" (harici) — build 2 beta incelemesinde
-- KALAN (Emre): sürüm sayfasında **Add for Review → Submit**
+- 18 Eki 2026: incelemeye gönderildi (Waiting for Review)
 
 **Google Play Console** — uygulama kimliği `4974040305096795281`
 - Dahili test 1.0.0 (2) yayında ("Kaptan Mecit Testçiler")
 - Uygulama içeriği beyanlarının hepsi, mağaza girişi (metin, ikon, özellik grafiği, 5 ekran görüntüsü) tamam
 - Kapalı test (Alpha): Türkiye, "Kaptan Mecit Testçiler" listesi, 1.0.0 (2) sürümü hazır
-- KALAN (Emre): Yayın özeti → **15 değişikliği incelemeye gönder**
+- 18 Eki 2026: kapalı test incelemeye gönderildi
 - Üretim için: en az 12 testçi, 14 gün kapalı test → "Üretime başvur"
 
 **Pardus** — beklemede (`pardus/BASVURU.md`)
