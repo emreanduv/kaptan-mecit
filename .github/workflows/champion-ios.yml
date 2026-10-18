@@ -34,7 +34,9 @@ jobs:
           printf '%s' "$P8" > ~/private_keys/AuthKey_${{ env.ASC_KEY_ID }}.p8
       - name: Arşivle
         working-directory: ios/App
+        shell: bash
         run: |
+          set -o pipefail
           xcodebuild -project App.xcodeproj -scheme App -configuration Release \
             -destination 'generic/platform=iOS' -archivePath $RUNNER_TEMP/ChampionChess.xcarchive \
             -allowProvisioningUpdates \
@@ -43,7 +45,8 @@ jobs:
             -authenticationKeyIssuerID ${{ env.ASC_ISSUER_ID }} \
             DEVELOPMENT_TEAM=${{ env.APPLE_TEAM_ID }} CODE_SIGN_STYLE=Automatic \
             MARKETING_VERSION=${{ inputs.version_name }} CURRENT_PROJECT_VERSION=${{ inputs.build_number }} \
-            archive
+            archive 2>&1 | tee $RUNNER_TEMP/archive.log || { grep -E "error:|error -|\*\* ARCHIVE FAILED" $RUNNER_TEMP/archive.log | sort -u | head -25 | while read -r l; do echo "::error::$l"; done; exit 1; }
+          grep -q "ARCHIVE SUCCEEDED" $RUNNER_TEMP/archive.log || { grep -E "error:" $RUNNER_TEMP/archive.log | sort -u | head -25 | while read -r l; do echo "::error::$l"; done; exit 1; }
       - name: App Store Connect'e yükle
         run: |
           cat > $RUNNER_TEMP/export.plist <<PL
