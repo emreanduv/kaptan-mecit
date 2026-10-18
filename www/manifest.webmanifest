@@ -1,0 +1,21 @@
+{
+  "name": "Champion Battle Manager",
+  "short_name": "Champion Battle",
+  "lang": "tr",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#1f3b3c",
+  "theme_color": "#1f3b3c",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

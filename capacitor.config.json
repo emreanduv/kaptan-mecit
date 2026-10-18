@@ -1,0 +1,26 @@
+{
+  "appId": "com.championchess.manager",
+  "appName": "Champion Battle",
+  "webDir": "www",
+  "backgroundColor": "#1f3b3c",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#1f3b3c"
+  },
+  "android": {
+    "backgroundColor": "#1f3b3c"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 900,
+      "launchAutoHide": true,
+      "backgroundColor": "#1f3b3c",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#1f3b3c",
+      "overlaysWebView": true
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "champion-battle-manager",
+  "version": "3.1.0",
+  "private": true,
+  "description": "Champion Battle Manager — FM2010 menajer modu (iOS + Android kabuğu, Capacitor)",
+  "scripts": {
+    "ikonlar": "capacitor-assets generate --ios --android --assetPath magaza/assets --iconBackgroundColor '#1f3b3c' --iconBackgroundColorDark '#1f3b3c' --splashBackgroundColor '#1f3b3c' --splashBackgroundColorDark '#0d1e1e'",
+    "esitle": "cap sync",
+    "ios": "cap open ios",
+    "android": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/ios": "8.5.3",
+    "@capacitor/splash-screen": "8.0.2",
+    "@capacitor/status-bar": "8.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "3.0.5",
+    "@capacitor/cli": "8.5.3"
+  }
+}
