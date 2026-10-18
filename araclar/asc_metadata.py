@@ -31,7 +31,7 @@ info=[i for i in infos if i['attributes'].get('appStoreState') not in ('READY_FO
 r=api('PATCH',f'v1/appInfos/{IID}',{'data':{'type':'appInfos','id':IID,'relationships':{
     'primaryCategory':{'data':{'type':'appCategories','id':'GAMES'}},
     'primarySubcategoryOne':{'data':{'type':'appCategories','id':'GAMES_SPORTS'}},
-    'primarySubcategoryTwo':{'data':{'type':'appCategories','id':'GAMES_ARCADE'}}}}})
+    'primarySubcategoryTwo':{'data':{'type':'appCategories','id':'GAMES_ACTION'}}}}})
 if r is not None: ok('kategori: Oyun / Spor, Arcade')
 locs={l['attributes']['locale']:l['id'] for l in api('GET',f'v1/appInfos/{IID}/appInfoLocalizations')['data']}
 for loc,m in meta.items():
