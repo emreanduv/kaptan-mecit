@@ -33,12 +33,16 @@ Sahada 11'e 11 oynarsın. Sol taraftan parmağını kaydırarak koşarsın, PAS 
 • Lig Kariyeri: 6 lig, her ligde 20 kulüp, 38 hafta. Puan durumu, fikstür ve gol krallığı
 • Anadolu Ligi, Ada Ligi, İber Ligi, Çizme Ligi, Ren Ligi ve Galya Ligi
 • Kolay, Orta ve Zor seviye; 2, 4, 6 ya da 8 dakikalık maçlar
+• Dört kamera: Klasik, Dinamik, Tele ve 3D Stadyum. Maçın ortasında bile değiştirebilirsin
 • Taç, korner, aut ve devre arası; ofsayt ve faul yok
 • Reklam yok, internet gerekmez, veri toplanmaz
 
 Tüm kulüp ve oyuncu adları kurmacadır.
 
 Bir Mr. Anduv! yapımıdır.
+
+**Bu sürümde yenilikler (1.1.0) — App Store "Yenilikler" / Play "Sürüm notları" (en fazla 500 karakter)**
+Dört kamera geldi: Klasik, Dinamik, Tele ve 3D Stadyum. Kamerayı Ayarlar'dan ya da maç içinde duraklatıp değiştirebilirsin. Takım arkadaşların artık koşu yapıyor, pas için boşa çıkıyor; rakipler adam tutuyor, oyun daha canlı. Golde tribünler coşuyor. Panolarda yalnızca kamu yararına çalışan kurumlar var.
 
 ---
 
@@ -51,4 +55,7 @@ Top-down retro football: 6 leagues, 120 clubs, fully offline.
 Top-down retro football
 
 **Full description**
-Kaptan Mecit is a fast, pixel-art, top-down football game inspired by classic cartridge-era football. Play 11-a-side with a virtual stick and two buttons: pass and shoot on the ball, select player and slide tackle off the ball. Quick Match with 120 fictional clubs, or a 38-week league career in one of six leagues. No ads, no in-app purchases, no data collection, works offline. All club and player names are fictional. (Game language: Turkish.)
+Kaptan Mecit is a fast retro football game inspired by classic cartridge-era football, with four camera views: classic pixel-art top-down, dynamic, TV-style tele and a 3D stadium view. Play 11-a-side with a virtual stick and two buttons: pass and shoot on the ball, select player and slide tackle off the ball. Quick Match with 120 fictional clubs, or a 38-week league career in one of six leagues. No ads, no in-app purchases, no data collection, works offline. All club and player names are fictional. (Game language: Turkish.)
+
+**What's new (1.1.0)**
+Four camera views: Classic, Dynamic, Tele and 3D Stadium, switchable mid-match. Teammates now make runs and find space, opponents mark you, and the crowd celebrates goals.

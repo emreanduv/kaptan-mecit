@@ -1,5 +1,6 @@
 bin/kaptan-mecit usr/games
 www/index.html usr/share/kaptan-mecit/www
+www/three.min.js usr/share/kaptan-mecit/www
 data/kaptan-mecit.desktop usr/share/applications
 data/com.anduv.kaptanmecit.metainfo.xml usr/share/metainfo
 data/icons/48x48/kaptan-mecit.png usr/share/icons/hicolor/48x48/apps

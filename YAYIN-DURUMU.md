@@ -1,5 +1,14 @@
 # Kaptan Mecit — Yayın durumu (18 Ekim 2026)
 
+## 1.1.0 (hazırlanıyor)
+- Dört kamera: Klasik, Dinamik, Tele, Stadyum (3D, `www/three.min.js` — Three.js r128, MIT)
+- Topsuz oyun yapay zekası (koşular, pas açıları, bindirme, adam adama savunma; zorluğa bağlı)
+- Golde seyirciler tek tek coşar; panolarda yalnız kamu yararına çalışan kuruluşlar (TÜBİTAK, Pardus, Kızılay, Yeşilay her maçta)
+- Yenilikler metni: `store/magaza-metinleri.md` → "Bu sürümde yenilikler (1.1.0)"
+- Pardus: `pardus/kaptan-mecit_1.1.0-1_all.deb` + kaynak paketi (1.0.0 dosyaları git geçmişinde)
+- Plan: 1.0.0 incelemeleri sürerken 1.1.0 derlemeleri TestFlight / Play dahili teste; 1.0.0 onaylanınca 1.1.0 incelemeye
+
+
 ## Hazır olanlar
 - Oyun 1.0.0: Hızlı Maç, 6 lig × 20 kulüp lig kariyeri, Kolay/Orta/Zor, 2–8 dk maç
 - Paket kimliği: `com.anduv.kaptanmecit` (iOS ve Android) · SKU `kaptan-mecit`
@@ -7,7 +16,7 @@
 - Android: dikey ekran, sürüm kodu/adı derleme akışından, ikonlar ve açılış ekranı
 - Ekran görüntüleri: `store/screenshots/` (Android 1080×1920), `store/screenshots-ios/` (iPhone 6.9" 1320×2868, iPad 13" 2064×2752)
 - Mağaza metinleri `store/magaza-metinleri.md` · Form cevapları `store/form-cevaplari.md` · Gizlilik politikası `store/gizlilik-politikasi.html` → yayında: https://claude.ai/artifact/9dcY3CsGCnidaUkQRDUhHB (Paylaş menüsünden herkese açık yapılmalı)
-- Pardus: `pardus/kaptan-mecit_1.0.0-1_all.deb` + kaynak paketi + `pardus/BASVURU.md`
+- Pardus: `pardus/kaptan-mecit_1.1.0-1_all.deb` + kaynak paketi + `pardus/BASVURU.md`
 
 ## Yükleme (imza) anahtarı — KAYBETME
 - Bilgisayar: `imza-anahtari/kaptanmecit-upload.jks` (git dışında), alias `kaptanmecit`, şifre `imza-anahtari/SIFRE-OKU.txt`

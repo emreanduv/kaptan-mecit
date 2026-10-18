@@ -14,17 +14,17 @@ Merhaba Pardus ekibi,
 Ben Emre Anduv. "Mr. Anduv!" adıyla küçük, çevrimdışı oyunlar geliştiriyorum. Son oyunum **Kaptan Mecit**'i Pardus depolarına ve Pardus Yazılım Merkezi'ne eklenmesi için öneriyorum. Pardus projesine katkı vermek benim için önemli; oyunun ilk masaüstü sürümünü özellikle Pardus için hazırladım.
 
 **Oyun hakkında**
-- Üstten görünümlü, pixel çizimli, nostaljik bir futbol oyunu. Bilgisayara karşı 11'e 11 maç ve 6 ligde 38 haftalık lig kariyeri.
+- Nostaljik bir futbol oyunu; dört kamera: tepeden piksel görünüm (Klasik), Dinamik, Tele ve 3D Stadyum. Bilgisayara karşı 11'e 11 maç ve 6 ligde 38 haftalık lig kariyeri.
 - Tamamen çevrimdışı çalışır; reklam, hesap, veri toplama veya ağ bağlantısı yoktur.
 - Arayüz Türkçe. Klavye ile oynanır (ok tuşları, X, Z), dokunmatik ekranda da çalışır.
 - Tüm kulüp ve oyuncu adları kurmacadır. Stat panolarında yalnızca kamu yararına çalışan kurumların adları yer alır (Pardus, TÜBİTAK, TEKNOFEST, Deneyap, AFAD, Kızılay, Yeşilay, TEMA, AKUT, Darüşşafaka, THK, Mehmetçik Vakfı).
 
 **Paket bilgileri**
-- Paket adı: `kaptan-mecit` · Sürüm: 1.0.0-1 · Mimari: all · Bölüm: games
+- Paket adı: `kaptan-mecit` · Sürüm: 1.1.0-1 · Mimari: all · Bölüm: games
 - Bağımlılıklar: python3, python3-gi, gir1.2-gtk-3.0, gir1.2-webkit2-4.1 | gir1.2-webkit2-4.0
-- Kurulan dosyalar: `/usr/games/kaptan-mecit` (Python + WebKitGTK başlatıcı), `/usr/share/kaptan-mecit/www/index.html` (oyun), `.desktop` dosyası, AppStream metainfo (`com.anduv.kaptanmecit`), hicolor ikonları, man sayfası
+- Kurulan dosyalar: `/usr/games/kaptan-mecit` (Python + WebKitGTK başlatıcı), `/usr/share/kaptan-mecit/www/index.html` (oyun) ve `three.min.js` (Stadyum kamerası için 3D motor), `.desktop` dosyası, AppStream metainfo (`com.anduv.kaptanmecit`), hicolor ikonları, man sayfası
 - Oyuncu verisi: `~/.local/share/kaptan-mecit`
-- Lisans: oyun kodu GPL-3.0-or-later; gömülü "Press Start 2P" yazı tipi SIL OFL 1.1
+- Lisans: oyun kodu GPL-3.0-or-later; gömülü "Press Start 2P" yazı tipi SIL OFL 1.1; Three.js r128 MIT
 - Kaynak paketi debhelper-compat 13 ile hazırlandı; `appstreamcli validate` ve `desktop-file-validate` hatasız geçiyor.
 - Kaynak kod: https://github.com/emreanduv/kaptan-mecit (herkese açık)
 

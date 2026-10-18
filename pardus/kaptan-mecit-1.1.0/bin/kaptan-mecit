@@ -23,6 +23,10 @@ def main():
     s = view.get_settings()
     s.set_enable_developer_extras(False)
     s.set_enable_html5_local_storage(True)
+    try:
+        s.set_enable_webgl(True)  # Stadyum kamerası (3D)
+    except AttributeError:
+        pass
     s.set_media_playback_requires_user_gesture(False)
     view.connect("context-menu", lambda *a: True)
 
