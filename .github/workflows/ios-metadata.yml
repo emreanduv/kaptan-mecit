@@ -1,0 +1,30 @@
+name: iOS mağaza bilgileri (App Store Connect)
+on:
+  workflow_dispatch:
+    inputs:
+      gizlilik_url:
+        description: "Gizlilik politikası URL'si"
+        default: "https://claude.ai/artifact/9dcY3CsGCnidaUkQRDUhHB"
+env:
+  ASC_KEY_ID: DJSHKK6T3P
+  ASC_ISSUER_ID: f4943ef8-df6f-42c8-a561-58554097ea35
+permissions:
+  contents: write
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Anahtar
+        env: { P8: "${{ secrets.ASC_KEY_P8 }}" }
+        run: mkdir -p ~/private_keys && printf '%s' "$P8" > ~/private_keys/AuthKey_${ASC_KEY_ID}.p8
+      - run: pip3 install --quiet pyjwt cryptography
+      - name: Meta verileri doldur
+        env: { GIZLILIK_URL: "${{ inputs.gizlilik_url }}" }
+        run: python3 araclar/asc_metadata.py
+      - name: Raporu rapor dalına koy
+        if: always()
+        run: |
+          mkdir -p /tmp/r && cp /tmp/rapor.txt /tmp/r/asc-rapor.txt && cd /tmp/r
+          git init -q -b rapor && git config user.name "github-actions" && git config user.email "actions@github.com"
+          git add . && git commit -qm rapor && git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" rapor
