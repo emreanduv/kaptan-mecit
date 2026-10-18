@@ -415,9 +415,10 @@ function kickoff(ti){
   b.owner=kt[0];b.lastTeam=ti;M.kickTeam=ti;kt[0].hold=0;M.setPiece={p:kt[0],t:0,ko:true};
   M.ctrl=M.P.find(p=>p.team===0&&p.role==='F');if(ti===0)M.ctrl=kt[0];
 }
+const Q2=3; /* Klasik görünüm: alt piksel konumlandırma katsayısı */
 function resize2D(){
   const W=innerWidth,H=innerHeight;let aspect=H/W;if(aspect<1.35)aspect=1.35;if(aspect>2.3)aspect=2.3;
-  IW=168;IH=Math.round(IW*aspect);cv.width=IW;cv.height=IH;
+  IW=168;IH=Math.round(IW*aspect);cv.width=IW*Q2;cv.height=IH*Q2;
   let cw=W,ch=W*aspect;if(ch>H){ch=H;cw=H/aspect}
   cv.style.width=cw+'px';cv.style.height=ch+'px';
 }
@@ -518,7 +519,7 @@ $('#pmenu').addEventListener('click',e=>{const b=e.target.closest('[data-g]');if
 function loop(now){
   if(!M)return;
   const dt=Math.min(.05,(now-M.lastT)/1000);M.lastT=now;
-  if(!M.paused){M.acc+=dt;while(M.acc>=1/60){step(1/60);M.acc-=1/60;if(!M)return}}
+  if(!M.paused&&dt>0){const n=Math.max(1,Math.ceil(dt*60-1e-3)),h=dt/n;for(let i=0;i<n;i++){step(h);if(!M)return}}
   draw();
   requestAnimationFrame(loop);
 }
@@ -908,11 +909,12 @@ function endMatch(quit){
 
 /* ---------- Çizim ---------- */
 function draw2D(){
-  if(!M)return;const g=cx,cam=M.cam;g.imageSmoothingEnabled=false;
-  const ox=Math.round(IW/2-(cam.x+MRG)*SC),oy=Math.round(IH/2-(cam.y+MRG)*SC);
+  if(!M)return;const g=cx,cam=M.cam;g.setTransform(Q2,0,0,Q2,0,0);g.imageSmoothingEnabled=false;
+  const sp=v=>Math.round(v*Q2)/Q2;
+  const ox=sp(IW/2-(cam.x+MRG)*SC),oy=sp(IH/2-(cam.y+MRG)*SC);
   g.fillStyle='#1d3b1c';g.fillRect(0,0,IW,IH);
   g.drawImage(pitchImg,ox,oy);
-  const W=(x,y)=>[Math.round(IW/2+(x-cam.x)*SC),Math.round(IH/2+(y-cam.y)*SC)];
+  const W=(x,y)=>[sp(IW/2+(x-cam.x)*SC),sp(IH/2+(y-cam.y)*SC)];
   const b=M.ball;
   const ents=M.P.map(p=>({y:p.y,p}));ents.push({y:b.y+.01,ball:true});ents.sort((a,c)=>a.y-c.y);
   /* top gölgesi önce */

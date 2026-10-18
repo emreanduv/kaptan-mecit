@@ -9,11 +9,11 @@ Build-Depends: debhelper-compat (= 13)
 Package-List:
  kaptan-mecit deb games optional arch=all
 Checksums-Sha1:
- e11045d41995d9dce534f1f2f3bd0954d525abac 224879 kaptan-mecit_1.1.0.orig.tar.gz
- 3b60bfa5392279f21b3dc78f707498bcf06f0ff9 2664 kaptan-mecit_1.1.0-1.debian.tar.xz
+ 3bf628c84692efaac2b795505149fced35eae867 224957 kaptan-mecit_1.1.0.orig.tar.gz
+ a4de8790cf0e8521e60172d14ef0009367011295 2668 kaptan-mecit_1.1.0-1.debian.tar.xz
 Checksums-Sha256:
- fbf9a5432e4d64d0469b8e41c85c9779088e7fa4dc566558b48b990cc533b001 224879 kaptan-mecit_1.1.0.orig.tar.gz
- ca7716e000265e00b0777e39245e4c5899c0b63ad9e14de78e49452428df9743 2664 kaptan-mecit_1.1.0-1.debian.tar.xz
+ e035705ebf4aed36e9442058308c70ac588707088a8cdbc87aee9ca2e178b1d4 224957 kaptan-mecit_1.1.0.orig.tar.gz
+ 26301ff05d2cc4699a5f309294d9a86ce01c9c1fafd4bcf6057f22cc247102b0 2668 kaptan-mecit_1.1.0-1.debian.tar.xz
 Files:
- 545d3ecc756cac91e1d58db1a42031fd 224879 kaptan-mecit_1.1.0.orig.tar.gz
- 17710faecd4e741167fbdaaf73b2567d 2664 kaptan-mecit_1.1.0-1.debian.tar.xz
+ de156e09c34e89750d69d39428e57582 224957 kaptan-mecit_1.1.0.orig.tar.gz
+ 4db8ed485b97c1463b724569319d7f63 2668 kaptan-mecit_1.1.0-1.debian.tar.xz
