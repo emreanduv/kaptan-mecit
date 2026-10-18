@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="tr">
-<head>
+<head><script src="ses-kurtarici.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#160b33">
@@ -330,6 +330,7 @@ const THEMES={
 
 /* ---------- audio ---------- */
 let ac=null,noiseBuf=null;
+window.SesKurtarici&&SesKurtarici.yenidenKur(()=>{ac=null});
 function syncMute(){['muteBtn1','muteBtn2','muteBtn3'].forEach(id=>$(id).textContent=SAVE.muted?'Ses: kapalı':'Ses: açık');}
 function toggleMute(){SAVE.muted=!SAVE.muted;persist();syncMute();initAudio();}
 ['muteBtn1','muteBtn2','muteBtn3'].forEach(id=>$(id).addEventListener('click',toggleMute));

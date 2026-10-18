@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="tr">
-<head>
+<head><script src="ses-kurtarici.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#1e140c">
@@ -362,6 +362,7 @@ function carve(mask,c,x,y,r){
 
 // ================= SES =================
 let ac=null,noiseBuf=null;
+window.SesKurtarici&&SesKurtarici.yenidenKur(()=>{ac=null});
 function initAudio(){
   if(!ac){try{ac=new(window.AudioContext||window.webkitAudioContext)();const len=ac.sampleRate*2;noiseBuf=ac.createBuffer(1,len,ac.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;}catch(e){ac=null;}}
   if(ac&&ac.state==='suspended')ac.resume();
