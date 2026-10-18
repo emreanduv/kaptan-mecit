@@ -7,6 +7,10 @@
 - Yenilikler metni: `store/magaza-metinleri.md` → "Bu sürümde yenilikler (1.1.0)"
 - Pardus: `pardus/kaptan-mecit_1.1.0-1_all.deb` + kaynak paketi (1.0.0 dosyaları git geçmişinde)
 - Plan: 1.0.0 incelemeleri sürerken 1.1.0 derlemeleri TestFlight / Play dahili teste; 1.0.0 onaylanınca 1.1.0 incelemeye
+- 18 Eki 2026 gece: iOS 1.1.0 (4) TestFlight — "Mr. Anduv! Ekibi" + "Mr. Anduv! Testçiler" (beta incelemesinde)
+- 18 Eki 2026 gece: Android 1.1.0 (4) dahili testte yayında (`imza-anahtari/kaptan-mecit-1.1.0-4-imzali.aab`)
+- Champion Battle Manager 3.1.0 (14): Kaptan Mecit 1.1.0 maç motoruyla TestFlight'ta, "Mr. Anduv! Testçiler" beta incelemesinde. Derleme: bu depodaki `champion-battle` dalı + `.github/workflows/champion-ios.yml`
+- iOS akışları imzasız arşivler, dağıtım imzasını dışa aktarmada alır (Apple geliştirme sertifikası sınırına takılmamak için)
 
 
 ## Hazır olanlar
