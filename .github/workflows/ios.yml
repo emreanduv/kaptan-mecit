@@ -28,18 +28,40 @@ jobs:
         run: |
           mkdir -p ~/private_keys
           printf '%s' "$P8" > ~/private_keys/AuthKey_${{ env.ASC_KEY_ID }}.p8
+      - name: Sertifikaları listele (tanı)
+        run: |
+          pip3 install --quiet --break-system-packages pyjwt cryptography || pip3 install --quiet pyjwt cryptography
+          python3 - <<'PY'
+          import jwt, time, json, os, urllib.request
+          k=open(os.path.expanduser('~/private_keys/AuthKey_${{ env.ASC_KEY_ID }}.p8')).read()
+          t=jwt.encode({'iss':'${{ env.ASC_ISSUER_ID }}','exp':int(time.time())+600,'aud':'appstoreconnect-v1'},k,algorithm='ES256',headers={'kid':'${{ env.ASC_KEY_ID }}'})
+          r=urllib.request.Request('https://api.appstoreconnect.apple.com/v1/certificates?limit=200',headers={'Authorization':'Bearer '+t})
+          d=json.load(urllib.request.urlopen(r))
+          def api(u,body=None):
+              r=urllib.request.Request('https://api.appstoreconnect.apple.com/v1/'+u,data=json.dumps(body).encode() if body else None,headers={'Authorization':'Bearer '+t,'Content-Type':'application/json'})
+              return json.load(urllib.request.urlopen(r))
+          print('::warning::sertifika sayısı: %d'%len(d['data']))
+          b=api('bundleIds?filter[identifier]=com.anduv.kaptanmecit')['data']
+          if not b:
+              api('bundleIds',{'data':{'type':'bundleIds','attributes':{'identifier':'com.anduv.kaptanmecit','name':'Kaptan Mecit','platform':'IOS'}}})
+              print('::warning::bundle ID kaydedildi: com.anduv.kaptanmecit')
+          else:
+              print('::warning::bundle ID zaten kayıtlı: %s'%b[0]['id'])
+          apps=api('apps?filter[bundleId]=com.anduv.kaptanmecit')['data']
+          print('::warning::App Store Connect uygulama kaydı: %s'%([x['attributes']['name'] for x in apps] or 'YOK'))
+          PY
       - name: Arşivle
         working-directory: ios/App
         run: |
           xcodebuild -project App.xcodeproj -scheme App -configuration Release \
             -destination 'generic/platform=iOS' -archivePath $RUNNER_TEMP/KaptanMecit.xcarchive \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/private_keys/AuthKey_${{ env.ASC_KEY_ID }}.p8 \
-            -authenticationKeyID ${{ env.ASC_KEY_ID }} \
-            -authenticationKeyIssuerID ${{ env.ASC_ISSUER_ID }} \
             DEVELOPMENT_TEAM=${{ env.APPLE_TEAM_ID }} CODE_SIGN_STYLE=Automatic \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
             MARKETING_VERSION=${{ inputs.version_name }} CURRENT_PROJECT_VERSION=${{ github.run_number }} \
-            archive
+            archive > $RUNNER_TEMP/arsiv.log 2>&1 || {
+              grep -E 'error:|error |No Account|No profiles|requires a provisioning|bundle identifier' $RUNNER_TEMP/arsiv.log | sort -u | head -15 | while IFS= read -r l; do echo "::error::$l"; done
+              tail -5 $RUNNER_TEMP/arsiv.log | while IFS= read -r l; do echo "::warning::$l"; done
+              exit 1; }
       - name: App Store Connect'e yükle
         run: |
           cat > $RUNNER_TEMP/export.plist <<PL
@@ -57,4 +79,8 @@ jobs:
             -allowProvisioningUpdates \
             -authenticationKeyPath ~/private_keys/AuthKey_${{ env.ASC_KEY_ID }}.p8 \
             -authenticationKeyID ${{ env.ASC_KEY_ID }} \
-            -authenticationKeyIssuerID ${{ env.ASC_ISSUER_ID }}
+            -authenticationKeyIssuerID ${{ env.ASC_ISSUER_ID }} > $RUNNER_TEMP/export.log 2>&1 || {
+              grep -iE 'error|fail|No App|not found|provision|certificate' $RUNNER_TEMP/export.log | sort -u | head -20 | while IFS= read -r l; do echo "::error::$l"; done
+              tail -8 $RUNNER_TEMP/export.log | while IFS= read -r l; do echo "::warning::$l"; done
+              exit 1; }
+          tail -3 $RUNNER_TEMP/export.log
