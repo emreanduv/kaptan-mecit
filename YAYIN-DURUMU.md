@@ -6,7 +6,7 @@
 - iOS: dikey ekran, `ITSAppUsesNonExemptEncryption = NO`, ikonlar ve açılış ekranı
 - Android: dikey ekran, sürüm kodu/adı derleme akışından, ikonlar ve açılış ekranı
 - Ekran görüntüleri: `store/screenshots/` (Android 1080×1920), `store/screenshots-ios/` (iPhone 6.9" 1320×2868, iPad 13" 2064×2752)
-- Mağaza metinleri `store/magaza-metinleri.md` · Form cevapları `store/form-cevaplari.md` · Gizlilik politikası `store/gizlilik-politikasi.html`
+- Mağaza metinleri `store/magaza-metinleri.md` · Form cevapları `store/form-cevaplari.md` · Gizlilik politikası `store/gizlilik-politikasi.html` → yayında: https://claude.ai/artifact/9dcY3CsGCnidaUkQRDUhHB (Paylaş menüsünden herkese açık yapılmalı)
 - Pardus: `pardus/kaptan-mecit_1.0.0-1_all.deb` + kaynak paketi + `pardus/BASVURU.md`
 
 ## Yükleme (imza) anahtarı — KAYBETME

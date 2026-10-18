@@ -13,7 +13,7 @@
 - **Hedef kitle:** 13 yaş ve üzeri (13–15, 16–17, 18+). Çocuklara yönelik değil.
 - **Veri güvenliği:** Uygulama kullanıcı verisi toplamıyor ya da paylaşmıyor → "Hayır".
 - **Haber / sağlık / finans / devlet uygulaması:** Hayır
-- **Gizlilik politikası URL'si:** `gizlilik-politikasi.html` sayfasının herkese açık linki
+- **Gizlilik politikası URL'si:** https://claude.ai/artifact/9dcY3CsGCnidaUkQRDUhHB (Paylaş menüsünden herkese açık yapılmalı)
 - **Mağaza kaydı:** `magaza-metinleri.md` · ikon `play-icon-512.png` · öne çıkan görsel `../assets/feature-graphic.png` · ekran görüntüleri `screenshots/`
 - **Kategori:** Oyun → Spor · Etiketler: Futbol, Spor, Arcade
 - **İletişim e-postası:** emreanduvart@gmail.com
