@@ -1,0 +1,50 @@
+#!/usr/bin/python3
+# Kaptan Mecit başlatıcısı: oyunu (tek HTML dosyası) WebKitGTK penceresinde açar. İnternet gerekmez.
+import os
+import gi
+for v in ("4.1", "4.0"):
+    try:
+        gi.require_version("WebKit2", v)
+        break
+    except ValueError:
+        continue
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, Gdk, WebKit2  # noqa: E402
+
+HTML = "/usr/share/kaptan-mecit/www/index.html"
+DATA = os.path.join(os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")), "kaptan-mecit")
+
+
+def main():
+    os.makedirs(DATA, exist_ok=True)
+    dm = WebKit2.WebsiteDataManager(base_data_directory=DATA, base_cache_directory=os.path.join(DATA, "cache"))
+    ctx = WebKit2.WebContext.new_with_website_data_manager(dm)
+    view = WebKit2.WebView.new_with_context(ctx)
+    s = view.get_settings()
+    s.set_enable_developer_extras(False)
+    s.set_enable_html5_local_storage(True)
+    s.set_media_playback_requires_user_gesture(False)
+    view.connect("context-menu", lambda *a: True)
+
+    win = Gtk.Window(title="Kaptan Mecit")
+    win.set_default_size(480, 860)
+    win.set_icon_name("kaptan-mecit")
+    win.add(view)
+    win.connect("destroy", Gtk.main_quit)
+    state = {"full": False}
+
+    def on_key(_w, ev):
+        if ev.keyval == Gdk.KEY_F11:
+            state["full"] = not state["full"]
+            (win.fullscreen if state["full"] else win.unfullscreen)()
+            return True
+        return False
+
+    win.connect("key-press-event", on_key)
+    view.load_uri("file://" + HTML)
+    win.show_all()
+    Gtk.main()
+
+
+if __name__ == "__main__":
+    main()

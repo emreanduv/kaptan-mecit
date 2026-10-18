@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.anduv.kaptanmecit</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later AND OFL-1.1</project_license>
+  <name>Kaptan Mecit</name>
+  <summary>Top-down retro football</summary>
+  <summary xml:lang="tr">Üstten görünümlü nostaljik futbol</summary>
+  <developer id="com.anduv">
+    <name>Mr. Anduv!</name>
+  </developer>
+  <description>
+    <p>Kaptan Mecit is a fast, pixel-art, top-down football game. Play 11-a-side matches against the computer, or run a 38-week league career with one of 120 fictional clubs in six leagues. Works fully offline, without ads or data collection.</p>
+    <p xml:lang="tr">Kaptan Mecit, pixel çizimli, üstten görünümlü, hızlı bir futbol oyunu. Bilgisayara karşı 11'e 11 maç yap ya da altı ligdeki 120 kurmaca kulüpten biriyle 38 haftalık lig kariyerine çık. İnternet gerekmez; reklam yok, veri toplanmaz.</p>
+    <ul>
+      <li>Quick match with any two of 120 fictional clubs</li>
+      <li xml:lang="tr">120 kurmaca kulüpten istediğin ikisiyle hızlı maç</li>
+      <li>League career: 6 leagues, 20 clubs each, table, fixtures and top scorers</li>
+      <li xml:lang="tr">Lig kariyeri: 6 lig, her ligde 20 kulüp, puan durumu, fikstür ve gol krallığı</li>
+      <li>Keyboard controls: arrow keys to run, X to pass, Z to shoot</li>
+      <li xml:lang="tr">Klavye: ok tuşları koş, X pas, Z şut</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">kaptan-mecit.desktop</launchable>
+  <url type="homepage">https://emreanduv.github.io/</url>
+  <content_rating type="oars-1.1"/>
+  <categories>
+    <category>Game</category>
+    <category>SportsGame</category>
+  </categories>
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+    <control>touch</control>
+  </supports>
+  <provides>
+    <binary>kaptan-mecit</binary>
+  </provides>
+  <releases>
+    <release version="1.0.0" date="2026-10-18"/>
+  </releases>
+</component>

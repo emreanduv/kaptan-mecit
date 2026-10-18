@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Kaptan Mecit
+GenericName=Football Game
+GenericName[tr]=Futbol Oyunu
+Comment=Top-down retro football
+Comment[tr]=Üstten görünümlü nostaljik futbol
+Exec=kaptan-mecit
+Icon=kaptan-mecit
+Terminal=false
+Categories=Game;SportsGame;
+Keywords=football;soccer;retro;futbol;lig;
+StartupWMClass=kaptan-mecit

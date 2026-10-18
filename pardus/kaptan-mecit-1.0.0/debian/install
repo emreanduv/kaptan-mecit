@@ -1,0 +1,9 @@
+bin/kaptan-mecit usr/games
+www/index.html usr/share/kaptan-mecit/www
+data/kaptan-mecit.desktop usr/share/applications
+data/com.anduv.kaptanmecit.metainfo.xml usr/share/metainfo
+data/icons/48x48/kaptan-mecit.png usr/share/icons/hicolor/48x48/apps
+data/icons/64x64/kaptan-mecit.png usr/share/icons/hicolor/64x64/apps
+data/icons/128x128/kaptan-mecit.png usr/share/icons/hicolor/128x128/apps
+data/icons/256x256/kaptan-mecit.png usr/share/icons/hicolor/256x256/apps
+data/icons/512x512/kaptan-mecit.png usr/share/icons/hicolor/512x512/apps

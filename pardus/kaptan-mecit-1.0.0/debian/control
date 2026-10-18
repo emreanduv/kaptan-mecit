@@ -1,0 +1,20 @@
+Source: kaptan-mecit
+Section: games
+Priority: optional
+Maintainer: Emre Anduv <emreanduvart@gmail.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+
+Package: kaptan-mecit
+Architecture: all
+Depends: ${misc:Depends},
+         python3,
+         python3-gi,
+         gir1.2-gtk-3.0,
+         gir1.2-webkit2-4.1 | gir1.2-webkit2-4.0
+Description: top-down retro football game
+ Kaptan Mecit is a fast, pixel-art, top-down football game. Play
+ 11-a-side matches against the computer, or run a 38-week league career
+ with one of 120 fictional clubs in six leagues. The game works fully
+ offline, has no ads and collects no data. The interface is in Turkish.

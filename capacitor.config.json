@@ -1,0 +1,8 @@
+{
+  "appId": "com.anduv.kaptanmecit",
+  "appName": "Kaptan Mecit",
+  "webDir": "www",
+  "backgroundColor": "#0d2416",
+  "android": { "backgroundColor": "#0d2416" },
+  "ios": { "backgroundColor": "#0d2416", "contentInset": "never" }
+}
