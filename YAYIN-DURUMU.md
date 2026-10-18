@@ -14,12 +14,21 @@
 - SHA-256: DC:58:9E:56:6F:47:D3:90:5F:8B:D3:E5:F2:42:34:93:45:0B:7B:1E:87:34:3F:5B:9A:D8:AD:54:0C:46:AB:C3
 - Google Drive'a yedekle
 
-## Sıradaki adımlar
-1. GitHub: `emreanduv/kaptan-mecit` deposu + `ASC_KEY_P8` secret'ı (Malazgirt ile aynı Apple anahtarı)
-2. App Store Connect: yeni uygulama "Kaptan Mecit" (`com.anduv.kaptanmecit`)
-3. Actions → iOS → 1.0.0 → TestFlight → testçiler → incelemeye gönder
-4. Actions → Android → 1.0.0 → `.aab` imzala → Play Console'da yeni uygulama → kapalı test
-5. Pardus: GitHub deposu herkese açık olunca `pardus/BASVURU.md` metniyle talep.pardus.org.tr'ye başvur
+## Mağaza durumu
+**App Store Connect** — uygulama kimliği `6824240380`
+- Build 2 (1.0.0) yüklendi, sürüme bağlandı; metinler, ekran görüntüleri, yaş derecelendirmesi, fiyat, kategori tamam
+- App Privacy: "Data Not Collected" yayımlandı
+- TestFlight: "Mr. Anduv! Ekibi" (dahili) + "Mr. Anduv! Testçiler" (harici) — build 2 beta incelemesinde
+- KALAN (Emre): sürüm sayfasında **Add for Review → Submit**
+
+**Google Play Console** — uygulama kimliği `4974040305096795281`
+- Dahili test 1.0.0 (2) yayında ("Kaptan Mecit Testçiler")
+- Uygulama içeriği beyanlarının hepsi, mağaza girişi (metin, ikon, özellik grafiği, 5 ekran görüntüsü) tamam
+- Kapalı test (Alpha): Türkiye, "Kaptan Mecit Testçiler" listesi, 1.0.0 (2) sürümü hazır
+- KALAN (Emre): Yayın özeti → **15 değişikliği incelemeye gönder**
+- Üretim için: en az 12 testçi, 14 gün kapalı test → "Üretime başvur"
+
+**Pardus** — beklemede (`pardus/BASVURU.md`)
 
 ## Güncelleme çıkarma
 1. `www/index.html` değişir → `kaptanmecit.html` (Champion) ve `pardus/` kopyası da güncellenir → GitHub'a gönder.
