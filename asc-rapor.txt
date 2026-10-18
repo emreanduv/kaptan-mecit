@@ -1,0 +1,57 @@
+OK app 6824240380
+HATA PATCH v1/appInfos/f7993594-24e7-4575-af29-84cbd7cba171 -> 409 {
+  "errors" : [ {
+    "id" : "cf70dbbf-81a4-46d3-b852-a6b30605c404",
+    "status" : "409",
+    "code" : "ENTITY_ERROR.RELATIONSHIP.INVALID",
+    "title" : "The provided entity includes a relationship with an invalid value",
+    "source" : {
+      "pointer" : "/data/relationships/primarySubcategoryTwo"
+    }
+  } ]
+}
+OK app bilgisi tr
+OK app bilgisi en-US
+yaş alanları: {"advertising": null, "alcoholTobaccoOrDrugUseOrReferences": null, "contests": null, "gambling": null, "gamblingSimulated": null, "gunsOrOtherWeapons": null, "healthOrWellnessTopics": null, "kidsAgeBand": null, "lootBox": null, "medicalOrTreatmentInformation": null, "messagingAndChat": null, "parentalControls": null, "profanityOrCrudeHumor": null, "ageAssurance": null, "sexualContentGraphicAndNudity": null, "sexualContentOrNudity": null, "socialMedia": null, "socialMediaAgeRestricted": null, "horrorOrFearThemes": null, "matureOrSuggestiveThemes": null, "unrestrictedWebAccess": null, "userGeneratedContent": null, "violenceCartoonOrFantasy": null, "violenceRealisticProlongedGraphicOrSadistic": null, "violenceRealistic": null, "ageRatingOverride": "NONE", "ageRatingOverrideV2": "NONE", "koreaAgeRatingOverride": "NONE", "gracRatingClassificationNumber": null, "developerAgeRatingInfoUrl": null}
+OK yaş derecelendirmesi: hepsi yok (4+)
+OK sürüm metni tr
+OK sürüm metni en-US
+OK tr iPhone: 5 görsel
+OK tr iPad: 5 görsel
+OK en-US iPhone: 5 görsel
+OK en-US iPad: 5 görsel
+OK fiyat: ücretsiz
+HATA GET v1/apps/6824240380/appAvailabilityV2 -> 404 {
+  "errors" : [ {
+    "id" : "1e8874b6-12cf-428b-a5e5-97db0ff74d64",
+    "status" : "404",
+    "code" : "NOT_FOUND",
+    "title" : "The specified resource does not exist",
+    "detail" : "There is no resource of type 'appAvailabilities' with id '6824240380'"
+  } ]
+}
+OK inceleme iletişim bilgisi (Malazgirt ile aynı)
+OK son build 2 durum VALID
+OK build sürüme bağlandı
+HATA PATCH v1/builds/0b4881a7-9963-4131-91e3-b6792d38ae24 -> 409 {
+  "errors" : [ {
+    "id" : "1b1d7afe-40c7-4ef1-aa1f-f23de0a8caa7",
+    "status" : "409",
+    "code" : "ENTITY_ERROR.ATTRIBUTE.INVALID",
+    "title" : "The provided entity includes an attribute with an invalid value",
+    "detail" : "You cannot update when the value is already set.",
+    "source" : {
+      "pointer" : "/data/attributes/usesNonExemptEncryption"
+    }
+  } ]
+}
+OK Malazgirt grubu Mr. Anduv! Ekibi internal=True publicLink=None testçi=['emreanduv@hotmail.com']
+OK Malazgirt grubu Arkadaşlar internal=False publicLink=True testçi=['zeynepbayramcavus@icloud.com']
+OK Malazgirt grubu Mr. Anduv! Testçiler internal=False publicLink=False testçi=['mebayramcavus@icloud.com', 'zeynepbayramcavus@icloud.com', 'mbayramcavus@icloud.com', 'emreanduv@hotmail.com']
+OK Kaptan Mecit grupları: []
+OK testçi eklendi emreanduv@hotmail.com
+OK TestFlight dış test incelemesine gönderildi
+OK testçi eklendi emreanduv@hotmail.com
+OK testçi eklendi zeynepbayramcavus@icloud.com
+OK testçi eklendi mbayramcavus@icloud.com
+OK testçi eklendi mebayramcavus@icloud.com
