@@ -10,9 +10,10 @@
 - 20 Eki taktik motoru (Emre'nin ideal 11'inden rol şablonları, oyunda isimler kurgusal): 4-2-3-1 — 1 oyunu kuran/süpürücü kaleci, 2 ve 3 bindiren bekler, 4 sert stoper, 5 oyun kuran stoper, 6 baskıcı dinamo, 8 box-to-box, 7 içe/dışa sağ açık, 10 hatlar arası oyun kurucu, 9 içeri kayan ikinci forvet, 11 hedef santrfor; blok topa ve topa sahipliğe göre yükselir (topa sahipken stoperler orta sahaya), kontra/organize atak, orta + kafa, kalecinin kısa oyun kurması; devre arasında kaleler değişir (Dinamik kamera döner); kaleci kurtarışı güçlendi; Zor bir tık yumuşadı
 - 20 Eki gece: taktik motorlu 1.1.0 (6) — iOS TestFlight (iki grup, Testing) + Android dahili test yayında (`imza-anahtari/kaptan-mecit-1.1.0-6-imzali.aab`)
 - 20 Eki stadyum mimarisi (kulüp teması yok, yalnız mimari his): sahaya yakın dik iki katlı tribünler + camlı loca kuşağı, kapalı köşeler, çelik makaslı çatı + saçak projektörleri, kuzey kale arkasında tek parça dev tribün; dört çizim motorunda (Klasik piksel, Dinamik/Tele, TV şeritleri, Stadyum 3D + pilonlar); atletizm pisti kaldırıldı
+- 20 Eki gece: tek yayın motorlu 1.1.0 (9) — Dinamik/Tele/Stadyum TV motorunun çatalı, Three.js kaldırıldı; iOS TestFlight dış grup (beta onaylı) + Android dahili test yayında (`imza-anahtari/kaptan-mecit-1.1.0-9-imzali.aab`)
 - 20 Eki: LED panolu 1.1.0 (8) — iOS TestFlight dış grup (beta onaylı, API ile: `testflight.yml`) + Android dahili test yayında (`imza-anahtari/kaptan-mecit-1.1.0-8-imzali.aab`)
 - 20 Eki gece: stadyumlu 1.1.0 (7) — iOS TestFlight (iki grup, Testing) + Android dahili test yayında (`imza-anahtari/kaptan-mecit-1.1.0-7-imzali.aab`)
-- Plan aynı: 1.0.0 onayları gelince 1.1.0 (8) mağaza incelemesine (App Store: yeni sürüm 1.1.0 + build 8; Play: kapalı teste terfi / üretim)
+- Plan aynı: 1.0.0 onayları gelince 1.1.0 (9) mağaza incelemesine (App Store: yeni sürüm 1.1.0 + build 9; Play: kapalı teste terfi / üretim)
 - Champion Battle Manager: `champion-battle` dalındaki motor güncel, yeni TestFlight derlemesi alınmadı
 - Topsuz oyun yapay zekası (koşular, pas açıları, bindirme, adam adama savunma; zorluğa bağlı)
 - Golde seyirciler tek tek coşar; panolarda yalnız kamu yararına çalışan kuruluşlar (TÜBİTAK, Pardus, Kızılay, Yeşilay her maçta)
