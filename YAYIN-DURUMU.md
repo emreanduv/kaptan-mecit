@@ -7,6 +7,7 @@
 - 20 Eki kamera denetimi: Dinamik/Tele'de kameranın arkasına taşan zemin parçaları hiç çizilmiyordu (köşelerde kara boşluk) → yakın düzlem kırpması; Klasik yatay ekranda (bilgisayar/Pardus/Champion) geniş görünüm; TV'de telefonda yakın taç çizgisi tuşların üstünde
 - 20 Eki gece: iOS 1.1.0 (5) TestFlight — "Mr. Anduv! Ekibi" + "Mr. Anduv! Testçiler" (Testing; beta incelemesi anında geçti)
 - 20 Eki gece: Android 1.1.0 (5) dahili testte yayında (`imza-anahtari/kaptan-mecit-1.1.0-5-imzali.aab`, imza SHA-256 DC:58:9E:56…)
+- 20 Eki taktik motoru (Emre'nin ideal 11'inden rol şablonları, oyunda isimler kurgusal): 4-2-3-1 — 1 oyunu kuran/süpürücü kaleci, 2 ve 3 bindiren bekler, 4 sert stoper, 5 oyun kuran stoper, 6 baskıcı dinamo, 8 box-to-box, 7 içe/dışa sağ açık, 10 hatlar arası oyun kurucu, 9 içeri kayan ikinci forvet, 11 hedef santrfor; blok topa ve topa sahipliğe göre yükselir (topa sahipken stoperler orta sahaya), kontra/organize atak, orta + kafa, kalecinin kısa oyun kurması; devre arasında kaleler değişir (Dinamik kamera döner); kaleci kurtarışı güçlendi; Zor bir tık yumuşadı
 - Plan aynı: 1.0.0 onayları gelince 1.1.0 (5) mağaza incelemesine (App Store: yeni sürüm 1.1.0 + build 5; Play: kapalı teste terfi / üretim)
 - Champion Battle Manager: `champion-battle` dalındaki motor güncel, yeni TestFlight derlemesi alınmadı
 - Topsuz oyun yapay zekası (koşular, pas açıları, bindirme, adam adama savunma; zorluğa bağlı)
