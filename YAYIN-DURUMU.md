@@ -2,7 +2,9 @@
 
 ## 1.1.0 (hazırlanıyor)
 - Beş kamera: Klasik, Dinamik, Tele, Stadyum (3D, `www/three.min.js` — Three.js r128, MIT), TV (20 Eki: kenardan dümdüz yayın açısı, gölgeli çizim oyuncular, kontrol edilen oyuncunun adı; 2D tuval, Three.js gerekmez)
-- 20 Eki: TV kamerası eklendi → yeni derlemeler (iOS/Android 1.1.0) henüz alınmadı; Pardus paketi bu değişikliği içermiyor
+- 20 Eki: TV kamerası eklendi; Pardus paketi bu değişikliği içermiyor
+- 20 Eki oynanış denetimi (hızlandırılmış simülasyon): topla çizgi dışına/kaleye sürünce oyun durmuyordu → taç/aut/korner/gol; kaleci çerçeve dışı şutları da tutuyordu, şutlar hiç üstten gitmiyordu → maçlarda neredeyse hiç korner/aut yoktu, düzeltildi; pas ve şutta baskı altında sapma; duran topta itilen rakipler saha içinde
+- 20 Eki kamera denetimi: Dinamik/Tele'de kameranın arkasına taşan zemin parçaları hiç çizilmiyordu (köşelerde kara boşluk) → yakın düzlem kırpması; Klasik yatay ekranda (bilgisayar/Pardus/Champion) geniş görünüm; TV'de telefonda yakın taç çizgisi tuşların üstünde
 - Topsuz oyun yapay zekası (koşular, pas açıları, bindirme, adam adama savunma; zorluğa bağlı)
 - Golde seyirciler tek tek coşar; panolarda yalnız kamu yararına çalışan kuruluşlar (TÜBİTAK, Pardus, Kızılay, Yeşilay her maçta)
 - Yenilikler metni: `store/magaza-metinleri.md` → "Bu sürümde yenilikler (1.1.0)"
