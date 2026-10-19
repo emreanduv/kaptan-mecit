@@ -384,7 +384,7 @@ function kitFor(A,B){ /* deplasman forması çakışırsa ikinci renk */
   if(cdist(a.c1,b.c1)<120){b={c1:B.c2,c2:B.c1};if(cdist(a.c1,b.c1)<120)b={c1:'#f4f4f4',c2:'#222222'};if(cdist(a.c1,b.c1)<120)b={c1:'#222222',c2:'#f4f4f4'}}
   return[a,b];
 }
-function startMatch(me,opp,career,demo,opts){opts=opts||{};
+function startMatch(me,opp,career,demo,opts){opts=opts||{};ledReset();
   SND.init();
   const [k0,k1]=kitFor(me,opp);
   const diff=S.set.diff;
@@ -436,6 +436,55 @@ const ADS_MUST=['PARDUS','TÜBİTAK','KIZILAY','YEŞİLAY'];
 function adPool(){const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
   const must=sh(ADS.filter(a=>ADS_MUST.includes(a[0]))),rest=sh(ADS.filter(a=>!ADS_MUST.includes(a[0])));
   const out=[];let r=0;must.forEach(m=>{out.push(m);if(rest[r])out.push(rest[r++])});while(r<rest.length)out.push(rest[r++]);return out}
+/* ===================== LED REKLAM PANOLARI =====================
+   Futbol Akışı yayınındaki "stadyum LED panosu" dili: koyu LED zemin, nokta ızgarası, solda renk şeridi,
+   marka kutusu, altın sarısı parlayan yazı; panolar 6 sn'de bir saha kenarı boyunca sırayla döner.
+   Bugün yalnız kamu yararına çalışan kurumlar; yarın sponsor eklemek için SPONSORLAR listesine bir satır yeter:
+     {ad:'MARKA', renk:'#1d8a4a', yazi:'#ffffff', alt:'KAMPANYA METNİ'}   (alt boşsa yalnız ad gösterilir) */
+const SPONSORLAR=[];
+const LED={pool:null,cv:[],key:[],dirty:[],t0:0,T:6};
+function ledItems(){return SPONSORLAR.map(s=>({ad:s.ad,bg:s.renk,fg:s.yazi||'#ffffff',alt:s.alt||''})).concat(adPool().map(([ad,bg,fg])=>({ad,bg,fg,alt:''})))}
+function ledReset(){LED.pool=ledItems();LED.key=[];LED.dirty=[];LED.t0=performance.now()/1000}
+function ledCanvas(i){let c=LED.cv[i];if(!c){c=LED.cv[i]=document.createElement('canvas');c.width=480;c.height=40;LED.key[i]=null;ledDraw(i,c,performance.now()/1000-LED.t0)}return c}
+function ledItem(i,k){const P=LED.pool,n=P.length+2,j=(i*5+k*3)%n;return j===P.length?{own:1}:j===P.length+1?{score:1}:P[j]}
+function ledTick(){if(!LED.pool)ledReset();const now=performance.now()/1000-LED.t0;for(let i=0;i<LED.cv.length;i++)if(LED.cv[i])ledDraw(i,LED.cv[i],now)}
+function ledDraw(i,c,now){
+  const goal=M&&M.state==='goal',tt=now-i*.14,k=Math.max(0,Math.floor(tt/LED.T)),ph=tt-k*LED.T,flip=goal?1:Math.min(1,Math.max(0,ph)/.55);
+  const it=goal?{gol:1}:ledItem(i,k);
+  const key=goal?'g'+(Math.floor(now*3)%2):k+'|'+Math.round(flip*10)+(it.score&&M?'|'+M.T[0].score+M.T[1].score+minute():'');
+  if(LED.key[i]===key)return;LED.key[i]=key;LED.dirty[i]=true;
+  const g=c.getContext('2d'),w=c.width,h=c.height,F='system-ui,-apple-system,Segoe UI,Arial,sans-serif',FC="'Arial Narrow','Roboto Condensed',"+F;
+  g.setTransform(1,0,0,1,0,0);g.fillStyle='#05100e';g.fillRect(0,0,w,h);
+  g.save();g.translate(0,h/2);g.scale(1,Math.max(.04,flip));g.translate(0,-h/2);
+  const rr=(x,y,ww,hh,r)=>{g.beginPath();g.moveTo(x+r,y);g.arcTo(x+ww,y,x+ww,y+hh,r);g.arcTo(x+ww,y+hh,x,y+hh,r);g.arcTo(x,y+hh,x,y,r);g.arcTo(x,y,x+ww,y,r);g.closePath()};
+  const glow=(t,x,y,size,al)=>{g.font=`800 ${size}px ${FC}`;g.textAlign=al||'left';g.textBaseline='middle';g.shadowColor='rgba(255,210,63,.75)';g.shadowBlur=9;g.fillStyle='#ffd23f';g.fillText(t,x,y);g.shadowBlur=0};
+  if(it.gol){const on=Math.floor(now*3)%2;g.fillStyle=on?'#c3271c':'#05100e';g.fillRect(0,0,w,h);
+    glow('GOOOL!',w*.27,h/2+1,36,'center');g.font=`900 24px ${F}`;g.fillStyle='#fff';g.textAlign='center';
+    g.fillText(M?`${M.T[0].t.short} ${M.T[0].score}-${M.T[1].score} ${M.T[1].t.short}`:'',w*.72,h/2+1)}
+  else if(it.own){rr(4,4,w-8,h-8,6);const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#173b40');gr.addColorStop(1,'#0b1e22');g.fillStyle=gr;g.fill();
+    g.lineWidth=2.5;g.strokeStyle='#ed713c';g.stroke();
+    g.fillStyle='#f4f4f4';g.beginPath();g.arc(w/2-112,h/2,11,0,6.283);g.fill();g.fillStyle='#1d1d1d';g.beginPath();g.arc(w/2-112,h/2,4,0,6.283);g.fill();
+    g.font=`900 27px ${F}`;g.fillStyle='#fff';g.textAlign='left';g.textBaseline='middle';g.fillText('KAPTAN MECİT',w/2-92,h/2+1)}
+  else if(it.score){rr(4,4,w-8,h-8,6);const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#1d3f2f');gr.addColorStop(1,'#0f2a1f');g.fillStyle=gr;g.fill();g.lineWidth=2.5;g.strokeStyle='#2fa45f';g.stroke();
+    if(M){const kit=(T,x)=>{const gk=g.createLinearGradient(x,0,x+60,0);gk.addColorStop(0,T.kit.c1);gk.addColorStop(.78,T.kit.c1);gk.addColorStop(.78,T.kit.c2);gk.addColorStop(1,T.kit.c2);
+        rr(x,9,60,22,5);g.fillStyle=gk;g.fill();g.font=`900 15px ${F}`;g.fillStyle=lum(T.kit.c1)>150?'#111':'#fff';g.textAlign='center';g.fillText(T.t.short,x+24,h/2+1,44)};
+      kit(M.T[0],78);glow(`${M.T[0].score}-${M.T[1].score}`,w/2-10,h/2+1,30,'center');kit(M.T[1],w/2+40);glow(`${minute()}'`,w-60,h/2+1,24,'center')}}
+  else{const bg=it.bg,strip=lum(bg)>225?it.fg:bg;
+    g.fillStyle=strip;g.fillRect(4,4,8,h-8);g.fillRect(w-12,4,8,h-8);
+    let fz=28;g.font=`900 ${fz}px ${F}`;while(g.measureText(it.ad).width>w-(it.alt?250:90)&&fz>14){fz--;g.font=`900 ${fz}px ${F}`}const tw=g.measureText(it.ad).width;
+    if(it.alt){rr(20,4,tw+28,h-8,5);g.fillStyle=bg;g.fill();g.fillStyle=it.fg;g.textAlign='left';g.textBaseline='middle';g.fillText(it.ad,34,h/2+1);
+      let fs=26;g.font=`800 ${fs}px ${FC}`;while(g.measureText(it.alt).width>w-tw-90&&fs>12){fs--;g.font=`800 ${fs}px ${FC}`}glow(it.alt,tw+60,h/2+1,fs)}
+    else{const cw=Math.min(w-40,tw+60);rr(w/2-cw/2,3,cw,h-6,6);g.fillStyle=bg;g.fill();g.lineWidth=2;g.strokeStyle='rgba(255,255,255,.35)';g.stroke();
+      g.fillStyle=it.fg;g.textAlign='center';g.textBaseline='middle';g.fillText(it.ad,w/2,h/2+1);
+      g.shadowColor=strip;g.shadowBlur=14;g.fillRect(w/2-cw/2+8,h-7,cw-16,1);g.shadowBlur=0}}
+  g.restore();
+  if(flip<1){g.fillStyle=`rgba(255,255,255,${.35*(1-flip)})`;g.fillRect(0,0,w,h)}
+  /* LED nokta ızgarası + parlama */
+  g.fillStyle='rgba(5,16,14,.42)';for(let x=3;x<w;x+=4)g.fillRect(x,0,1,h);for(let y=3;y<h;y+=4)g.fillRect(0,y,w,1);
+  const gl=g.createLinearGradient(0,0,0,h);gl.addColorStop(0,'rgba(255,255,255,.08)');gl.addColorStop(.45,'rgba(255,255,255,0)');gl.addColorStop(1,'rgba(0,0,0,.18)');g.fillStyle=gl;g.fillRect(0,0,w,h);
+  g.fillStyle='#0b1e22';g.fillRect(0,0,w,2);g.fillRect(0,h-2,w,2);
+}
+let KB2=[];
 function buildPitch2D(){
   const w=(PW+MRG*2)*SC,h=(PL+MRG*2)*SC,c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');
   const X=x=>Math.round((x+MRG)*SC),Y=y=>Math.round((y+MRG)*SC);
@@ -454,13 +503,10 @@ function buildPitch2D(){
   g.fillStyle='#2b6328';g.fillRect(X(IX0),Y(IY0),X(IX1)-X(IX0),Y(IY1)-Y(IY0));
   for(let i=0;i<15;i++){g.fillStyle=i%2?'#3c8a36':'#45983d';g.fillRect(X(-3),Y(i*7),X(PW+3)-X(-3),Y((i+1)*7)-Y(i*7))}
   /* reklam panoları: yalnız Türk devletine ve milletine faydalı kamu ürünleri ve kampanyaları (logo yok, yalnız yazı) */
-  const pool=adPool();let ai=0;
-  const band=(x0,y0,len,vert)=>{const n=Math.max(1,Math.round(len/35)),seg=len/n;for(let k=0;k<n;k++){const[t,bg,fg]=pool[ai++%pool.length];
-      const a=Math.round(k*seg*SC),w=Math.round(seg*SC)-2;g.fillStyle=bg;if(vert)g.fillRect(x0,y0+a,3*SC,w);else g.fillRect(x0+a,y0,w,3*SC);
-      g.save();g.fillStyle=fg;g.font="8px 'PS2P',monospace";g.textAlign='center';g.textBaseline='middle';
-      if(vert){g.translate(x0+6,y0+a+w/2);g.rotate(-Math.PI/2)}else g.translate(x0+a+w/2,y0+6.5);
-      g.fillText(t,0,0);g.restore()}};
-  band(X(-1),Y(-7),PW+2,false);band(X(-1),Y(PL+4),PW+2,false);band(X(-8),Y(-1),PL+2,true);band(X(PW+5),Y(-1),PL+2,true);
+  KB2=[];
+  const band=(x0,y0,len,vert)=>{const n=Math.max(1,Math.round(len/35)),seg=len/n;for(let k=0;k<n;k++){
+      const a=Math.round(k*seg*SC),w=Math.round(seg*SC)-2;KB2.push(vert?{x:x0,y:y0+a,len:w,vert:1,i:KB2.length}:{x:x0+a,y:y0,len:w,vert:0,i:KB2.length})}};
+band(X(-1),Y(-7),PW+2,false);band(X(-1),Y(PL+4),PW+2,false);band(X(-8),Y(-1),PL+2,true);band(X(PW+5),Y(-1),PL+2,true);
   g.fillStyle='#f2f2ea';
   const L=(x0,y0,x1,y1)=>{g.fillRect(Math.min(X(x0),X(x1)),Math.min(Y(y0),Y(y1)),Math.abs(X(x1)-X(x0))||1,Math.abs(Y(y1)-Y(y0))||1)};
   const rect=(x0,y0,x1,y1)=>{L(x0,y0,x1,y0);L(x0,y1,x1+1/SC,y1);L(x0,y0,x0,y1);L(x1,y0,x1,y1)};
@@ -1006,6 +1052,10 @@ function draw2D(){
   const ox=sp(IW/2-(cam.x+MRG)*SC),oy=sp(IH/2-(cam.y+MRG)*SC);
   g.fillStyle='#1d3b1c';g.fillRect(0,0,IW,IH);
   g.drawImage(pitchImg,ox,oy);
+  /* LED panolar (her kare; dönen reklamlar) */
+  g.imageSmoothingEnabled=true;for(const B of KB2){const c=ledCanvas(B.i),th=3*SC;
+    if(B.vert){g.save();g.translate(ox+B.x,oy+B.y+B.len);g.rotate(-Math.PI/2);g.drawImage(c,0,0,B.len,th);g.restore()}else g.drawImage(c,ox+B.x,oy+B.y,B.len,th)}
+  g.imageSmoothingEnabled=false;
   const W=(x,y)=>[sp(IW/2+(x-cam.x)*SC),sp(IH/2+(y-cam.y)*SC)];
   const b=M.ball;
   const ents=M.P.map(p=>({y:p.y,p}));ents.push({y:b.y+.01,ball:true});ents.sort((a,c)=>a.y-c.y);
@@ -1085,7 +1135,7 @@ function camera(dt){const m=camMode();if(m===0)return camera2D(dt);if(m===4)retu
   if(m===1){tx=clamp(b.x,10,PW-10);ty=clamp(b.y+(b.owner?fwdOf(b.owner.team)*6:0),4,PL-2)}
   else{tx=clamp(b.x*.75+PW/2*.25+6,18,60);ty=clamp(b.y+(b.owner?fwdOf(b.owner.team)*7:0),8,PL-8)}
   const k=Math.min(1,dt*3.5);M.cam.x+=(tx-M.cam.x)*k;M.cam.y+=(ty-M.cam.y)*k}
-function draw(){const m=camMode();if(m===0)draw2D();else if(m===3)drawGL();else if(m===4)drawTV();else draw3D()}
+function draw(){ledTick();const m=camMode();if(m===0)draw2D();else if(m===3)drawGL();else if(m===4)drawTV();else draw3D()}
 
 /* ===================== TV KAMERASI (yayın açısı) ===================== */
 /* 5. kamera: yakın tribünün üstünden dümdüz yayın açısı; saha boyu yatay, sen sağa hücum ediyorsun. */
@@ -1103,15 +1153,9 @@ function tvResize(W,H){
 function buildTV(){
   const ppm=14,u0=-34,L=PL+68,w=Math.round(L*ppm);
   const SH=17;
-  /* uzak kenar reklam panoları (yalnız kamu kurumları, tekil ad) */
-  const bd=document.createElement('canvas');bd.width=w;bd.height=Math.round(ppm*1.1);const b=bd.getContext('2d');
-  const pool=adPool();
-  const seg=13*ppm;let i=0;for(let x=0;x<w;x+=seg,i++){const[t,bg,fg]=pool[i%pool.length];
-    b.fillStyle=bg;b.fillRect(x,0,seg-3,bd.height);b.fillStyle='rgba(255,255,255,.18)';b.fillRect(x,0,seg-3,2);b.fillStyle='rgba(0,0,0,.25)';b.fillRect(x,bd.height-2,seg-3,2);
-    b.fillStyle=fg;let fs=Math.round(bd.height*.62);b.font=`900 ${fs}px system-ui,-apple-system,Segoe UI,Arial,sans-serif`;
-    while(b.measureText(t).width>seg-14&&fs>6){fs--;b.font=`900 ${fs}px system-ui,-apple-system,Segoe UI,Arial,sans-serif`}
-    b.textAlign='center';b.textBaseline='middle';b.fillText(t,x+(seg-3)/2,bd.height/2+1)}
-  tvImg={boards:bd,ppm,u0,L,SH,pool,std:buildStadium({W:1,N:1,S:1},.62,true,true)};
+  /* uzak kenar LED panoları: yalnız saha boyunca (kale arkası tribünlerine taşmaz) */
+  const boards=[],bu0=-STD.end+1.5,bu1=PL+STD.end-1.5,nb=Math.round((bu1-bu0)/13);for(let k=0;k<nb;k++)boards.push({u0:bu0+(bu1-bu0)*k/nb,u1:bu0+(bu1-bu0)*(k+1)/nb,i:k});
+  tvImg={boards,ppm,u0,L,SH,std:buildStadium({W:1,N:1,S:1},.62,true,true)};
 }
 function cameraTV(dt){
   const b=M.ball;const first=!M.tv;if(first)M.tv={u:PL/2,oy:0};const t=M.tv;
@@ -1137,7 +1181,7 @@ function drawTV(){
   /* stadyum: tribünler, loca kuşağı, çatı, saçak projektörleri (TV açısında tribünler biraz daha dik) */
   {const HK=1.25,pr=(x,y,z)=>tvP(x,y,z*HK);drawStadium(g,tvImg.std,pr,(pts,c)=>{g.beginPath();pts.forEach((p,i)=>{const q=pr(p[0],p[1],p[2]);i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1])});g.closePath();g.fillStyle=c;g.fill()},[PW+TVC.D,PL-M.tv.u],M.state==='goal',false)}
   /* uzak kenar panoları */
-  {const xb=-3,[a0,y0,s]=tvQ(xb,tvImg.u0,0),[a1]=tvQ(xb,tvImg.u0+tvImg.L,0);const h=1.1*s;g.drawImage(tvImg.boards,a0,y0-h,a1-a0,h)}
+  for(const B of tvImg.boards){const[a0,y0,s]=tvQ(-3,B.u0,0),[a1,y1,s1]=tvQ(-3,B.u1,0);const h=1.1*(s+s1)/2;g.drawImage(ledCanvas(B.i),a0,(y0+y1)/2-h,a1-a0-1,h)}
   /* saha çizgileri */
   const lw=Math.max(1,TVF*.13/(TVC.D+PW/2));g.strokeStyle='rgba(245,245,235,.92)';g.lineWidth=lw;g.lineJoin='round';
   const line=pts=>{g.beginPath();pts.forEach(([x,u],i)=>{const[a,c]=tvQ(x,u,0);i?g.lineTo(a,c):g.moveTo(a,c)});g.stroke()};
@@ -1329,7 +1373,9 @@ function drawStadium(g,ST,pr,poly,cam,cel,above){
       if(!q||q[0]<-4||q[0]>g.canvas.width+4||q[1]<-4||q[1]>g.canvas.height+4)continue;if(d[3]!==last){last=d[3];g.fillStyle=ST.cols[last]}
       const w=Math.max(1,.46*q[2]),h=Math.max(1.2,.62*q[2]);g.fillRect(q[0]-w/2,q[1]-h,w,h);
       if(ST.heads&&q[2]>9){g.fillStyle=d[4]<2?'#e0ac7e':d[4]<4?'#c68a5a':'#f1c9a5';g.fillRect(q[0]-w*.32,q[1]-h-.3*q[2],w*.64,.3*q[2]);g.fillStyle=ST.cols[last]}}};
-  const strip=a=>{for(const S of a){const A=pr(S.x,S.y0,S.z+.05),B=pr(S.x,S.y1,S.z+.05);if(!A||!B)continue;const H=1.05*A[2],x0=Math.min(A[0],B[0]),ww=Math.abs(B[0]-A[0]);if(x0>g.canvas.width||x0+ww<0)continue;g.drawImage(S.img,x0,A[1]-H,ww,H)}};
+  const strip=a=>{let r=0;for(const S of a){r++;const A=pr(S.x,S.y0,S.z+.05),B=pr(S.x,S.y1,S.z+.05);if(!A||!B)continue;const H=1.05*A[2],x0=Math.min(A[0],B[0]),ww=Math.abs(B[0]-A[0]);if(x0>g.canvas.width||x0+ww<0)continue;
+      if(!cel){g.drawImage(S.img,x0,A[1]-H,ww,H);continue} /* gol sevinci: maraton da kale arkası gibi zıplar */
+      const n=18,sw=S.img.width/n,dw=ww/n;for(let k=0;k<n;k++){const dy=Math.max(0,Math.sin(tt*(6.5+(k*7+r)%5*.4)+r*1.3+k*2.1))*.45*A[2];g.drawImage(S.img,k*sw,0,sw,S.img.height,x0+k*dw,A[1]-H-dy,dw+.5,H)}}};
   for(const o of sorted(L.upper)){poly(o.q,o.c);if(o.fans)dots(o.fans)}
   if(L.strips)strip(L.strips.up);
   for(const o of sorted(L.vip)){poly(o.q,o.c);if(o.win){g.fillStyle='#ffd98a';for(const w of o.win){const q=pr(...w);if(q){const ww=Math.max(1,1.1*q[2]),hh=Math.max(1,.9*q[2]);g.fillRect(q[0]-ww/2,q[1]-hh/2,ww,hh)}}}}
@@ -1351,10 +1397,9 @@ function resize3D(){
 }
 function buildPitch3D(){
   const m=camMode();
-  const pool=adPool();let ai=0;
   const boards=[];
   const band=(a,b,len)=>{const n=Math.max(1,Math.round(len/12));for(let k=0;k<n;k++){const t0=k/n,t1=(k+1)/n;
-    boards.push({a:[a[0]+(b[0]-a[0])*t0,a[1]+(b[1]-a[1])*t0],b:[a[0]+(b[0]-a[0])*t1,a[1]+(b[1]-a[1])*t1],len:len/n,ad:pool[ai++%pool.length]})}};
+    boards.push({a:[a[0]+(b[0]-a[0])*t0,a[1]+(b[1]-a[1])*t0],b:[a[0]+(b[0]-a[0])*t1,a[1]+(b[1]-a[1])*t1],len:len/n,i:boards.length})}};
   band([-2,-6],[PW+2,-6],PW+4);if(m===1)band([PW+2,PL+6],[-2,PL+6],PW+4);band([-5,PL+2],[-5,-2],PL+4);if(m===1)band([PW+5,-2],[PW+5,PL+2],PL+4);
   SCN={boards,mode:m,std:buildStadium(m===1?(M.flip?{W:1,E:1,S:1}:{W:1,E:1,N:1}):{W:1,N:1,S:1},1.2)}; /* Dinamik: kameranın arkasındaki tribün çizilmez */
   pitchImg=true;
@@ -1393,10 +1438,9 @@ function lines3(){
 }
 function drawBoard3(g,bd){
   const H=.95,A=P3(bd.a[0],bd.a[1],H),B=P3(bd.b[0],bd.b[1],H),C=P3(bd.a[0],bd.a[1],0);if(!A||!B||!C)return;
-  const S=100,len=bd.len*S,h=H*S,[t,bg,fg]=bd.ad;
+  const c=ledCanvas(bd.i),len=c.width,h=c.height;
   g.setTransform(DPR*(B.x-A.x)/len,DPR*(B.y-A.y)/len,DPR*(C.x-A.x)/h,DPR*(C.y-A.y)/h,DPR*A.x,DPR*A.y);
-  g.fillStyle=bg;g.fillRect(0,0,len,h);g.fillStyle='rgba(0,0,0,.18)';g.fillRect(0,h*.86,len,h*.14);
-  g.fillStyle=fg;g.font="44px 'PS2P',monospace";g.textAlign='center';g.textBaseline='middle';g.fillText(t,len/2,h*.52,len*.92);
+  g.drawImage(c,0,0);
   g.setTransform(DPR,0,0,DPR,0,0);
 }
 function draw3D(){
@@ -1553,10 +1597,10 @@ function buildPitchGL(){
     for(const[x,y]of[[0,0],[PW,0],[0,PL],[PW,PL]]){const pl=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,1.5,6),poleM);pl.position.set(x,.75,y);pl.castShadow=true;S3.add(pl);
       const f=new THREE.Mesh(fg,flagM);f.position.set(x,0,y);f.rotation.y=x<PW/2?0:Math.PI;S3.add(f)}}
   /* reklam panoları: aynı kamu listesi */
-  const pool=adPool();let ai=0;
-  const band=(a,b,len)=>{const n=Math.max(1,Math.round(len/12));for(let q=0;q<n;q++){const t0=q/n,t1=(q+1)/n,[t,bg,fg]=pool[ai++%pool.length];
+  R3.led=[];
+  const band=(a,b,len)=>{const n=Math.max(1,Math.round(len/12));for(let q=0;q<n;q++){const t0=q/n,t1=(q+1)/n,i=R3.led.length;
       const A=[a[0]+(b[0]-a[0])*t0,a[1]+(b[1]-a[1])*t0],B=[a[0]+(b[0]-a[0])*t1,a[1]+(b[1]-a[1])*t1];
-      const tex=texCanvas(512,40,(g,w,h)=>{g.fillStyle=bg;g.fillRect(0,0,w,h);g.fillStyle='rgba(255,255,255,.15)';g.fillRect(0,0,w,6);g.fillStyle=fg;g.font="22px 'PS2P',monospace";g.textAlign='center';g.textBaseline='middle';g.fillText(t,w/2,h/2+2,w*.92)});
+      const tex=new THREE.CanvasTexture(ledCanvas(i));tex.anisotropy=R3.renderer.capabilities.getMaxAnisotropy();R3.led.push({tex,i});
       S3.add(quadMesh([W3(A[0],A[1],0),W3(B[0],B[1],0),W3(B[0],B[1],.95),W3(A[0],A[1],.95)],new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide})))}};
   band([-5,PL+2],[-5,-2],PL+4);band([-2,-6],[PW+2,-6],PW+4);band([PW+2,PL+6],[-2,PL+6],PW+4);
   /* kaleler */
@@ -1670,6 +1714,7 @@ function drawGL(){
   const fx=Math.sin(VG.yaw),fy=-Math.cos(VG.yaw),cam=R3.camera;
   cam.position.set(M.cam.x-fx*VG.dist,VG.h,M.cam.y-fy*VG.dist);cam.lookAt(M.cam.x,.5,M.cam.y);
   if(R3.sun){R3.sun.position.set(M.cam.x-30,60,M.cam.y+22);R3.sun.target.position.set(M.cam.x,0,M.cam.y);R3.sun.target.updateMatrixWorld()}
+  if(R3.led)for(const L of R3.led)if(LED.dirty[L.i]){LED.dirty[L.i]=false;L.tex.needsUpdate=true}
   R3.renderer.render(R3.scene,cam);
   drawRadar3(cx);
 }
