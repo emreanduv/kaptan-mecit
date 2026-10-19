@@ -417,8 +417,9 @@ function kickoff(ti){
 }
 const Q2=3; /* Klasik görünüm: alt piksel konumlandırma katsayısı */
 function resize2D(){
-  const W=innerWidth,H=innerHeight;let aspect=H/W;if(aspect<1.35)aspect=1.35;if(aspect>2.3)aspect=2.3;
-  IW=168;IH=Math.round(IW*aspect);cv.width=IW*Q2;cv.height=IH*Q2;
+  const W=innerWidth,H=innerHeight;let aspect=H/W;if(aspect<.42)aspect=.42;if(aspect>2.3)aspect=2.3;
+  if(aspect>=1.35){IW=168;IH=Math.round(IW*aspect)}else{IH=240;IW=Math.round(IH/aspect)} /* yatay ekranda (bilgisayar, Pardus) geniş görünüm */
+  cv.width=IW*Q2;cv.height=IH*Q2;
   let cw=W,ch=W*aspect;if(ch>H){ch=H;cw=H/aspect}
   cv.style.width=cw+'px';cv.style.height=ch+'px';
 }
@@ -558,7 +559,7 @@ function btnLabels(){if(M.demo)return;const att=!!(M.ball.owner&&M.ball.owner.te
   $('#bPas span').innerHTML=(att?'PAS':'SEÇ')+'<small class="kb">X</small>';$('#bSut span').innerHTML=(att?'ŞUT':'KAY')+'<small class="kb">Z</small>';
   $('#bPas').classList.toggle('def',!att);$('#bSut').classList.toggle('def',!att)}
 function camera2D(dt){const b=M.ball,vw=IW/SC,vh=IH/SC;let tx=b.x,ty=b.y+(b.owner?fwdOf(b.owner.team)*6:0);
-  tx=clamp(tx,vw/2-4,PW-vw/2+4);ty=clamp(ty,vh*.2,PL-vh*.2);M.cam.x+=(tx-M.cam.x)*Math.min(1,dt*4);M.cam.y+=(ty-M.cam.y)*Math.min(1,dt*4)}
+  tx=vw>PW+8?PW/2:clamp(tx,vw/2-4,PW-vw/2+4);ty=clamp(ty,vh*.2,PL-vh*.2);M.cam.x+=(tx-M.cam.x)*Math.min(1,dt*4);M.cam.y+=(ty-M.cam.y)*Math.min(1,dt*4)}
 
 /* ---------- Kontrol değişimi ---------- */
 function updateCtrl(){
@@ -765,7 +766,7 @@ function doPass(p,dx,dy,target){
   if(!q){const n=Math.hypot(dx,dy)||1;release(p,dx/n*14,dy/n*14,.5);SND.kick(.6);return}
   const d=Math.hypot(q.x-p.x,q.y-p.y);const lead=clamp(d/16,.2,1.1);
   let tx=q.x+q.vx*lead,ty=q.y+q.vy*lead;const D=Math.hypot(tx-p.x,ty-p.y);
-  const T=M.T[p.team];const err=(1-T.skill)*D*.06;tx+=rand(-err,err);ty+=rand(-err,err);
+  const T=M.T[p.team];const[,odP]=nearestOpp(p);const err=(1-T.skill)*D*(D>22?.15:.08)*(odP<2.5?1.4:1);tx+=rand(-err,err);ty+=rand(-err,err);
   const ux=(tx-p.x)/D,uy=(ty-p.y)/D;
   let v,vz=0;
   if(D>22){vz=4.5+D*.07;const ta=2*vz/18;v=D/(ta+.75)}else v=clamp(D*1.1+3.5,8,25);
@@ -779,8 +780,9 @@ function doShoot(p,aimX){
   let ax=PW/2+(human?aimX*2.9:rand(-2.6,2.6));
   const gk=M.P.find(q=>q.team!==p.team&&q.role==='G');
   if(!human&&gk){ax=gk.x>PW/2?PW/2-rand(1.4,3.1):PW/2+rand(1.4,3.1)}
-  const acc=T.skill*(human?1.02:1);const err=(1.15-acc)*(1.2+dG*.11);ax+=rand(-err,err);
-  const tz=rand(.2,2.2);
+  const acc=T.skill*(human?1.02:1);const[,odS]=nearestOpp(p);const press=odS<2.5?1.35:1;
+  const err=(1.15-acc)*(1.2+dG*.13)*press;ax+=rand(-err,err)+(Math.random()<.12+(1-acc)*.3?rand(-1,1)*rand(2.5,5):0);
+  const tz=Math.random()<.1+dG*.006?rand(2.6,3.6):rand(.2,2.2);
   const dx=ax-p.x,dy=gy-p.y,d=Math.hypot(dx,dy);const v=22+T.str*.5;
   const t=d/v;const vz=(tz+9*t*t)/t;
   p.dx=dx/d;p.dy=dy/d;release(p,dx/d*v,dy/d*v,clamp(vz,1,8));M.ball.shot={team:p.team,t:0};SND.kick(1.2);
@@ -792,7 +794,7 @@ function movePlayer(p,dt){
   const T=M.T[p.team];let vx,vy;
   if(p.slide>0){p.slide-=dt;p.vx*=Math.pow(.15,dt);p.vy*=Math.pow(.15,dt);vx=p.vx;vy=p.vy;
     const b=M.ball;const d=Math.hypot(b.x-p.x,b.y-p.y);
-    if(d<1.45&&b.z<1&&b.owner!==p){if(b.owner&&b.owner.team!==p.team){const o=b.owner;o.stun=.8;o.cd=.9;b.owner=null}if(!b.owner){const hum=!M.demo&&p===M.ctrl;if(hum){take(p);p.won=1;SND.kick(.5)}else{b.vx=p.dx*5+rand(-1.5,1.5);b.vy=p.dy*5+rand(-1.5,1.5);b.vz=.8;b.lastTeam=p.team;b.last=p;b.intended=null;b.shot=null;SND.kick(.5)}}}
+    if(d<1.45&&b.z<1&&b.owner!==p){if(b.owner&&b.owner.team!==p.team){const o=b.owner;o.stun=.8;o.cd=.9;b.owner=null}if(!b.owner){const hum=!M.demo&&p===M.ctrl;if(hum){take(p);p.won=1;SND.kick(.5)}else{b.vx=p.dx*7+rand(-3,3);b.vy=p.dy*7+rand(-3,3);b.vz=.8;b.lastTeam=p.team;b.last=p;b.intended=null;b.shot=null;SND.kick(.5)}}}
     if(p.slide<=0){p.stun=M.ball.owner===p?0:.35;p.won=0}
   }else if(p.stun>0){vx=p.vx*.8;vy=p.vy*.8}
   else{
@@ -815,6 +817,8 @@ function separate(){const P=M.P;for(let i=0;i<P.length;i++)for(let j=i+1;j<P.len
 function ballStep(dt){
   const b=M.ball;
   if(b.owner){const p=b.owner;const ph=p.anim*1.6;const off=.62+Math.sin(ph)*.12;b.x=p.x+p.dx*off;b.y=p.y+p.dy*off;b.z=0;b.vx=p.vx;b.vy=p.vy;b.vz=0;b.lastTeam=p.team;b.last=p;
+    /* topla çizgiyi geçmek: taç / aut / korner, kale ağzından girerse gol */
+    if(!M.setPiece&&p.role!=='G'&&(b.x<-.15||b.x>PW+.15||b.y<-.15||b.y>PL+.15)){b.owner=null;b.kicker=p;if(outOfPlay(b))return}
     /* top kapma */
     for(const q of M.P){if(q.team===p.team||q.stun>0||q.slide>0||q.cd>0)continue;const d=Math.hypot(q.x-b.x,q.y-b.y);if(d<.85){
       const Tq=M.T[q.team],Tp=M.T[p.team];
@@ -835,30 +839,36 @@ function ballStep(dt){
     if(d<reach&&b.z<2.7){if(b.gkTried&&b.gkTried===g)continue;b.gkTried=g;
       const towards=g.team===0?b.vy>0:b.vy<0;const sp=Math.hypot(b.vx,b.vy);
       if(!towards||sp<9){take(g);return}
+      /* çerçeveyi bulmayacak şutu bırakır (direk dibinden geçmiyorsa) */
+      {const ly=ownGoalY(g.team),tt=(ly-b.y)/b.vy;if(tt>0&&tt<2){const xc=b.x+b.vx*tt,zc=b.z+b.vz*tt-9*tt*tt;if((xc<GX0-.35||xc>GX1+.35||zc>GH+.25)&&d>.6){b.gkTried=g;continue}}}
       const Tg=M.T[g.team];let ps=.48+Tg.skill*.36-(sp-20)*.012-(b.z>1.9?.12:0)+(d<.8?.18:0);if(Tg.human)ps+=[.14,.07,.02][M.diff];if(!Tg.human&&M.T[1-g.team].human)ps+=DIFF.gk[M.diff];
-      if(Math.random()<ps){if(sp<21&&Math.random()<.55){take(g);SND.ooh()}else{b.vx=-b.vx*.25+rand(-6,6);b.vy=-b.vy*.35;b.vz=2.5;b.shot=null;b.lastTeam=g.team;b.last=g;b.intended=null;SND.kick(.6);SND.ooh()}g.cd=.4;return}
+      if(Math.random()<ps){if(sp<21&&Math.random()<.55){take(g);SND.ooh()}
+        else if(Math.random()<.45){/* direğin yanından kornere çeler */const sx=b.x<PW/2?-1:1;b.vx=sx*rand(7,11);b.vy=b.vy*.35;b.vz=rand(1.5,3);b.shot=null;b.lastTeam=g.team;b.last=g;b.intended=null;SND.kick(.6);SND.ooh()}
+        else{b.vx=-b.vx*.25+rand(-6,6);b.vy=-b.vy*.35;b.vz=2.5;b.shot=null;b.lastTeam=g.team;b.last=g;b.intended=null;SND.kick(.6);SND.ooh()}g.cd=.4;return}
       else{g.cd=.6}}}
   /* gol / out */
-  const inGoalX=b.x>GX0&&b.x<GX1;
-  if(b.y<0||b.y>PL){
-    const ti=b.y<0?0:1; /* kim attı (bu kaleye hücum eden takım) */
-    if(inGoalX&&b.z<GH){const k=b.kicker;scoreGoal(ti,k&&k.team===ti?k:null,false,k&&k.team!==ti?k:null);return}
-    if(b.lastTeam===ti){goalKick(1-ti)}else cornerKick(ti,b.x<PW/2?0:PW);
-    return}
-  if(b.x<0||b.x>PW){throwIn(1-b.lastTeam,clamp(b.x,0,PW),clamp(b.y,1,PL-1));return}
+  if(outOfPlay(b))return;
   /* topu alma */
   let best=null,bd=1e9;
   for(const p of M.P){if(p.cd>0||p.stun>0||p.role==='G')continue;const d=Math.hypot(p.x-b.x,p.y-b.y);if(d<.95&&b.z<1.3&&d<bd){
       const sp=Math.hypot(b.vx,b.vy);if(sp>17&&p!==b.intended&&Math.random()>.12)continue;bd=d;best=p}}
   if(best){take(best);return}
 }
+function outOfPlay(b){
+  if(b.y<0||b.y>PL){
+    const ti=b.y<0?0:1; /* kim attı (bu kaleye hücum eden takım) */
+    if(b.x>GX0&&b.x<GX1&&b.z<GH){const k=b.kicker;scoreGoal(ti,k&&k.team===ti?k:null,false,k&&k.team!==ti?k:null);return true}
+    if(b.lastTeam===ti){goalKick(1-ti)}else cornerKick(ti,b.x<PW/2?0:PW);
+    return true}
+  if(b.x<0||b.x>PW){throwIn(1-b.lastTeam,clamp(b.x,0,PW),clamp(b.y,1,PL-1));return true}
+  return false}
 function take(p){const b=M.ball;b.owner=p;p.hold=0;b.intended=null;b.shot=null;b.vx=b.vy=b.vz=0;b.z=0;b.lastTeam=p.team;b.last=p;p.dec=rand(.15,.35)}
 function restart(ti,x,y,pickRole){
   const b=M.ball;b.vx=b.vy=b.vz=0;b.z=0;b.x=x;b.y=y;b.shot=null;b.intended=null;
   let p;if(pickRole==='G')p=M.P.find(q=>q.team===ti&&q.role==='G');else{p=null;let bd=1e9;for(const q of M.P)if(q.team===ti&&q.role!=='G'){const d=Math.hypot(q.x-x,q.y-y);if(d<bd){bd=d;p=q}}}
   p.x=x+(x<=0?-.4:x>=PW?.4:0);p.y=y+(y<=0?-.4:y>=PL?.4:0);p.vx=p.vy=0;
   /* rakipler 4 m uzaklaşsın */
-  for(const q of M.P){if(q.team===ti)continue;const d=Math.hypot(q.x-x,q.y-y);if(d<5){const ux=(q.x-x)/(d||1),uy=(q.y-y)/(d||1);q.x=x+ux*5;q.y=y+uy*5}}
+  for(const q of M.P){if(q.team===ti)continue;const d=Math.hypot(q.x-x,q.y-y);if(d<5){const ux=(q.x-x)/(d||1),uy=(q.y-y)/(d||1);q.x=clamp(x+ux*5,.5,PW-.5);q.y=clamp(y+uy*5,.5,PL-.5)}}
   const cx=PW/2,cy=y<PL/2?Math.max(y,10):Math.min(y,PL-10);const dx=cx-p.x,dy=cy-p.y,d=Math.hypot(dx,dy)||1;p.dx=dx/d;p.dy=dy/d;
   b.owner=p;p.hold=0;p.cd=0;b.lastTeam=ti;M.setPiece={p,t:0};
   if(p.team===0&&!M.demo)M.ctrl=p;
@@ -1047,7 +1057,7 @@ function cameraTV(dt){
   const tu=clamp(PL-b.y+lead,half-12,PL-half+12);
   const near=TVF*TVC.h/TVC.D,far=TVF*TVC.h/(TVC.D+PW+3);
   const toy0=IH*.56-TVF*TVC.h/(TVC.D+(PW-b.x));
-  const A=IH*.9-near,B=IH*.3-far;const toy=A>B?(A+B)/2:clamp(toy0,A,B);
+  const A=IH*(IH/IW>1.2?.8:.9)-near,B=IH*.3-far;const toy=A>B?(A+B)/2:clamp(toy0,A,B);
   if(first){t.u=tu;t.oy=toy;return}
   const k=Math.min(1,dt*3.2);t.u+=(tu-t.u)*k;t.oy+=(toy-t.oy)*k;
 }
@@ -1216,7 +1226,11 @@ function P3(x,y,z){
   const vx=x-V.px,vy=y-V.py,vz=z-V.pz,d=vx*V.fx+vy*V.fy+vz*V.fz;if(d<.5)return null;
   const s=FOC/d;return{x:VW/2+(vx*V.rx+vy*V.ry)*s,y:VH*V.cy-(vx*V.ux+vy*V.uy+vz*V.uz)*s,s,d};
 }
-function quad3(g,pts,fill){const q=pts.map(p=>P3(p[0],p[1],p[2]||0));if(q.some(v=>!v))return;
+function quad3(g,pts,fill){ /* kameranın arkasına taşan köşeleri yakın düzlemde kırp (yoksa zemin parçası hiç çizilmez, kara boşluk kalır) */
+  const dep=p=>(p[0]-V.px)*V.fx+(p[1]-V.py)*V.fy+(p[2]-V.pz)*V.fz,NEAR=.6,W=pts.map(p=>[p[0],p[1],p[2]||0]),C=[];
+  for(let i=0;i<W.length;i++){const a=W[i],b=W[(i+1)%W.length],da=dep(a),db=dep(b);if(da>=NEAR)C.push(a);
+    if((da>=NEAR)!==(db>=NEAR)){const t=(NEAR-da)/(db-da);C.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t])}}
+  if(C.length<3)return;const q=C.map(p=>P3(p[0],p[1],p[2]));if(q.some(v=>!v))return;
   g.beginPath();g.moveTo(q[0].x,q[0].y);for(let i=1;i<q.length;i++)g.lineTo(q[i].x,q[i].y);g.closePath();g.fillStyle=fill;g.fill()}
 function poly3(g,pts,w){let a=P3(pts[0][0],pts[0][1],pts[0][2]||0);
   for(let i=1;i<pts.length;i++){const b=P3(pts[i][0],pts[i][1],pts[i][2]||0);if(a&&b){g.lineWidth=Math.max(1,w*(a.s+b.s)/2);g.beginPath();g.moveTo(a.x,a.y);g.lineTo(b.x,b.y);g.stroke()}a=b}}
