@@ -1,7 +1,8 @@
 # Kaptan Mecit — Yayın durumu (18 Ekim 2026)
 
 ## 1.1.0 (hazırlanıyor)
-- Dört kamera: Klasik, Dinamik, Tele, Stadyum (3D, `www/three.min.js` — Three.js r128, MIT)
+- Beş kamera: Klasik, Dinamik, Tele, Stadyum (3D, `www/three.min.js` — Three.js r128, MIT), TV (20 Eki: kenardan dümdüz yayın açısı, gölgeli çizim oyuncular, kontrol edilen oyuncunun adı; 2D tuval, Three.js gerekmez)
+- 20 Eki: TV kamerası eklendi → yeni derlemeler (iOS/Android 1.1.0) henüz alınmadı; Pardus paketi bu değişikliği içermiyor
 - Topsuz oyun yapay zekası (koşular, pas açıları, bindirme, adam adama savunma; zorluğa bağlı)
 - Golde seyirciler tek tek coşar; panolarda yalnız kamu yararına çalışan kuruluşlar (TÜBİTAK, Pardus, Kızılay, Yeşilay her maçta)
 - Yenilikler metni: `store/magaza-metinleri.md` → "Bu sürümde yenilikler (1.1.0)"

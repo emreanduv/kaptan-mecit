@@ -42,7 +42,7 @@ Tüm kulüp ve oyuncu adları kurmacadır.
 Bir Mr. Anduv! yapımıdır.
 
 **Bu sürümde yenilikler (1.1.0) — App Store "Yenilikler" / Play "Sürüm notları" (en fazla 500 karakter)**
-Dört kamera geldi: Klasik, Dinamik, Tele ve 3D Stadyum. Kamerayı Ayarlar'dan ya da maç içinde duraklatıp değiştirebilirsin. Takım arkadaşların artık koşu yapıyor, pas için boşa çıkıyor; rakipler adam tutuyor, oyun daha canlı. Golde tribünler coşuyor. Panolarda yalnızca kamu yararına çalışan kurumlar var.
+Beş kamera geldi: Klasik, Dinamik, Tele, 3D Stadyum ve kenardan dümdüz yayın açısı TV. Kamerayı Ayarlar'dan ya da maç içinde duraklatıp değiştirebilirsin. Takım arkadaşların artık koşu yapıyor, pas için boşa çıkıyor; rakipler adam tutuyor, oyun daha canlı. Golde tribünler coşuyor. Panolarda yalnızca kamu yararına çalışan kurumlar var.
 
 ---
 
@@ -55,7 +55,7 @@ Top-down retro football: 6 leagues, 120 clubs, fully offline.
 Top-down retro football
 
 **Full description**
-Kaptan Mecit is a fast retro football game inspired by classic cartridge-era football, with four camera views: classic pixel-art top-down, dynamic, TV-style tele and a 3D stadium view. Play 11-a-side with a virtual stick and two buttons: pass and shoot on the ball, select player and slide tackle off the ball. Quick Match with 120 fictional clubs, or a 38-week league career in one of six leagues. No ads, no in-app purchases, no data collection, works offline. All club and player names are fictional. (Game language: Turkish.)
+Kaptan Mecit is a fast retro football game inspired by classic cartridge-era football, with five camera views: classic pixel-art top-down, dynamic, tele, a 3D stadium view and a straight-on TV broadcast angle. Play 11-a-side with a virtual stick and two buttons: pass and shoot on the ball, select player and slide tackle off the ball. Quick Match with 120 fictional clubs, or a 38-week league career in one of six leagues. No ads, no in-app purchases, no data collection, works offline. All club and player names are fictional. (Game language: Turkish.)
 
 **What's new (1.1.0)**
-Four camera views: Classic, Dynamic, Tele and 3D Stadium, switchable mid-match. Teammates now make runs and find space, opponents mark you, and the crowd celebrates goals.
+Five camera views: Classic, Dynamic, Tele, 3D Stadium and a straight-on TV broadcast angle, switchable mid-match. Teammates now make runs and find space, opponents mark you, and the crowd celebrates goals.

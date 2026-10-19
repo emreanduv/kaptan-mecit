@@ -17,7 +17,7 @@ Telefonda sol taraf sürükle = koş · PAS/ŞUT (top rakipteyken SEÇ/KAY).
 Klavye: ok tuşları/WASD · X pas · Z/Boşluk şut · P duraklat · (Pardus'ta F11 tam ekran)
 
 ## Kameralar (1.1.0)
-Klasik (tepeden piksel) · Dinamik (kale arkası) · Tele (yandan yayın, sağdaki kaleye hücum) · Stadyum (3D yayın).
+Klasik (tepeden piksel) · Dinamik (kale arkası) · Tele (yandan yayın, sağdaki kaleye hücum) · Stadyum (3D yayın) · TV (kenardan dümdüz yayın açısı, gölgeli çizim oyuncular, kontrol ettiğin oyuncunun adı; sağdaki kaleye hücum).
 Ayarlar'dan, maç başı ekranından ya da maç içinde duraklat menüsünden seçilir; varsayılan Klasik.
 
 ## Champion Battle Manager
