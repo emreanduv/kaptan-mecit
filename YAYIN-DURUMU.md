@@ -16,7 +16,7 @@
 - Plan aynı: 1.0.0 onayları gelince 1.1.0 (9) mağaza incelemesine (App Store: yeni sürüm 1.1.0 + build 9; Play: kapalı teste terfi / üretim)
 - Champion Battle Manager: `champion-battle` dalındaki motor güncel, yeni TestFlight derlemesi alınmadı
 - Topsuz oyun yapay zekası (koşular, pas açıları, bindirme, adam adama savunma; zorluğa bağlı)
-- Golde seyirciler tek tek coşar; panolarda yalnız kamu yararına çalışan kuruluşlar (TÜBİTAK, Pardus, Kızılay, Yeşilay her maçta)
+- Golde seyirciler tek tek coşar; panolarda yalnız Mr. Anduv! markası, oyunları, uygulamaları ve sosyal medya hesapları
 - Yenilikler metni: `store/magaza-metinleri.md` → "Bu sürümde yenilikler (1.1.0)"
 - Pardus: `pardus/kaptan-mecit_1.1.0-1_all.deb` + kaynak paketi (1.0.0 dosyaları git geçmişinde)
 - Plan: 1.0.0 incelemeleri sürerken 1.1.0 derlemeleri TestFlight / Play dahili teste; 1.0.0 onaylanınca 1.1.0 incelemeye

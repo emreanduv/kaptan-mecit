@@ -427,18 +427,20 @@ addEventListener('resize',()=>{if(M)resize()});
 
 /* ---------- Saha görüntüsü (bir kez çizilir) ---------- */
 const MRG=30;
-const ADS=[['PARDUS','#1565c0','#ffffff'],['KIZILAY','#ffffff','#e30a17'],['YEŞİLAY','#2e9e44','#ffffff'],
- ['AFAD','#0b2a5b','#ff8a00'],['TEKNOFEST','#0d1b3e','#ffffff'],['DENEYAP','#f08a24','#ffffff'],['TÜBİTAK','#ffffff','#1d4f9c'],
- ['TEMA','#3a8d3f','#ffffff'],['AKUT','#ffffff','#e2231a'],['DARÜŞŞAFAKA','#13294b','#f2c230'],['THK','#1b4f9c','#ffffff'],['MEHMETÇİK VAKFI','#b71c1c','#ffffff']];
-/* panolar: yalnız kamu yararına çalışan kuruluşlar ve hayır kurumları; bu dördü her maçta mutlaka görünür */
-const ADS_MUST=['PARDUS','TÜBİTAK','KIZILAY','YEŞİLAY'];
+const ADS=[['MR. ANDUV!','#141414','#f3d35a'],['YOUTUBE · @MRANDUV','#c4302b','#ffffff'],['KURT YOLU','#1d2b38','#ffffff'],['KIRMIZI YALI','#b71c1c','#ffffff'],
+ ['CHAMPION BATTLE MANAGER','#2e9e44','#ffffff'],['KAPTAN MECİT','#c8102e','#ffffff'],['MALAZGİRT AKINCILARI','#7a1f3d','#f2c230'],['HİSAR: KARA GECE','#1a1a2e','#e9b949'],
+ ['LEGEND HEADS','#ee7b30','#ffffff'],['TOPÇULAR','#5b3a1e','#f2c230'],['TWITCH · /MRANDUV','#6441a5','#ffffff'],['KICK · /MRANDUV','#0b0e0f','#53fc18'],
+ ['MR. ANDUV! · SPOTIFY','#1db954','#0b0b0b'],['EMREANDUV.GITHUB.IO','#1d2b38','#f3d35a'],['FUTBOL AKIŞI','#1f3b3c','#86d36e'],['BORSA AKIŞI','#0d1b3e','#f3d35a'],
+ ['FIRSAT AKIŞI','#ed713c','#ffffff'],['BİLGİ AKIŞI','#2a4f8a','#ffffff']];
+/* panolar: yalnız Mr. Anduv! markası, oyunları, uygulamaları ve sosyal medya hesapları (başka marka ya da kurum adı yok); ilk dördü her maçta mutlaka görünür */
+const ADS_MUST=['MR. ANDUV!','YOUTUBE · @MRANDUV','KURT YOLU','KIRMIZI YALI'];
 function adPool(){const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
   const must=sh(ADS.filter(a=>ADS_MUST.includes(a[0]))),rest=sh(ADS.filter(a=>!ADS_MUST.includes(a[0])));
   const out=[];let r=0;must.forEach(m=>{out.push(m);if(rest[r])out.push(rest[r++])});while(r<rest.length)out.push(rest[r++]);return out}
 /* ===================== LED REKLAM PANOLARI =====================
    Futbol Akışı yayınındaki "stadyum LED panosu" dili: koyu LED zemin, nokta ızgarası, solda renk şeridi,
    marka kutusu, altın sarısı parlayan yazı; panolar 6 sn'de bir saha kenarı boyunca sırayla döner.
-   Bugün yalnız kamu yararına çalışan kurumlar; yarın sponsor eklemek için SPONSORLAR listesine bir satır yeter:
+   Panolarda yalnız Mr. Anduv! markası, oyunları, uygulamaları ve sosyal medya hesapları; yarın sponsor eklemek için SPONSORLAR listesine bir satır yeter:
      {ad:'MARKA', renk:'#1d8a4a', yazi:'#ffffff', alt:'KAMPANYA METNİ'}   (alt boşsa yalnız ad gösterilir) */
 const SPONSORLAR=[];
 const LED={pool:null,cv:[],key:[],dirty:[],t0:0,T:6};

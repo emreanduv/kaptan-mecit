@@ -17,7 +17,7 @@ Ben Emre Anduv. "Mr. Anduv!" adıyla küçük, çevrimdışı oyunlar geliştiri
 - Nostaljik bir futbol oyunu; dört kamera: tepeden piksel görünüm (Klasik), Dinamik, Tele ve 3D Stadyum. Bilgisayara karşı 11'e 11 maç ve 6 ligde 38 haftalık lig kariyeri.
 - Tamamen çevrimdışı çalışır; reklam, hesap, veri toplama veya ağ bağlantısı yoktur.
 - Arayüz Türkçe. Klavye ile oynanır (ok tuşları, X, Z), dokunmatik ekranda da çalışır.
-- Tüm kulüp ve oyuncu adları kurmacadır. Stat panolarında yalnızca kamu yararına çalışan kurumların adları yer alır (Pardus, TÜBİTAK, TEKNOFEST, Deneyap, AFAD, Kızılay, Yeşilay, TEMA, AKUT, Darüşşafaka, THK, Mehmetçik Vakfı).
+- Tüm kulüp ve oyuncu adları kurmacadır. Stat panolarında yalnızca Mr. Anduv! markası, oyunları, uygulamaları ve sosyal medya hesapları yer alır; başka marka ya da kurum adı yoktur.
 
 **Paket bilgileri**
 - Paket adı: `kaptan-mecit` · Sürüm: 1.1.0-1 · Mimari: all · Bölüm: games
