@@ -739,7 +739,7 @@ function stripHtml(score){
 
 /* ===================== MAÇ MOTORLARI: MALAZGİRT · HİSAR ===================== */
 const MOTOR={
-  mlz:{ad:'Malazgirt',dosya:'malazgirt.html',nl:50,sf:4,ic:'🏹'},
+  mlz:{ad:'Malazgirt',dosya:'malazgirt.html',nl:50,sf:22,ic:'🏹'},
   hsr:{ad:'Hisar',dosya:'hisar.html',nl:40,ic:'🏰'},
   top:{ad:'Topçular',dosya:'topcular.html',nl:20,ic:'💣'},
   kfa:{ad:'Kafa Topu',dosya:'legendheads.html',nl:8,ic:'⚽'},
@@ -750,7 +750,7 @@ function engineLevel(mode){const e=effOpp(),n=MOTOR[mode].nl;
   if(mode==='top')return clamp(Math.round((e-1)*1.9),0,17); // 20 kale: güçlü rakip, daha zorlu kuşatma
   if(mode==='kfa')return (Math.max(1,G.week)-1)%8; // her hafta başka efsane: Zeus, Herkül, Poseidon...
   const b=clamp(Math.round((e-1)*(mode==='mlz'?4.3:3.6)),0,n-5);
-  return mode==='mlz'?((Math.max(1,G.week)-1)%MOTOR.mlz.sf)*50+b:b} // Malazgirt: her hafta başka sefer (Malazgirt, Anadolu, Haçlı, Miryokefalon)
+  return mode==='mlz'?((Math.max(1,G.week)-1)%MOTOR.mlz.sf)*50+b:b} // Malazgirt: her hafta başka sefer (Malazgirt'ten Prut'a 22 sefer, 1071 bölüm)
 function engineDelta(){const t=me();return (t.str-6)*.55+(M.focus-55)/22+(t.morale-60)/40}
 function engineUp(lv){return clamp(Math.round(Math.min(10,(lv%50)*.2)+engineDelta()),0,10)}
 function engineScore(r){ // r:{win,stars,prog} · kafa topunda gerçek skor: gf/ga
