@@ -1,6 +1,7 @@
 # Kaptan Mecit — Yayın durumu (18 Ekim 2026)
 
 ## 1.1.0 (hazırlanıyor)
+- 23 Eki: oyuncu değişikliği — 7 kişilik yedek kulübesi (kurmaca), 90 dakikada 5 hak / en fazla 3 ara (devre arası sayılmaz), uzatmada +1 hak ve +1 ara; isteğe bağlı 🤖 asistan değişikliği (Ayarlar + II menüsü: yorgunluk, sakatlık, skor); oyuncu kondisyonu (yoruldukça yavaşlar) ve maç içi sakatlık; Champion Battle'dan gelen eleme maçlarında uzatma ve seri penaltılar. Mağaza derlemesi alınmadı (TestFlight/Play için yeni derleme gerekir)
 - Beş kamera: Klasik, Dinamik, Tele, Stadyum (20 Eki gece: 3D motor kaldırıldı, tüm kameralar TV yayın motorunun çatalı), TV (20 Eki: kenardan dümdüz yayın açısı, gölgeli çizim oyuncular, kontrol edilen oyuncunun adı; 2D tuval, Three.js gerekmez)
 - 20 Eki: TV kamerası eklendi; Pardus paketi bu değişikliği içermiyor
 - 20 Eki oynanış denetimi (hızlandırılmış simülasyon): topla çizgi dışına/kaleye sürünce oyun durmuyordu → taç/aut/korner/gol; kaleci çerçeve dışı şutları da tutuyordu, şutlar hiç üstten gitmiyordu → maçlarda neredeyse hiç korner/aut yoktu, düzeltildi; pas ve şutta baskı altında sapma; duran topta itilen rakipler saha içinde
