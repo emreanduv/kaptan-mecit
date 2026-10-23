@@ -1,6 +1,6 @@
 {
   "name": "champion-battle-manager",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "private": true,
   "description": "Champion Battle Manager — FM2010 menajer modu (iOS + Android kabuğu, Capacitor)",
   "scripts": {
