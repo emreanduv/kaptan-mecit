@@ -4,6 +4,7 @@ on:
     inputs:
       build_number: { description: "Build numarası", required: true }
       neyi_test: { description: "Neyi test etmeli", required: true }
+      bundle: { description: "Paket kimliği (boş: Kaptan Mecit; Champion: com.championchess.manager)", required: false, default: "" }
 env:
   ASC_KEY_ID: DJSHKK6T3P
   ASC_ISSUER_ID: f4943ef8-df6f-42c8-a561-58554097ea35
@@ -17,5 +18,5 @@ jobs:
         run: mkdir -p ~/private_keys && printf '%s' "$P8" > ~/private_keys/AuthKey_${ASC_KEY_ID}.p8
       - run: pip3 install --quiet pyjwt cryptography
       - name: Dağıt
-        env: { BUILD_NO: "${{ inputs.build_number }}", NEYI_TEST: "${{ inputs.neyi_test }}" }
+        env: { BUILD_NO: "${{ inputs.build_number }}", NEYI_TEST: "${{ inputs.neyi_test }}", BUNDLE: "${{ inputs.bundle }}" }
         run: python3 araclar/testflight_dagit.py

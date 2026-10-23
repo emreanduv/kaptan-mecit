@@ -1,7 +1,7 @@
 # Yeni build'i TestFlight dış test grubuna ekler, "Neyi test etmeli" metnini yazar, beta incelemesine gönderir (CI'da).
 # Mağaza incelemesine GÖNDERMEZ.
 import jwt, time, json, os, urllib.request, urllib.error
-KID=os.environ['ASC_KEY_ID']; ISS=os.environ['ASC_ISSUER_ID']; BUNDLE='com.anduv.kaptanmecit'
+KID=os.environ['ASC_KEY_ID']; ISS=os.environ['ASC_ISSUER_ID']; BUNDLE=os.environ.get('BUNDLE') or 'com.anduv.kaptanmecit'
 KEY=open(os.path.expanduser(f'~/private_keys/AuthKey_{KID}.p8')).read()
 BNO=os.environ['BUILD_NO']; NOT=os.environ['NEYI_TEST']
 def tok(): return jwt.encode({'iss':ISS,'exp':int(time.time())+900,'aud':'appstoreconnect-v1'},KEY,algorithm='ES256',headers={'kid':KID})
