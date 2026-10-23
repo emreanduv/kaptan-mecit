@@ -1,4 +1,9 @@
-# Kaptan Mecit — Yayın durumu (18 Ekim 2026)
+# Kaptan Mecit — Yayın durumu (23 Ekim 2026)
+
+## 1.2.0 (hazırlanıyor)
+- Oyuncu değişikliği (yedek kulübesi, 5 hak / 3 ara, asistan), kondisyon ve sakatlık, uzatma süresi ve akış kesilince maç sonu düdüğü, sosyal medya/müzik panoları
+- Pardus: `pardus/kaptan-mecit_1.2.0-1_all.deb` + kaynak paketi (Three.js çıkarıldı, `ses-kurtarici.js` eklendi)
+- Mağaza metinleri: `store/magaza-metinleri.md` → "Bu sürümde yenilikler (1.2.0)"
 
 ## 1.1.0 (hazırlanıyor)
 - 23 Eki: oyuncu değişikliği — 7 kişilik yedek kulübesi (kurmaca), 90 dakikada 5 hak / en fazla 3 ara (devre arası sayılmaz), uzatmada +1 hak ve +1 ara; isteğe bağlı 🤖 asistan değişikliği (Ayarlar + II menüsü: yorgunluk, sakatlık, skor); oyuncu kondisyonu (yoruldukça yavaşlar) ve maç içi sakatlık; Champion Battle'dan gelen eleme maçlarında uzatma ve seri penaltılar. Mağaza derlemesi alınmadı (TestFlight/Play için yeni derleme gerekir)
@@ -34,7 +39,7 @@
 - Android: dikey ekran, sürüm kodu/adı derleme akışından, ikonlar ve açılış ekranı
 - Ekran görüntüleri: `store/screenshots/` (Android 1080×1920), `store/screenshots-ios/` (iPhone 6.9" 1320×2868, iPad 13" 2064×2752)
 - Mağaza metinleri `store/magaza-metinleri.md` · Form cevapları `store/form-cevaplari.md` · Gizlilik politikası `store/gizlilik-politikasi.html` → yayında: https://claude.ai/artifact/9dcY3CsGCnidaUkQRDUhHB (Paylaş menüsünden herkese açık yapılmalı)
-- Pardus: `pardus/kaptan-mecit_1.1.0-1_all.deb` + kaynak paketi + `pardus/BASVURU.md`
+- Pardus: `pardus/kaptan-mecit_1.2.0-1_all.deb` + kaynak paketi + `pardus/BASVURU.md`
 
 ## Yükleme (imza) anahtarı — KAYBETME
 - Bilgisayar: `imza-anahtari/kaptanmecit-upload.jks` (git dışında), alias `kaptanmecit`, şifre `imza-anahtari/SIFRE-OKU.txt`

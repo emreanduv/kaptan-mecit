@@ -1,0 +1,28 @@
+kaptan-mecit (1.2.0-1) unstable; urgency=medium
+
+  * Oyuncu değişikliği: 7 kişilik yedek kulübesi, 90 dakikada 5 hak ve en
+    fazla 3 ara (devre arası sayılmaz), isteğe bağlı asistan değişikliği.
+  * Oyuncu kondisyonu (yorulan oyuncu yavaşlar) ve maç içi sakatlık.
+  * Hakem uzatma süresi gösterir; maç sonu düdüğü ancak akış kesilince
+    (taç, aut, korner ya da top uzaklaşınca) çalar.
+  * Tek yayın motoru: bütün kameralar 2D çizim; Three.js kaldırıldı.
+  * Stat panolarında yalnız Mr. Anduv! markası, oyunları, uygulamaları ve
+    sosyal medya / müzik hesapları.
+
+ -- Emre Anduv <emreanduvart@gmail.com>  Fri, 23 Oct 2026 22:30:00 +0300
+
+kaptan-mecit (1.1.0-1) unstable; urgency=medium
+
+  * Dört kamera: Klasik, Dinamik, Tele ve 3D Stadyum (Three.js r128, MIT).
+  * Topsuz oyun yapay zekası: koşular, pas açıları, bindirmeler, adam
+    adama savunma.
+  * Golde seyirciler tek tek coşar; panolarda yalnız kamu yararına çalışan
+    kuruluşlar.
+
+ -- Emre Anduv <emreanduvart@gmail.com>  Sun, 18 Oct 2026 23:00:00 +0300
+
+kaptan-mecit (1.0.0-1) unstable; urgency=medium
+
+  * İlk sürüm.
+
+ -- Emre Anduv <emreanduvart@gmail.com>  Sun, 18 Oct 2026 18:00:00 +0300

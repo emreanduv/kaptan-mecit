@@ -14,8 +14,8 @@ Depends: ${misc:Depends},
          gir1.2-gtk-3.0,
          gir1.2-webkit2-4.1 | gir1.2-webkit2-4.0
 Description: top-down retro football game
- Kaptan Mecit is a fast retro football game with four camera views:
- classic pixel-art top-down, dynamic, TV-style tele and a 3D stadium.
+ Kaptan Mecit is a fast retro football game with five camera views:
+ classic pixel-art top-down, dynamic, tele, stadium and TV broadcast.
  Play 11-a-side matches against the computer, or run a 38-week league
  career with one of 120 fictional clubs in six leagues. The game works
  fully offline, has no ads and collects no data. The interface is in

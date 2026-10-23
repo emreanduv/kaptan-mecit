@@ -682,7 +682,8 @@ function minTxt(){return M.pen?'PEN':minLabel()+"'"}
 function minLabel(){if(M.pen)return 'PEN';const r=Math.floor(M.clock/M.dur*90),s=KM_SINIR[M.half];return r>=s?s+'+'+(r-s+1):String(r)}
 /* hakem tehlikeli pozisyon bitmeden düdük çalmaz: şut/orta havada ya da top hücum edenin son üçte birinde */
 function tehlike(){const b=M.ball;if(b.shot||b.cross)return true;return Math.min(b.y,PL-b.y)<PL*.3} /* top iki ceza sahası bölgesinden birindeyse hücum sürüyor */
-function uzatmaKontrol(sinir){if(M.uz==null&&M.clock>=sinir){M.uz=M.half===1?1+Math.floor(Math.random()*4):M.half===2?3+Math.floor(Math.random()*4):1+Math.floor(Math.random()*2);banner('UZATMA','+'+M.uz+' DAKİKA',null,true);setTimeout(()=>{try{hideBanner()}catch(e){}},1800)}
+function uzatmaKontrol(sinir){if(M.demo)return M.clock>=sinir; /* gösterim / canlandırma: süre tam dolunca biter (gerçek maç senaryosu kendi dakikalarını yönetir) */
+  if(M.uz==null&&M.clock>=sinir){M.uz=M.half===1?1+Math.floor(Math.random()*4):M.half===2?3+Math.floor(Math.random()*4):1+Math.floor(Math.random()*2);banner('UZATMA','+'+M.uz+' DAKİKA',null,true);setTimeout(()=>{try{hideBanner()}catch(e){}},1800)}
   const bitis=M.uz==null?Infinity:sinir+M.uz*M.dur/90;const olu=M.durdu;M.durdu=0;if(M.clock<bitis)return false;
   /* süre dolunca düdük ancak akış kesilince: top taca/auta/kornere çıktığında ya da orta bölgeye uzaklaştırıldığında; en geç 2,5 dk sonra (şut havadayken değil) */
   return olu||!tehlike()||(M.clock>=bitis+M.dur*.028&&!M.ball.shot)}

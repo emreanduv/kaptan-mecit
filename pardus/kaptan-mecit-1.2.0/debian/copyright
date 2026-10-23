@@ -1,0 +1,15 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: kaptan-mecit
+Upstream-Contact: Emre Anduv <emreanduvart@gmail.com>
+
+Files: *
+Copyright: 2026 Emre Anduv (Mr. Anduv!)
+License: GPL-3.0-or-later
+
+Files: www/*
+Copyright: 2026 Emre Anduv (Mr. Anduv!)
+           2012 Cody "CodeMan38" Boisclair (Press Start 2P font, embedded)
+License: GPL-3.0-or-later and OFL-1.1
+Comment: The game code is GPL-3.0-or-later. The embedded "Press Start 2P"
+ font is licensed under the SIL Open Font License 1.1.
+

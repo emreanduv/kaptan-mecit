@@ -41,6 +41,9 @@ Tüm kulüp ve oyuncu adları kurmacadır.
 
 Bir Mr. Anduv! yapımıdır.
 
+**Bu sürümde yenilikler (1.2.0) — App Store "Yenilikler" / Play "Sürüm notları" (en fazla 500 karakter)**
+Oyuncu değişikliği geldi: 7 kişilik yedek kulübesi, 90 dakikada 5 değişiklik hakkı, en fazla 3 ara (devre arası sayılmaz). İstersen değişiklikleri asistan yapar; yorgunluğa, sakatlığa ve skora bakar. Oyuncular koştukça yorulur, maçta sakatlık olabilir. Hakem uzatma süresi gösterir ve son düdüğü hücum bitmeden çalmaz. Panolarda Mr. Anduv! sosyal medya ve müzik hesapları.
+
 **Bu sürümde yenilikler (1.1.0) — App Store "Yenilikler" / Play "Sürüm notları" (en fazla 500 karakter)**
 Beş kamera: Klasik, Dinamik, Tele, Stadyum ve TV yayın açısı; dördü aynı yayın motoruyla çiziliyor. Takımlar artık gerçek 4-2-3-1 oynuyor: bekler bindiriyor, kaleci ve stoper oyunu geriden kuruyor, 6 numara baskı yapıyor, 10 numara hatlar arasında, kanatlardan orta ve kafa golleri, kontra ataklar. Savunma hattı topa göre yükselip iniyor. Devre arasında kaleler değişiyor. Yeni stadyum: sahaya yakın dik tribünler, loca kuşağı, çatı projektörleri ve dönen LED reklam panoları.
 
@@ -56,6 +59,9 @@ Top-down retro football
 
 **Full description**
 Kaptan Mecit is a fast retro football game inspired by classic cartridge-era football, with five camera views: classic pixel-art top-down, dynamic, tele, a wide stadium view and a straight-on TV broadcast angle. Play 11-a-side with a virtual stick and two buttons: pass and shoot on the ball, select player and slide tackle off the ball. Quick Match with 120 fictional clubs, or a 38-week league career in one of six leagues. No ads, no in-app purchases, no data collection, works offline. All club and player names are fictional. (Game language: Turkish.)
+
+**What's new (1.2.0)**
+Substitutions are here: a 7-player bench, 5 substitutions in up to 3 windows (half-time doesn't count). Let your assistant make the changes if you like, based on fatigue, injuries and the score. Players tire as they run and can get injured. The referee shows stoppage time and never blows the final whistle in the middle of an attack. Pitchside boards feature Mr. Anduv! social and music accounts.
 
 **What's new (1.1.0)**
 Five camera views including a TV broadcast angle. Teams now play a real 4-2-3-1: overlapping full-backs, build-up from the keeper and centre-backs, a pressing holding midfielder, a No.10 between the lines, crosses and headers, counter-attacks and a defensive line that moves with the ball. Teams switch ends at half-time, keepers are stronger, and a new steep, close-to-the-pitch stadium with a roof, executive boxes and rotating LED pitchside boards.

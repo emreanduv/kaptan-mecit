@@ -2,7 +2,7 @@
 <component type="desktop-application">
   <id>com.anduv.kaptanmecit</id>
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>GPL-3.0-or-later AND OFL-1.1 AND MIT</project_license>
+  <project_license>GPL-3.0-or-later AND OFL-1.1</project_license>
   <name>Kaptan Mecit</name>
   <summary>Top-down retro football</summary>
   <summary xml:lang="tr">Üstten görünümlü nostaljik futbol</summary>
@@ -10,15 +10,17 @@
     <name>Mr. Anduv!</name>
   </developer>
   <description>
-    <p>Kaptan Mecit is a fast retro football game with four camera views, from classic pixel-art top-down to a 3D stadium. Play 11-a-side matches against the computer, or run a 38-week league career with one of 120 fictional clubs in six leagues. Works fully offline, without ads or data collection.</p>
-    <p xml:lang="tr">Kaptan Mecit, dört kameralı (tepeden piksel görünümden 3D stadyuma) hızlı ve nostaljik bir futbol oyunu. Bilgisayara karşı 11'e 11 maç yap ya da altı ligdeki 120 kurmaca kulüpten biriyle 38 haftalık lig kariyerine çık. İnternet gerekmez; reklam yok, veri toplanmaz.</p>
+    <p>Kaptan Mecit is a fast retro football game with five camera views, from classic pixel-art top-down to a TV broadcast and a stadium view. Play 11-a-side matches against the computer, or run a 38-week league career with one of 120 fictional clubs in six leagues. Works fully offline, without ads or data collection.</p>
+    <p xml:lang="tr">Kaptan Mecit, beş kameralı (tepeden piksel görünümden TV yayınına ve stadyum açısına) hızlı ve nostaljik bir futbol oyunu. Bilgisayara karşı 11'e 11 maç yap ya da altı ligdeki 120 kurmaca kulüpten biriyle 38 haftalık lig kariyerine çık. İnternet gerekmez; reklam yok, veri toplanmaz.</p>
     <ul>
       <li>Quick match with any two of 120 fictional clubs</li>
       <li xml:lang="tr">120 kurmaca kulüpten istediğin ikisiyle hızlı maç</li>
       <li>League career: 6 leagues, 20 clubs each, table, fixtures and top scorers</li>
       <li xml:lang="tr">Lig kariyeri: 6 lig, her ligde 20 kulüp, puan durumu, fikstür ve gol krallığı</li>
-      <li>Four cameras: Classic, Dynamic, Tele and 3D Stadium</li>
-      <li xml:lang="tr">Dört kamera: Klasik, Dinamik, Tele ve 3D Stadyum</li>
+      <li>Five cameras: Classic, Dynamic, Tele, Stadium and TV</li>
+      <li>Five substitutions (sixth in extra time) with an optional assistant, stamina and injuries</li>
+      <li xml:lang="tr">Beş kamera: Klasik, Dinamik, Tele, Stadyum ve TV</li>
+      <li xml:lang="tr">Beş oyuncu değişikliği (uzatmada altıncı), isteğe bağlı asistan, kondisyon ve sakatlık</li>
       <li>Keyboard controls: arrow keys to run, X to pass, Z to shoot</li>
       <li xml:lang="tr">Klavye: ok tuşları koş, X pas, Z şut</li>
     </ul>
@@ -39,6 +41,9 @@
     <binary>kaptan-mecit</binary>
   </provides>
   <releases>
+    <release version="1.2.0" date="2026-10-23">
+      <description><p>Oyuncu değişikliği ve asistan, kondisyon ve sakatlık, uzatma ve doğru maç sonu düdüğü, yeni panolar.</p></description>
+    </release>
     <release version="1.1.0" date="2026-10-18">
       <description><p>Four camera views, livelier off-ball play, crowd celebrations.</p></description>
     </release>
