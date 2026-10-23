@@ -1,5 +1,10 @@
 # Kaptan Mecit — Yayın durumu (23 Ekim 2026)
 
+## Champion Battle Manager 3.4.0 (24 Eki)
+- Malazgirt modu 1.4 (1071 bölüm, 22 sefer; `champion-battle` dalı `araclar/malazgirt-birlestir.py` ile tek dosya), güncel Kaptan Mecit motoru
+- iOS 3.4.0 (18) TestFlight + App Store sürümü hazırlandı (derleme bağlı, Yenilikler yazıldı) → "İncelemeye gönder" elle
+- Android 3.4.0 (20) imzalı: bilgisayarda `ChampionChess-main/fm2010/magaza/champion-battle-3.4.0-20-imzali.aab` → Play kapalı test (Alpha) yeni sürüm taslağı açık
+
 ## 1.2.0 (hazırlanıyor)
 - 23 Eki gece: iOS 1.2.0 (10) TestFlight'a yüklendi, dış test grubuna dağıtıldı (`testflight.yml`)
 - 23 Eki gece: Android 1.2.0 (10) imzalandı (`imza-anahtari/kaptan-mecit-1.2.0-10-imzali.aab`); Play dahili test sürüm taslağı açık, paket yüklenecek
