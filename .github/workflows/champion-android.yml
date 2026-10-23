@@ -1,0 +1,33 @@
+name: Champion Battle Manager Android (Google Play paketi)
+on:
+  workflow_dispatch:
+    inputs:
+      version_name: { description: "Sürüm adı (ör. 3.4.0)", default: "3.4.0" }
+      version_code: { description: "Play sürüm kodu (Play Console'dakinden büyük olmalı)", default: "20" }
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: champion-battle }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - run: npm ci
+      - run: npx cap sync android
+      - name: AAB derle (imzasız; imza ayrı yapılır)
+        working-directory: android
+        env:
+          VERSION_CODE: ${{ inputs.version_code }}
+          VERSION_NAME: ${{ inputs.version_name }}
+        run: chmod +x gradlew && ./gradlew bundleRelease --no-daemon
+      - name: Paketi builds-champion dalına koy
+        run: |
+          OUT=champion-battle-${{ inputs.version_name }}-${{ inputs.version_code }}-unsigned.aab
+          mkdir -p /tmp/b/android && cp android/app/build/outputs/bundle/release/app-release.aab /tmp/b/android/$OUT && cd /tmp/b
+          git init -q -b builds-champion && git config user.name "github-actions" && git config user.email "actions@github.com"
+          git add . && git commit -qm "Android paketi $OUT"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" builds-champion
