@@ -2,6 +2,7 @@ name: Champion Battle Manager Android (Google Play paketi)
 on:
   workflow_dispatch:
     inputs:
+      ref: { description: "Dal (champion-battle: 3.x · champion-4: Champion 4)", default: "champion-battle" }
       version_name: { description: "Sürüm adı (ör. 3.4.0)", default: "3.4.0" }
       version_code: { description: "Play sürüm kodu (Play Console'dakinden büyük olmalı)", default: "20" }
 permissions:
@@ -11,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with: { ref: champion-battle }
+        with: { ref: "${{ inputs.ref }}" }
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - uses: actions/setup-java@v4

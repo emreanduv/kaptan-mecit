@@ -2,6 +2,7 @@ name: Champion Battle Manager iOS (TestFlight)
 on:
   workflow_dispatch:
     inputs:
+      ref: { description: "Dal (champion-battle: 3.x · champion-4: Champion 4)", default: "champion-battle" }
       version_name:
         description: "Sürüm adı (ör. 3.1.0)"
         default: "3.1.0"
@@ -17,7 +18,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-        with: { ref: champion-battle }
+        with: { ref: "${{ inputs.ref }}" }
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - name: Xcode 26 seç
