@@ -1,6 +1,9 @@
 # Kaptan Mecit — Yayın durumu (23 Ekim 2026)
 
 ## 1.2.0 (hazırlanıyor)
+- 23 Eki gece: iOS 1.2.0 (10) TestFlight'a yüklendi, dış test grubuna dağıtıldı (`testflight.yml`)
+- 23 Eki gece: Android 1.2.0 (10) imzalandı (`imza-anahtari/kaptan-mecit-1.2.0-10-imzali.aab`); Play dahili test sürüm taslağı açık, paket yüklenecek
+- 23 Eki gece: Champion Battle Manager 3.3.0 (17) — güncel Kaptan Mecit motoruyla TestFlight'a yüklendi ve dış gruba dağıtıldı
 - Oyuncu değişikliği (yedek kulübesi, 5 hak / 3 ara, asistan), kondisyon ve sakatlık, uzatma süresi ve akış kesilince maç sonu düdüğü, sosyal medya/müzik panoları
 - Pardus: `pardus/kaptan-mecit_1.2.0-1_all.deb` + kaynak paketi (Three.js çıkarıldı, `ses-kurtarici.js` eklendi)
 - Mağaza metinleri: `store/magaza-metinleri.md` → "Bu sürümde yenilikler (1.2.0)"
