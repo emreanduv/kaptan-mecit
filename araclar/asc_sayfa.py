@@ -29,18 +29,26 @@ if not any(l['attributes']['locale'].startswith('en') for l in locs):   # İngil
         api('POST','v1/appInfoLocalizations',{'data':{'type':'appInfoLocalizations','attributes':{'locale':'en-US','name':'Champion Battle Manager','subtitle':M['en']['subtitle']},'relationships':{'appInfo':{'data':{'type':'appInfos','id':info['id']}}}}})
     r=api('POST','v1/appStoreVersionLocalizations',{'data':{'type':'appStoreVersionLocalizations','attributes':{'locale':'en-US','description':M['en']['description'],'keywords':M['en']['keywords']},'relationships':{'appStoreVersion':{'data':{'type':'appStoreVersions','id':VID}}}}})
     if r: locs.append(r['data']); ok('en-US sayfası açıldı')
+TRL=next((l for l in locs if l['attributes']['locale'].startswith('tr')),None)
 for l in locs:
     d=dil(l['attributes']['locale'])
     a={k:d[k] for k in ('description','keywords','promotionalText','whatsNew')}
+    if TRL and l is not TRL:
+        for k in ('supportUrl','marketingUrl'):
+            if TRL['attributes'].get(k) and not l['attributes'].get(k): a[k]=TRL['attributes'][k]
     r=api('PATCH',f'v1/appStoreVersionLocalizations/{l["id"]}',{'data':{'type':'appStoreVersionLocalizations','id':l['id'],'attributes':a}})
     if r is None:   # ilk sürümde whatsNew yazılamaz
         a.pop('whatsNew'); r=api('PATCH',f'v1/appStoreVersionLocalizations/{l["id"]}',{'data':{'type':'appStoreVersionLocalizations','id':l['id'],'attributes':a}})
     if r is not None: ok('metin '+l['attributes']['locale'])
 # alt başlık
 if info:
-    for l in api('GET',f'v1/appInfos/{info["id"]}/appInfoLocalizations')['data']:
+    ils=api('GET',f'v1/appInfos/{info["id"]}/appInfoLocalizations')['data']
+    gz=next((l['attributes'].get('privacyPolicyUrl') for l in ils if l['attributes'].get('privacyPolicyUrl')),None); out['gizlilik']=gz
+    for l in ils:
         out.setdefault('ad',{})[l['attributes']['locale']]=l['attributes'].get('name')
-        r=api('PATCH',f'v1/appInfoLocalizations/{l["id"]}',{'data':{'type':'appInfoLocalizations','id':l['id'],'attributes':{'subtitle':dil(l['attributes']['locale'])['subtitle']}}})
+        at={'subtitle':dil(l['attributes']['locale'])['subtitle']}
+        if gz and not l['attributes'].get('privacyPolicyUrl'): at['privacyPolicyUrl']=gz
+        r=api('PATCH',f'v1/appInfoLocalizations/{l["id"]}',{'data':{'type':'appInfoLocalizations','id':l['id'],'attributes':at}})
         if r is not None: ok('alt başlık '+l['attributes']['locale'])
 def yukle(SID,files):
     n=0
@@ -78,5 +86,6 @@ if EKRAN:
             for sc in api('GET',f'v1/appScreenshotSets/{s["id"]}/appScreenshots?limit=50')['data']:
                 st=(sc['attributes'].get('assetDeliveryState') or {}).get('state'); dur[st]=dur.get(st,0)+1
     out['gorsel_durum']=dur
+out['urller']={l['attributes']['locale']:[l['attributes'].get('supportUrl')] for l in api('GET',f'v1/appStoreVersions/{VID}/appStoreVersionLocalizations')['data']}
 out['hatalar']=log
 json.dump(out,open('durum.json','w'),ensure_ascii=False,indent=1); print(json.dumps(out,ensure_ascii=False))
