@@ -30,7 +30,7 @@ jobs:
         run: npx electron-builder --${{ matrix.hedef }} --dir --publish never
       - name: Klasörü sıkıştır
         run: |
-          cd dist && D=$(ls -d *-unpacked mac* 2>/dev/null | head -1); echo "klasör: $D"; ls
+          cd dist && ls && D=$(find . -maxdepth 1 -mindepth 1 -type d | sed "s|^./||" | head -1); echo "klasör: $D"
           if [ "${{ matrix.hedef }}" = "win" ]; then 7z a -r ../cbm-${{ matrix.ad }}.zip "./$D/*" >/dev/null; else zip -qry ../cbm-${{ matrix.ad }}.zip "$D"; fi
       - uses: actions/upload-artifact@v4
         with: { name: "cbm-steam-${{ matrix.ad }}", path: "steam/cbm-${{ matrix.ad }}.zip", retention-days: 30 }
