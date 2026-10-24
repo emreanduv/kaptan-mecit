@@ -685,8 +685,10 @@ function tehlike(){const b=M.ball;if(b.shot||b.cross)return true;return Math.min
 function uzatmaKontrol(sinir){if(M.demo)return M.clock>=sinir; /* gösterim / canlandırma: süre tam dolunca biter (gerçek maç senaryosu kendi dakikalarını yönetir) */
   if(M.uz==null&&M.clock>=sinir){M.uz=M.half===1?1+Math.floor(Math.random()*4):M.half===2?3+Math.floor(Math.random()*4):1+Math.floor(Math.random()*2);banner('UZATMA','+'+M.uz+' DAKİKA',null,true);setTimeout(()=>{try{hideBanner()}catch(e){}},1800)}
   const bitis=M.uz==null?Infinity:sinir+M.uz*M.dur/90;const olu=M.durdu;M.durdu=0;if(M.clock<bitis)return false;
-  /* süre dolunca düdük ancak akış kesilince: top taca/auta/kornere çıktığında ya da orta bölgeye uzaklaştırıldığında; en geç 2,5 dk sonra (şut havadayken değil) */
-  return olu||!tehlike()||(M.clock>=bitis+M.dur*.028&&!M.ball.shot)}
+  /* süre dolunca düdük ancak tehlike yokken: kale vuruşu, kendi yarısında taç ya da top orta bölgeye uzaklaştırılınca. Korner ve ceza sahası yakınındaki taç kullanılır;
+     şut/orta havadayken ya da top ceza sahasındayken düdük çalmaz. En geç ~4 dk sonra top ceza sahası dışındaysa, ~7 dk sonra her durumda. */
+  const b=M.ball,kutu=Math.min(b.y,PL-b.y)<17;
+  return olu===1||(!olu&&!tehlike())||(M.clock>=bitis+M.dur*.045&&!b.shot&&!b.cross&&!kutu)||M.clock>=bitis+M.dur*.08}
 function step(dt){
   if(M.demo){M.input.x=0;M.input.y=0}else readInput();
   if(M.state!=='play'){
@@ -1120,8 +1122,8 @@ function restart(ti,x,y,pickRole){
   if(p.team===0&&!M.demo)M.ctrl=p;
   M.state='pre';M.stateT=.55;
 }
-function throwIn(ti,x,y){M.durdu=1;restart(ti,x<=0?0:PW,y);SND.whistle(1)}
-function cornerKick(ti,x){M.durdu=1;const y=goalYOf(ti);restart(ti,x<=0?.3:PW-.3,y===0?.3:PL-.3);SND.whistle(1);flash('KORNER')}
+function throwIn(ti,x,y){M.durdu=Math.abs(y-goalYOf(ti))<25?2:1;restart(ti,x<=0?0:PW,y);SND.whistle(1)}
+function cornerKick(ti,x){M.durdu=2;const y=goalYOf(ti);restart(ti,x<=0?.3:PW-.3,y===0?.3:PL-.3);SND.whistle(1);flash('KORNER')}
 function goalKick(ti){M.durdu=1;const y=ownGoalY(ti)===PL?PL-5.5:5.5;restart(ti,PW/2+rand(-4,4),y,'G');SND.whistle(1)}
 function scoreGoal(ti,scorer,silent,own){
   const T=M.T[ti];T.score++;
