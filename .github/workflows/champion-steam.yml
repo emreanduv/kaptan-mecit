@@ -1,0 +1,36 @@
+name: Champion Battle Manager Steam (Windows / macOS / Linux)
+on:
+  workflow_dispatch:
+    inputs:
+      ref: { description: "Dal", default: "champion-4" }
+      surum: { description: "Sürüm", default: "4.0.0" }
+permissions:
+  contents: read
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, hedef: win, ad: windows }
+          - { os: macos-latest, hedef: mac, ad: macos }
+          - { os: ubuntu-latest, hedef: linux, ad: linux }
+    runs-on: ${{ matrix.os }}
+    defaults: { run: { shell: bash, working-directory: steam } }
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.ref }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci --no-audit --no-fund
+      - run: mkdir -p oyun && cp ../www/index.html oyun/index.html
+      - run: npm pkg set version=${{ inputs.surum }}
+      - name: Paketle
+        env: { CSC_IDENTITY_AUTO_DISCOVERY: "false" }
+        run: npx electron-builder --${{ matrix.hedef }} --dir --publish never
+      - name: Klasörü sıkıştır
+        run: |
+          cd dist && D=$(ls -d *-unpacked mac* 2>/dev/null | head -1); echo "klasör: $D"; ls
+          if [ "${{ matrix.hedef }}" = "win" ]; then 7z a -r ../cbm-${{ matrix.ad }}.zip "./$D/*" >/dev/null; else zip -qry ../cbm-${{ matrix.ad }}.zip "$D"; fi
+      - uses: actions/upload-artifact@v4
+        with: { name: "cbm-steam-${{ matrix.ad }}", path: "steam/cbm-${{ matrix.ad }}.zip", retention-days: 30 }
