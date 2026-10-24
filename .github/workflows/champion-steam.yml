@@ -5,7 +5,7 @@ on:
       ref: { description: "Dal", default: "champion-4" }
       surum: { description: "Sürüm", default: "4.0.0" }
 permissions:
-  contents: read
+  contents: write
 jobs:
   build:
     strategy:
@@ -32,5 +32,24 @@ jobs:
         run: |
           cd dist && ls && D=$(find . -maxdepth 1 -mindepth 1 -type d | sed "s|^./||" | head -1); echo "klasör: $D"
           if [ "${{ matrix.hedef }}" = "win" ]; then 7z a -r ../cbm-${{ matrix.ad }}.zip "./$D/*" >/dev/null; else zip -qry ../cbm-${{ matrix.ad }}.zip "$D"; fi
+      - name: Duman testi (Linux)
+        if: matrix.hedef == 'linux'
+        run: |
+          npm i --no-save --no-audit --no-fund playwright@1.64.0
+          xvfb-run -a --server-args="-screen 0 1600x900x24" node araclar/duman.mjs "$PWD/dist/linux-unpacked/champion-battle-manager" /tmp/duman || true
+          cd /tmp/duman 2>/dev/null || { mkdir -p /tmp/duman && cd /tmp/duman && echo '{"hata":"duman çalışmadı"}' > sonuc.json; }
+          git init -q -b steam-duman && git config user.name "github-actions" && git config user.email "actions@github.com"
+          git add . && git commit -qm "duman testi" && git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" steam-duman
       - uses: actions/upload-artifact@v4
         with: { name: "cbm-steam-${{ matrix.ad }}", path: "steam/cbm-${{ matrix.ad }}.zip", retention-days: 30 }
+  yayin:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: paket, merge-multiple: true }
+      - name: Ön sürüm (GitHub Releases)
+        env: { GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+        run: |
+          T=steam-${{ inputs.surum }}-${{ github.run_number }}
+          gh release create "$T" paket/*.zip -R ${{ github.repository }} --prerelease --title "CBM Steam ${{ inputs.surum }} (deneme ${{ github.run_number }})" --notes "Masaüstü deneme derlemesi: Windows, macOS, Linux klasörleri."
