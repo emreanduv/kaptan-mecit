@@ -22,6 +22,13 @@ if not v: raise SystemExit('düzenlenebilir sürüm yok (önce asc-surum)')
 VID=v['id']; out['surum']=[v['attributes']['versionString'],v['attributes']['appStoreState']]
 api('PATCH',f'v1/appStoreVersions/{VID}',{'data':{'type':'appStoreVersions','id':VID,'attributes':{'copyright':'2026 Mr. Anduv!'}}})
 locs=api('GET',f'v1/appStoreVersions/{VID}/appStoreVersionLocalizations')['data']
+infos=api('GET',f'v1/apps/{AID}/appInfos')['data']
+info=next((i for i in infos if i['attributes'].get('appStoreState') not in ('READY_FOR_SALE',) and i['attributes'].get('state') not in ('READY_FOR_DISTRIBUTION',)),None)
+if not any(l['attributes']['locale'].startswith('en') for l in locs):   # İngilizce sayfa yoksa aç
+    if info and not any(l['attributes']['locale'].startswith('en') for l in api('GET',f'v1/appInfos/{info["id"]}/appInfoLocalizations')['data']):
+        api('POST','v1/appInfoLocalizations',{'data':{'type':'appInfoLocalizations','attributes':{'locale':'en-US','name':'Champion Battle Manager','subtitle':M['en']['subtitle']},'relationships':{'appInfo':{'data':{'type':'appInfos','id':info['id']}}}}})
+    r=api('POST','v1/appStoreVersionLocalizations',{'data':{'type':'appStoreVersionLocalizations','attributes':{'locale':'en-US','description':M['en']['description'],'keywords':M['en']['keywords']},'relationships':{'appStoreVersion':{'data':{'type':'appStoreVersions','id':VID}}}}})
+    if r: locs.append(r['data']); ok('en-US sayfası açıldı')
 for l in locs:
     d=dil(l['attributes']['locale'])
     a={k:d[k] for k in ('description','keywords','promotionalText','whatsNew')}
@@ -30,8 +37,6 @@ for l in locs:
         a.pop('whatsNew'); r=api('PATCH',f'v1/appStoreVersionLocalizations/{l["id"]}',{'data':{'type':'appStoreVersionLocalizations','id':l['id'],'attributes':a}})
     if r is not None: ok('metin '+l['attributes']['locale'])
 # alt başlık
-infos=api('GET',f'v1/apps/{AID}/appInfos')['data']
-info=next((i for i in infos if i['attributes'].get('appStoreState') not in ('READY_FOR_SALE',) and i['attributes'].get('state') not in ('READY_FOR_DISTRIBUTION',)),None)
 if info:
     for l in api('GET',f'v1/appInfos/{info["id"]}/appInfoLocalizations')['data']:
         out.setdefault('ad',{})[l['attributes']['locale']]=l['attributes'].get('name')
