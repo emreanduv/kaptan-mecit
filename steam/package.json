@@ -1,0 +1,32 @@
+{
+  "name": "champion-battle-manager",
+  "productName": "Champion Battle Manager",
+  "version": "4.0.0",
+  "description": "Champion Battle Manager — futbol menajerlik oyunu. Bir Mr. Anduv! yapımıdır.",
+  "author": "Mr. Anduv!",
+  "main": "main.cjs",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "paket": "electron-builder --dir"
+  },
+  "devDependencies": {
+    "electron": "44.7.0",
+    "electron-builder": "26.17.0"
+  },
+  "optionalDependencies": {
+    "steamworks.js": "0.4.0"
+  },
+  "build": {
+    "appId": "com.mranduv.championbattlemanager",
+    "productName": "Champion Battle Manager",
+    "copyright": "© 2026 Mr. Anduv!",
+    "files": ["main.cjs", "preload.cjs", "oyun/**", "steam.cjs", "node_modules/steamworks.js/**"],
+    "extraFiles": [{ "from": "steam_appid.txt", "to": "steam_appid.txt", "filter": ["**/*"] }],
+    "asarUnpack": ["node_modules/steamworks.js/**"],
+    "directories": { "output": "dist", "buildResources": "kaynak" },
+    "win": { "target": "dir", "icon": "kaynak/ikon.png" },
+    "mac": { "target": "dir", "icon": "kaynak/ikon.png", "category": "public.app-category.sports-games", "identity": null },
+    "linux": { "target": "dir", "icon": "kaynak/ikon.png", "category": "Game" }
+  }
+}
