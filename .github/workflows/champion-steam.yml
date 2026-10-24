@@ -30,7 +30,7 @@ jobs:
         run: npx electron-builder --${{ matrix.hedef }} --dir --publish never
       - name: Klasörü sıkıştır
         run: |
-          cd dist && ls && D=$(find . -maxdepth 1 -mindepth 1 -type d | sed "s|^./||" | head -1); echo "klasör: $D"
+          cd dist && ls && D=$(find . -maxdepth 1 -mindepth 1 -type d \( -name "*-unpacked" -o -name "mac*" \) | sed "s|^./||" | head -1); echo "klasör: $D"
           if [ "${{ matrix.hedef }}" = "win" ]; then 7z a -r ../cbm-${{ matrix.ad }}.zip "./$D/*" >/dev/null; else zip -qry ../cbm-${{ matrix.ad }}.zip "$D"; fi
       - name: Duman testi (Linux)
         if: matrix.hedef == 'linux'
