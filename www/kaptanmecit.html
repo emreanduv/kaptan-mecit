@@ -782,6 +782,12 @@ function step(dt){
     M.stateT-=dt;
     for(const p of M.P){p.vx*=.85;p.vy*=.85;p.x+=p.vx*dt;p.y+=p.vy*dt;p.anim+=Math.hypot(p.vx,p.vy)*dt}
     if(M.state==='goal'||M.state==='half')moveOffBall(dt,true);
+    const yol=M.state==='pre'&&M.setPiece&&M.setPiece.yol;
+    if(yol){const q=M.setPiece.p,ddx=yol.tx-q.x,ddy=yol.ty-q.y,dd=Math.hypot(ddx,ddy);if(yol.bekle>0||M.stateT<.3){const qx=q.x,qy=q.y,qa=q.anim;moveOffBall(dt,true);q.x=qx;q.y=qy;q.anim=qa}q.vx=q.vy=0; /* uzun yürüyüşte diğerleri de yerlerine geçer */
+      if(dd>.05){const v=Math.min(11,2+dd*2.5),s=Math.min(dd,v*dt);q.x+=ddx/dd*s;q.y+=ddy/dd*s;q.anim+=s;q.dx=ddx/dd;q.dy=ddy/dd}
+      else{q.x=yol.tx;q.y=yol.ty;q.dx=yol.fx;q.dy=yol.fy}
+      if(M.stateT<=0&&dd>.3&&(yol.bekle+=dt)<6)M.stateT=.05;   /* oyuncu topa varmadan vuruş yok (en çok ~6 sn bekler) */
+      if(M.stateT<=0){q.x=yol.tx;q.y=yol.ty;q.dx=yol.fx;q.dy=yol.fy;M.setPiece.yol=null}}
     if(M.stateT<=0){const f=M.after;M.after=null;if(f)f();else M.state='play';}
     M.input.pasE=M.input.sutE=false;
     camera(dt);return;
@@ -1204,11 +1210,12 @@ function take(p){const b=M.ball;if(b.ofs&&!b.ofs.yakin&&b.ofs.q===p&&p.team===b.
 function restart(ti,x,y,pickRole){
   const b=M.ball;b.vx=b.vy=b.vz=0;b.z=0;b.x=x;b.y=y;b.shot=null;b.intended=null;
   let p;if(pickRole==='G')p=M.P.find(q=>q.team===ti&&q.role==='G');else{p=null;let bd=1e9;for(const q of M.P)if(q.team===ti&&q.role!=='G'){const d=Math.hypot(q.x-x,q.y-y);if(d<bd){bd=d;p=q}}}
-  p.x=x+(x<=0?-.4:x>=PW?.4:0);p.y=y+(y<=0?-.4:y>=PL?.4:0);p.vx=p.vy=0;
+  /* topu kullanacak oyuncu duran topa ışınlanmaz: koşarak gelir (bkz. step, 'pre') */
+  const hx=x+(x<=0?-.4:x>=PW?.4:0),hy=y+(y<=0?-.4:y>=PL?.4:0);p.vx=p.vy=0;
   /* rakipler 4 m uzaklaşsın */
   for(const q of M.P){if(q.team===ti)continue;const d=Math.hypot(q.x-x,q.y-y);if(d<5){const ux=(q.x-x)/(d||1),uy=(q.y-y)/(d||1);q.x=clamp(x+ux*5,.5,PW-.5);q.y=clamp(y+uy*5,.5,PL-.5)}}
-  const cx=PW/2,cy=y<PL/2?Math.max(y,10):Math.min(y,PL-10);const dx=cx-p.x,dy=cy-p.y,d=Math.hypot(dx,dy)||1;p.dx=dx/d;p.dy=dy/d;
-  b.owner=p;p.hold=0;p.cd=0;b.lastTeam=ti;M.setPiece={p,t:0};
+  const cx=PW/2,cy=y<PL/2?Math.max(y,10):Math.min(y,PL-10);const dx=cx-hx,dy=cy-hy,d=Math.hypot(dx,dy)||1;
+  b.owner=p;p.hold=0;p.cd=0;b.lastTeam=ti;M.setPiece={p,t:0,yol:{tx:hx,ty:hy,fx:dx/d,fy:dy/d,bekle:0}};
   if(p.team===0&&!M.demo)M.ctrl=p;
   M.state='pre';M.stateT=.55;
 }
