@@ -771,9 +771,10 @@ function uzatmaKontrol(sinir){if(M.demo)return M.clock>=sinir; /* gösterim / ca
   if(M.uz==null&&M.clock>=sinir){M.uz=M.half===1?1+Math.floor(Math.random()*4):M.half===2?3+Math.floor(Math.random()*4):1+Math.floor(Math.random()*2);banner('UZATMA','+'+M.uz+' DAKİKA',null,true);setTimeout(()=>{try{hideBanner()}catch(e){}},1800)}
   const bitis=M.uz==null?Infinity:sinir+M.uz*M.dur/90;const olu=M.durdu;M.durdu=0;if(M.clock<bitis)return false;
   /* süre dolunca düdük ancak tehlike yokken: kale vuruşu, kendi yarısında taç ya da top orta bölgeye uzaklaştırılınca. Korner ve ceza sahası yakınındaki taç kullanılır;
-     şut/orta havadayken ya da top ceza sahasındayken düdük çalmaz. En geç ~4 dk sonra top ceza sahası dışındaysa, ~7 dk sonra her durumda. */
-  const b=M.ball,kutu=Math.min(b.y,PL-b.y)<17;
-  return olu===1||(!olu&&!tehlike())||(M.clock>=bitis+M.dur*.045&&!b.shot&&!b.cross&&!kutu)||M.clock>=bitis+M.dur*.08}
+     şut/orta havadayken ya da top ceza sahasındayken düdük çalmaz. En geç ~4 dk sonra top kaleye 24 m+ uzaksa, ~7 dk sonra top ceza sahası dışındaysa. */
+  const b=M.ball,u=Math.min(b.y,PL-b.y),temiz=!b.shot&&!b.cross;
+  if(u<20)return false; /* top ceza sahalarından birinde (ya da hemen önünde) ya da kale vuruşu/korner/penaltı bekliyor: hakem ASLA düdük çalmaz */
+  return (olu===1&&u>30)||(!olu&&!tehlike())||(M.clock>=bitis+M.dur*.045&&temiz&&u>24)||(M.clock>=bitis+M.dur*.08&&temiz)}
 function step(dt){
   if(M.demo){M.input.x=0;M.input.y=0}else readInput();
   if(M.state==='tekrar'){kmTekrarAdim(dt);camera(dt);return}
