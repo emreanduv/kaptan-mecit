@@ -1,0 +1,30 @@
+name: App Store uygulama içi ürün (Tam Sürüm)
+on:
+  workflow_dispatch:
+    inputs:
+      bundle: { description: "Paket kimliği", default: "com.championchess.manager" }
+      urun: { description: "Ürün kimliği", default: "com.championchess.manager.tamsurum" }
+      fiyat: { description: "ABD fiyatı", default: "1.99" }
+permissions:
+  contents: write
+env:
+  ASC_KEY_ID: DJSHKK6T3P
+  ASC_ISSUER_ID: f4943ef8-df6f-42c8-a561-58554097ea35
+jobs:
+  iap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Anahtar
+        env: { P8: "${{ secrets.ASC_KEY_P8 }}" }
+        run: mkdir -p ~/private_keys && printf '%s' "$P8" > ~/private_keys/AuthKey_${ASC_KEY_ID}.p8
+      - run: pip3 install --quiet pyjwt cryptography
+      - name: Ürünü kur
+        env: { BUNDLE: "${{ inputs.bundle }}", URUN: "${{ inputs.urun }}", FIYAT: "${{ inputs.fiyat }}", FOTO: "araclar/champion-iap-inceleme.png" }
+        run: python3 araclar/asc_iap.py
+      - name: Sonucu durum-iap dalına yaz
+        if: always()
+        run: |
+          mkdir -p /tmp/d && cp iap.json /tmp/d/ 2>/dev/null || echo '{}' > /tmp/d/iap.json; cd /tmp/d
+          git init -q -b durum-iap && git config user.name "github-actions" && git config user.email "actions@github.com"
+          git add . && git commit -qm "IAP durum" && git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" durum-iap
