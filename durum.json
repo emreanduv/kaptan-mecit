@@ -1,0 +1,42 @@
+{
+ "app": "Champion Battle Manager",
+ "surumler": [
+  [
+   "4.0.0",
+   "READY_FOR_SALE",
+   "IOS"
+  ],
+  [
+   "3.4.0",
+   "READY_FOR_SALE",
+   "IOS"
+  ],
+  [
+   "3.2.0",
+   "READY_FOR_SALE",
+   "IOS"
+  ],
+  [
+   "3.1.0",
+   "READY_FOR_SALE",
+   "IOS"
+  ],
+  [
+   "3.0.0",
+   "READY_FOR_SALE",
+   "IOS"
+  ]
+ ],
+ "hazirlanan": [
+  "4.1.0",
+  "PREPARE_FOR_SUBMISSION"
+ ],
+ "diller": [
+  "en-US",
+  "tr"
+ ],
+ "derleme": "41",
+ "hatalar": [
+  "PATCH v1/builds/eb0ef882-cd24-4cba-b53b-fe463c2f54ef -> 409 {\n  \"errors\" : [ {\n    \"id\" : \"89ecbb23-a1d3-4ea0-90f6-d2db534c66f8\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID\",\n    \"title\" : \"The provided entity includes an attribute with an invalid value\",\n    \"detail\" : \"You cannot update when the value is already set.\",\n    \"source\" : {\n      \"pointer\" : \"/data/attributes/usesNonExemptEncryption\"\n    }\n  } ]\n}"
+ ]
+}
