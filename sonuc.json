@@ -1,0 +1,11 @@
+{
+ "masaustu": true,
+ "otoSayac": true,
+ "hatalar": [],
+ "steam": {
+  "aktif": false,
+  "appId": 0,
+  "hata": "AppID yok",
+  "ad": null
+ }
+}
