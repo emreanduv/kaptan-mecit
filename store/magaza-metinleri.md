@@ -42,7 +42,7 @@ Tüm kulüp ve oyuncu adları kurmacadır.
 Bir Mr. Anduv! yapımıdır.
 
 **Bu sürümde yenilikler (1.3.0) — App Store "Yenilikler" / Play "Sürüm notları" (en fazla 500 karakter)**
-Kadrolar Champion Battle Manager dünyasından geldi: 6 lig, 114 kulüp, tanıdık gelen kurmaca oyuncu adları. Faul, avantaj, sarı ve kırmızı kart, maç içi penaltı, ofsayt ve VAR. Gol olunca ağır çekim tekrar. Duran toplarda oyuncular topun başına koşarak gelir; hakem tehlikeli atak sürerken düdük çalmaz.
+Kadrolar Champion Battle Manager dünyasından geldi: 6 lig, 114 kulüp, tanıdık gelen kurmaca oyuncu adları. Maç öncesi 34 diziliş arasından seç ya da asistana bırak. Faul, avantaj, sarı ve kırmızı kart, maç içi penaltı, ofsayt ve VAR. Gol olunca ağır çekim tekrar. Duran toplarda oyuncular topun başına koşarak gelir; hakem tehlikeli atak sürerken düdük çalmaz.
 
 **Bu sürümde yenilikler (1.2.0) — App Store "Yenilikler" / Play "Sürüm notları" (en fazla 500 karakter)**
 Oyuncu değişikliği geldi: 7 kişilik yedek kulübesi, 90 dakikada 5 değişiklik hakkı, en fazla 3 ara (devre arası sayılmaz). İstersen değişiklikleri asistan yapar; yorgunluğa, sakatlığa ve skora bakar. Oyuncular koştukça yorulur, maçta sakatlık olabilir. Hakem uzatma süresi gösterir ve son düdüğü hücum bitmeden çalmaz. Panolarda Mr. Anduv! sosyal medya ve müzik hesapları.
@@ -64,7 +64,7 @@ Top-down retro football
 Kaptan Mecit is a fast retro football game inspired by classic cartridge-era football, with five camera views: classic pixel-art top-down, dynamic, tele, a wide stadium view and a straight-on TV broadcast angle. Play 11-a-side with a virtual stick and two buttons: pass and shoot on the ball, select player and slide tackle off the ball. Quick Match with 114 fictional clubs, or a full-season league career in one of six leagues. No ads, no in-app purchases, no data collection, works offline. All club and player names are fictional. (Game language: Turkish.)
 
 **What's new (1.3.0)**
-Squads now come from the Champion Battle Manager world: 6 leagues, 114 clubs and familiar-sounding fictional player names. Fouls, advantage, yellow and red cards, in-match penalties, offside and VAR. Slow-motion goal replays. Players jog to the ball for set pieces, and the referee never stops play during a dangerous attack.
+Squads now come from the Champion Battle Manager world: 6 leagues, 114 clubs and familiar-sounding fictional player names. Pick from 34 formations before kick-off or let your assistant choose. Fouls, advantage, yellow and red cards, in-match penalties, offside and VAR. Slow-motion goal replays. Players jog to the ball for set pieces, and the referee never stops play during a dangerous attack.
 
 **What's new (1.2.0)**
 Substitutions are here: a 7-player bench, 5 substitutions in up to 3 windows (half-time doesn't count). Let your assistant make the changes if you like, based on fatigue, injuries and the score. Players tire as they run and can get injured. The referee shows stoppage time and never blows the final whistle in the middle of an attack. Pitchside boards feature Mr. Anduv! social and music accounts.

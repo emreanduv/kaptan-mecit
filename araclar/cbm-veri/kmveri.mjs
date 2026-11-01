@@ -13,7 +13,7 @@ function enIyi11(liste) {   /* önce kaleci + yeteneğe göre aday havuzu, sonra
   for (const j of [0, 10, 2, 3, 1, 4, 6, 9, 7, 5, 8]) { let en = 0, es = -1; kalan.forEach((o, k) => { const s = uyum(o, KM_YER[j]) * 1000 + o.ca; if (s > es) { es = s; en = k; } }); out[j] = kalan.splice(en, 1)[0]; }
   return out;
 }
-const LG = {}, KADRO = {};
+const LG = {}, KADRO = {}, HAVUZ = {};
 for (const lk of ['tr', 'en', 'es', 'it', 'de', 'fr']) {
   const L = D.ligler[lk], E = eski[lk] || {};
   const ks = L.kulupler.map(id => D.kulupler[id]).sort((a, b) => b.guc - a.guc || a.ad.localeCompare(b.ad, 'tr'));
@@ -25,7 +25,9 @@ for (const lk of ['tr', 'en', 'es', 'it', 'de', 'fr']) {
     const yedek = os.filter(o => !xiS.has(o)).sort((a, b) => b.ca - a.ca);
     const kl = yedek.find(o => o.mevki === 'KL'), yd = [kl, ...yedek.filter(o => o.mevki !== 'KL')].filter(Boolean).slice(0, 9);
     KADRO[lk + ':' + id] = { k: xi.map(o => [o.no, ad(o)]), y: yd.map(o => [o.no, ad(o), HARF[o.mevki] || 'O']) };
+    const kls = os.filter(o => o.mevki === 'KL').sort((a, b) => b.ca - a.ca).slice(0, 2), saha = os.filter(o => o.mevki !== 'KL').sort((a, b) => b.ca - a.ca).slice(0, 20);
+    HAVUZ[lk + ':' + id] = [...kls, ...saha].map(o => [o.no, ad(o), o.mevki, (o.ikinci || []).join(','), o.ca]);
   }
 }
-fs.writeFileSync(process.argv[4], JSON.stringify({ LG, KADRO, kaynak: kaynak.guncel, sezon: kaynak.sezon }));
+fs.writeFileSync(process.argv[4], JSON.stringify({ LG, KADRO, HAVUZ, kaynak: kaynak.guncel, sezon: kaynak.sezon }));
 console.log(Object.entries(LG).map(([k, v]) => k + ':' + v.t.length).join(' '), Object.keys(KADRO).length, JSON.stringify(KADRO['tr:' + LG.tr.t[0][0]]).slice(0, 400));
