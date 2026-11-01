@@ -418,7 +418,8 @@ function startMatch(me,opp,career,demo,opts){opts=opts||{};ledReset();
      clock:0,dur:(demo?1.2:S.set.dur)*60,half:1,state:'pre',stateT:1.2,after:null,events:[],
      ball:{x:PW/2,y:PL/2,z:0,vx:0,vy:0,vz:0,owner:null,last:null,lastTeam:0,kicker:null,shot:null,intended:null,gkTried:false},
      P:[],ctrl:null,cam:{x:PW/2,y:PL/2},diff,input:{x:0,y:0,pas:false,sut:false,pasE:false,sutE:false},kickTeam:0,paused:false,acc:0,lastT:0,setPiece:null};
-  for(let ti=0;ti<2;ti++){const sq=squad(M.T[ti].t);sq.forEach((s,i)=>M.P.push({team:ti,i,role:i===0?'G':POS[i],pos:ROLES[i],no:s.no,n:s.n,id:s.id,skin:s.skin,hair:s.hair,st:s.st??1,inj:false,fx:FORM[i][0],fy:FORM[i][1],x:0,y:0,vx:0,vy:0,dx:0,dy:ti===0?-1:1,anim:0,cd:0,slide:0,stun:0,hold:0,dec:0}))}
+  for(let ti=0;ti<2;ti++){const sq=squad(M.T[ti].t);const DZ=Array.isArray(M.T[ti].t.dz)&&M.T[ti].t.dz.length===11?M.T[ti].t.dz:null; /* CBM'den gelen diziliş: [fx,fy,rol,yer] */
+    sq.forEach((s,i)=>M.P.push({team:ti,i,role:i===0?'G':DZ?DZ[i][2]:POS[i],pos:DZ?DZ[i][3]:ROLES[i],no:s.no,n:s.n,id:s.id,skin:s.skin,hair:s.hair,st:s.st??1,inj:false,dz:!!DZ,fx:DZ?DZ[i][0]:FORM[i][0],fy:DZ?DZ[i][1]:FORM[i][1],x:0,y:0,vx:0,vy:0,dx:0,dy:ti===0?-1:1,anim:0,cd:0,slide:0,stun:0,hold:0,dec:0}))}
   /* oyuncu değişikliği: 90 dakikada 5 hak / 3 ara, uzatmada 6 / 4; devre arası ara sayılmaz */
   M.B=[bench(M.T[0].t),bench(M.T[1].t)];M.hak={n:5,w:3};M.sub=[{n:0,win:new Set()},{n:0,win:new Set()}];M.out=[];M.inj=[];M.subLog=[];M.otoT=[0,0];
   M.asist=[opts.asist!=null?!!opts.asist:!!S.set.asist,true];M.uzFark=opts.uzFark!=null?opts.uzFark:null;M.sel={};
@@ -869,7 +870,11 @@ const depthOf=(ti,y)=>Math.abs(y-ownGoalY(ti));
 const yAtDepth=(ti,d)=>ownGoalY(ti)+fwdOf(ti)*d;
 const rightOf=ti=>fwdOf(ti)===-1?1:-1; /* takımın sağ kanadı +x yönünde mi */
 function teamPlan(ti){return(M.TP&&M.TP[ti])||{poss:false,line:24,cx:PW/2,ws:.7,last:PL-14,mid:PL-30,mode:'def'}}
-function slotPos(p,inPoss){const ti=p.team,P=teamPlan(ti),S=SLOT[p.pos];if(!S)return home(p);
+/* CBM dizilişiyle gelen oyuncu: yerin (pos) temel davranışı korunur, yanal konum ve derinlik kendi diziliş noktasından (fx, fy) gelir — aynı yerde iki oyuncu üst üste binmez */
+const SLOT_FY={LB:.2,LCB:.15,RCB:.15,RB:.2,SS:.42,DM:.3,CM:.36,RW:.42,AM:.43,ST:.47};
+function dzSlot(p){const B=SLOT[p.pos];if(!B)return null;const df=((p.fy??SLOT_FY[p.pos])-SLOT_FY[p.pos])*100;
+  return{lx:clamp((p.fx-.5)*2,-.95,.95),dIn:Math.max(0,B.dIn+df*.8),dOut:Math.max(0,B.dOut+df*.6)}}
+function slotPos(p,inPoss){const ti=p.team,P=teamPlan(ti),S=p.dz?dzSlot(p):SLOT[p.pos];if(!S)return home(p);
   const d=P.line+(inPoss?S.dIn:S.dOut),x=P.cx+rightOf(ti)*S.lx*31*(inPoss?1:P.ws);
   return{x:clamp(x,2,PW-2),y:yAtDepth(ti,clamp(d,3,PL-6))}}
 function tacticalPrep(dt){
@@ -1673,7 +1678,7 @@ if(MQ.get('mac')==='1'){
   const mk=(n,sh,c1,c2,str)=>({lg:lgk,id:sh,name:n,short:sh,c1,c2,str,city:''});
   const me=mk(MQ.get('ben')||'Takımın',MQ.get('bk')||'EV',MQ.get('b1')||'#d33a2e',MQ.get('b2')||'#ffffff',clamp(Math.round(6+ud/.55),3,9));
   const op=mk(MQ.get('rakip')||'Rakip',MQ.get('rk')||'DEP',MQ.get('r1')||'#1d3f6e',MQ.get('r2')||'#ffffff',clamp(Math.round(3+zor*6.5),3,9));
-  const kd=k=>{try{return JSON.parse(MQ.get(k)||'null')}catch(e){return null}};me.kadro=kd('k1');op.kadro=kd('k2');me.yedek=kd('y1')||undefined;op.yedek=kd('y2')||undefined;
+  const kd=k=>{try{return JSON.parse(MQ.get(k)||'null')}catch(e){return null}};me.kadro=kd('k1');op.kadro=kd('k2');me.dz=kd('f1');op.dz=kd('f2');me.yedek=kd('y1')||undefined;op.yedek=kd('y2')||undefined;
   if(MQ.get('ses')==='0'){SND.on=false}
   startMatch(me,op,null,false,{mac:true,asist:MQ.get('as')!=null?MQ.get('as')==='1':null,uzFark:MQ.get('uz')!=null&&MQ.get('uz')!==''?+MQ.get('uz'):null});
 }else render();
