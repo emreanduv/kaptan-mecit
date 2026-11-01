@@ -78,3 +78,6 @@
 2. iOS: Actions → "iOS (App Store Connect / TestFlight)" → sürüm adını artır.
 3. Android: Actions → "Android (Google Play paketi)" → `builds` dalındaki imzasız `.aab`'yi imzala:
    `jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore imza-anahtari/kaptanmecit-upload.jks paket.aab kaptanmecit`
+
+## VR · Gerçekçi görünüm (2026-11-02)
+- emreanduv.github.io/kaptan-mecit-vr: iskeletli 3B futbolcular (gercekci.js), gölgeler, biçilmiş çim, desenli top. Menü > Görünüm: Gerçekçi / Retro. Quest uygulaması TWA olduğu için kendiliğinden güncellenir.
