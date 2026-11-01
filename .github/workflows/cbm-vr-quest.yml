@@ -65,10 +65,17 @@ jobs:
       - name: Projeyi üret ve imzasız derle
         working-directory: proje
         run: |
-          yes | bubblewrap update --skipVersionUpgrade --manifest=./twa-manifest.json || true
-          ls
-          yes | bubblewrap build --skipSigning --manifest=./twa-manifest.json
+          set -o pipefail
+          (yes | bubblewrap update --skipVersionUpgrade --manifest=./twa-manifest.json) 2>&1 | tee /tmp/gunluk.txt || true
+          ls | tee -a /tmp/gunluk.txt
+          (yes | bubblewrap build --skipSigning --manifest=./twa-manifest.json) 2>&1 | tee -a /tmp/gunluk.txt
           ls -la *.apk *.aab 2>/dev/null || true
+      - name: Günlüğü vr-gunluk dalına yaz
+        if: always()
+        run: |
+          mkdir -p /tmp/g && cp /tmp/gunluk.txt /tmp/g/ 2>/dev/null || echo yok > /tmp/g/gunluk.txt; cd /tmp/g
+          git init -q -b vr-gunluk && git config user.name gha && git config user.email gha@x && git add . && git commit -qm gunluk
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" vr-gunluk
       - name: Yayınla
         env: { GH_TOKEN: "${{ github.token }}" }
         run: |
