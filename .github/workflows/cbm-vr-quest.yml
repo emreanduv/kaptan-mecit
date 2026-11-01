@@ -20,6 +20,10 @@ jobs:
       - name: Bubblewrap ayarları ve TWA tanımı
         run: |
           mkdir -p ~/.bubblewrap proje
+          # bubblewrap eski SDK düzenini (tools/) arar: komut satırı araçlarını oraya bağla; build-tools 34.0.0 gerekli
+          [ -e "$ANDROID_HOME/tools" ] || sudo ln -s "$ANDROID_HOME/cmdline-tools/latest" "$ANDROID_HOME/tools"
+          [ -d "$ANDROID_HOME/build-tools/34.0.0" ] || yes | sudo "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;34.0.0" >/dev/null
+          ls "$ANDROID_HOME" "$ANDROID_HOME/build-tools"
           printf '{"jdkPath":"%s","androidSdkPath":"%s"}' "$JAVA_HOME" "$ANDROID_HOME" > ~/.bubblewrap/config.json
           cat > proje/twa-manifest.json <<JSON
           {
