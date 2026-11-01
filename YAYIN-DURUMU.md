@@ -1,6 +1,7 @@
 # Kaptan Mecit — Yayın durumu (23 Ekim 2026)
 
 ## Champion Battle Manager 3.4.0 (24 Eki)
+- 2 Kas: **Kaptan Mecit VR** (Meta Quest, ayrı uygulama, ücretsiz) — https://emreanduv.github.io/kaptan-mecit-vr/ · paket com.anduv.kaptanmecit.vr · Horizon uygulama no 1486658967858040 · 1.0.0 (1) Alpha kanalına yüklendi (taslak). İmza: `imza-anahtari/kaptanmecit-vr-quest.jks` + `KMVR-QUEST-ANAHTAR-OKU.txt` (depoya girmez). Kalan (Emre): yaş grubu öz-sertifikası, Alpha'ya davet onayı, derlemeyi yayınla.
 - Malazgirt modu 1.4 (1071 bölüm, 22 sefer; `champion-battle` dalı `araclar/malazgirt-birlestir.py` ile tek dosya), güncel Kaptan Mecit motoru
 - iOS 3.4.0 (18) TestFlight + App Store sürümü hazırlandı (derleme bağlı, Yenilikler yazıldı) → "İncelemeye gönder" elle
 - Android 3.4.0 (20) imzalı: bilgisayarda `ChampionChess-main/fm2010/magaza/champion-battle-3.4.0-20-imzali.aab` → Play kapalı test (Alpha) yeni sürüm taslağı açık
