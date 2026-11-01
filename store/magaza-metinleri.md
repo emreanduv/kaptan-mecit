@@ -16,7 +16,7 @@
 ## Türkçe
 
 **Kısa açıklama (Google Play, en fazla 80 karakter)**
-Üstten görünümlü nostaljik futbol: 6 lig, 120 kulüp, internetsiz oyna!
+Üstten görünümlü nostaljik futbol: 6 lig, 114 kulüp, internetsiz oyna!
 
 **Alt başlık (App Store, en fazla 30 karakter)**
 Nostaljik üstten futbol
@@ -29,8 +29,8 @@ futbol,retro,nostaljik,lig,kariyer,pixel,8-bit,maç,futbol oyunu,süper lig,klas
 
 Sahada 11'e 11 oynarsın. Sol taraftan parmağını kaydırarak koşarsın, PAS ve ŞUT tuşlarıyla oyunu kurarsın. Top rakipteyken tuşlar SEÇ ve KAY olur: en yakın oyuncunu seçer, rakibin ayağına kayarsın. Gol olunca tribünler ayağa kalkar.
 
-• Hızlı Maç: 120 kulüp arasından istediğin eşleşmeyi kur, farklı liglerden takımları bile karşılaştır
-• Lig Kariyeri: 6 lig, her ligde 20 kulüp, 38 hafta. Puan durumu, fikstür ve gol krallığı
+• Hızlı Maç: 114 kulüp arasından istediğin eşleşmeyi kur, farklı liglerden takımları bile karşılaştır
+• Lig Kariyeri: 6 lig, ligine göre 34 ya da 38 hafta. Puan durumu, fikstür ve gol krallığı
 • Anadolu Ligi, Ada Ligi, İber Ligi, Çizme Ligi, Ren Ligi ve Galya Ligi
 • Kolay, Orta ve Zor seviye; 2, 4, 6 ya da 8 dakikalık maçlar
 • Dört kamera: Klasik, Dinamik, Tele ve 3D Stadyum. Maçın ortasında bile değiştirebilirsin
@@ -40,6 +40,9 @@ Sahada 11'e 11 oynarsın. Sol taraftan parmağını kaydırarak koşarsın, PAS 
 Tüm kulüp ve oyuncu adları kurmacadır.
 
 Bir Mr. Anduv! yapımıdır.
+
+**Bu sürümde yenilikler (1.3.0) — App Store "Yenilikler" / Play "Sürüm notları" (en fazla 500 karakter)**
+Kadrolar Champion Battle Manager dünyasından geldi: 6 lig, 114 kulüp, tanıdık gelen kurmaca oyuncu adları. Faul, avantaj, sarı ve kırmızı kart, maç içi penaltı, ofsayt ve VAR. Gol olunca ağır çekim tekrar. Duran toplarda oyuncular topun başına koşarak gelir; hakem tehlikeli atak sürerken düdük çalmaz.
 
 **Bu sürümde yenilikler (1.2.0) — App Store "Yenilikler" / Play "Sürüm notları" (en fazla 500 karakter)**
 Oyuncu değişikliği geldi: 7 kişilik yedek kulübesi, 90 dakikada 5 değişiklik hakkı, en fazla 3 ara (devre arası sayılmaz). İstersen değişiklikleri asistan yapar; yorgunluğa, sakatlığa ve skora bakar. Oyuncular koştukça yorulur, maçta sakatlık olabilir. Hakem uzatma süresi gösterir ve son düdüğü hücum bitmeden çalmaz. Panolarda Mr. Anduv! sosyal medya ve müzik hesapları.
@@ -52,13 +55,16 @@ Beş kamera: Klasik, Dinamik, Tele, Stadyum ve TV yayın açısı; dördü aynı
 ## English
 
 **Short description (≤80)**
-Top-down retro football: 6 leagues, 120 clubs, fully offline.
+Top-down retro football: 6 leagues, 114 clubs, fully offline.
 
 **Subtitle (≤30)**
 Top-down retro football
 
 **Full description**
-Kaptan Mecit is a fast retro football game inspired by classic cartridge-era football, with five camera views: classic pixel-art top-down, dynamic, tele, a wide stadium view and a straight-on TV broadcast angle. Play 11-a-side with a virtual stick and two buttons: pass and shoot on the ball, select player and slide tackle off the ball. Quick Match with 120 fictional clubs, or a 38-week league career in one of six leagues. No ads, no in-app purchases, no data collection, works offline. All club and player names are fictional. (Game language: Turkish.)
+Kaptan Mecit is a fast retro football game inspired by classic cartridge-era football, with five camera views: classic pixel-art top-down, dynamic, tele, a wide stadium view and a straight-on TV broadcast angle. Play 11-a-side with a virtual stick and two buttons: pass and shoot on the ball, select player and slide tackle off the ball. Quick Match with 114 fictional clubs, or a full-season league career in one of six leagues. No ads, no in-app purchases, no data collection, works offline. All club and player names are fictional. (Game language: Turkish.)
+
+**What's new (1.3.0)**
+Squads now come from the Champion Battle Manager world: 6 leagues, 114 clubs and familiar-sounding fictional player names. Fouls, advantage, yellow and red cards, in-match penalties, offside and VAR. Slow-motion goal replays. Players jog to the ball for set pieces, and the referee never stops play during a dangerous attack.
 
 **What's new (1.2.0)**
 Substitutions are here: a 7-player bench, 5 substitutions in up to 3 windows (half-time doesn't count). Let your assistant make the changes if you like, based on fatigue, injuries and the score. Players tire as they run and can get injured. The referee shows stoppage time and never blows the final whistle in the middle of an attack. Pitchside boards feature Mr. Anduv! social and music accounts.
