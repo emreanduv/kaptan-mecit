@@ -69,11 +69,10 @@ jobs:
       - name: Projeyi üret ve imzasız derle
         working-directory: proje
         run: |
-          set -o pipefail
           (yes | bubblewrap update --skipVersionUpgrade --manifest=./twa-manifest.json) 2>&1 | tee /tmp/gunluk.txt || true
           ls | tee -a /tmp/gunluk.txt
-          (yes | bubblewrap build --skipSigning --manifest=./twa-manifest.json) 2>&1 | tee -a /tmp/gunluk.txt
-          ls -la *.apk *.aab 2>/dev/null || true
+          (yes | bubblewrap build --skipSigning --manifest=./twa-manifest.json) 2>&1 | tee -a /tmp/gunluk.txt || true
+          test -f app-release-unsigned-aligned.apk   # yes'in kırık boru çıkışı hata sayılmasın; asıl ölçüt APK
       - name: Günlüğü vr-gunluk dalına yaz
         if: always()
         run: |
