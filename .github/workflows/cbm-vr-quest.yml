@@ -1,0 +1,77 @@
+name: Champion Battle VR (Meta Quest APK)
+# emreanduv.github.io/cbm-vr PWA'sını Meta'nın bubblewrap'iyle Quest uygulamasına (TWA, immersive) paketler.
+# İmzasız APK yayınlanır; imza (cbm-vr-quest.jks) depoya girmez, yerelde atılır.
+on:
+  workflow_dispatch:
+    inputs:
+      version_name: { description: "Sürüm adı", default: "1.0.0" }
+      version_code: { description: "Sürüm kodu", default: "1" }
+permissions:
+  contents: write
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm i -g @meta-quest/bubblewrap-cli@1.24.1
+      - name: Bubblewrap ayarları ve TWA tanımı
+        run: |
+          mkdir -p ~/.bubblewrap proje
+          printf '{"jdkPath":"%s","androidSdkPath":"%s"}' "$JAVA_HOME" "$ANDROID_HOME" > ~/.bubblewrap/config.json
+          cat > proje/twa-manifest.json <<JSON
+          {
+            "packageId": "com.anduv.championbattle.vr",
+            "host": "emreanduv.github.io",
+            "name": "Champion Battle VR",
+            "launcherName": "Champion VR",
+            "display": "standalone",
+            "themeColor": "#1F3B3C",
+            "navigationColor": "#1F3B3C",
+            "navigationColorDark": "#1F3B3C",
+            "navigationDividerColor": "#1F3B3C",
+            "navigationDividerColorDark": "#1F3B3C",
+            "backgroundColor": "#141C1D",
+            "enableNotifications": false,
+            "startUrl": "/cbm-vr/index.html",
+            "iconUrl": "https://emreanduv.github.io/cbm-vr/ikon-512.png",
+            "maskableIconUrl": "https://emreanduv.github.io/cbm-vr/ikon-512.png",
+            "splashScreenFadeOutDuration": 300,
+            "signingKey": { "path": "./android.keystore", "alias": "android" },
+            "appVersionName": "${{ inputs.version_name }}",
+            "appVersionCode": ${{ inputs.version_code }},
+            "shortcuts": [],
+            "generatorApp": "bubblewrap-cli",
+            "webManifestUrl": "https://emreanduv.github.io/cbm-vr/manifest.webmanifest",
+            "fallbackType": "customtabs",
+            "features": {},
+            "alphaDependencies": { "enabled": false },
+            "enableSiteSettingsShortcut": false,
+            "isChromeOSOnly": false,
+            "isMetaQuest": true,
+            "horizonOSAppMode": "immersive",
+            "fullScopeUrl": "https://emreanduv.github.io/cbm-vr/",
+            "minSdkVersion": 29,
+            "orientation": "landscape",
+            "fingerprints": [],
+            "additionalTrustedOrigins": [],
+            "retainedBundles": [],
+            "appVersion": "${{ inputs.version_name }}"
+          }
+          JSON
+          cat proje/twa-manifest.json
+      - name: Projeyi üret ve imzasız derle
+        working-directory: proje
+        run: |
+          yes | bubblewrap update --skipVersionUpgrade --manifest=./twa-manifest.json || true
+          ls
+          yes | bubblewrap build --skipSigning --manifest=./twa-manifest.json
+          ls -la *.apk *.aab 2>/dev/null || true
+      - name: Yayınla
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          T=cbm-vr-${{ inputs.version_name }}-${{ inputs.version_code }}-${{ github.run_number }}
+          cp proje/app-release-unsigned-aligned.apk "/tmp/champion-battle-vr-${{ inputs.version_name }}-${{ inputs.version_code }}-unsigned.apk"
+          gh release create "$T" -R "${{ github.repository }}" --title "Champion Battle VR ${{ inputs.version_name }} (${{ inputs.version_code }}) imzasız" --notes "Meta Quest imzasız APK" "/tmp/champion-battle-vr-${{ inputs.version_name }}-${{ inputs.version_code }}-unsigned.apk"
