@@ -1,0 +1,87 @@
+name: Kaptan Mecit VR (Meta Quest APK)
+# emreanduv.github.io/kaptan-mecit-vr PWA'sını Meta'nın bubblewrap'iyle Quest uygulamasına (TWA, immersive) paketler.
+# İmzasız APK yayınlanır; imza (kaptanmecit-vr-quest.jks) depoya girmez, yerelde atılır.
+on:
+  workflow_dispatch:
+    inputs:
+      version_name: { description: "Sürüm adı", default: "1.0.0" }
+      version_code: { description: "Sürüm kodu", default: "1" }
+permissions:
+  contents: write
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm i -g @meta-quest/bubblewrap-cli@1.24.1
+      - name: Bubblewrap ayarları ve TWA tanımı
+        run: |
+          mkdir -p ~/.bubblewrap proje
+          # bubblewrap eski SDK düzenini (tools/) arar: komut satırı araçlarını oraya bağla; build-tools 34.0.0 gerekli
+          [ -e "$ANDROID_HOME/tools" ] || sudo ln -s "$ANDROID_HOME/cmdline-tools/latest" "$ANDROID_HOME/tools"
+          [ -d "$ANDROID_HOME/build-tools/34.0.0" ] || yes | sudo "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;34.0.0" >/dev/null
+          ls "$ANDROID_HOME" "$ANDROID_HOME/build-tools"
+          printf '{"jdkPath":"%s","androidSdkPath":"%s"}' "$JAVA_HOME" "$ANDROID_HOME" > ~/.bubblewrap/config.json
+          cat > proje/twa-manifest.json <<JSON
+          {
+            "packageId": "com.anduv.kaptanmecit.vr",
+            "host": "emreanduv.github.io",
+            "name": "Kaptan Mecit VR",
+            "launcherName": "Kaptan Mecit VR",
+            "display": "standalone",
+            "themeColor": "#1F3B3C",
+            "navigationColor": "#1F3B3C",
+            "navigationColorDark": "#1F3B3C",
+            "navigationDividerColor": "#1F3B3C",
+            "navigationDividerColorDark": "#1F3B3C",
+            "backgroundColor": "#0D1318",
+            "enableNotifications": false,
+            "startUrl": "/kaptan-mecit-vr/index.html",
+            "iconUrl": "https://emreanduv.github.io/kaptan-mecit-vr/ikon-512.png",
+            "maskableIconUrl": "https://emreanduv.github.io/kaptan-mecit-vr/ikon-512.png",
+            "splashScreenFadeOutDuration": 300,
+            "signingKey": { "path": "./android.keystore", "alias": "android" },
+            "appVersionName": "${{ inputs.version_name }}",
+            "appVersionCode": ${{ inputs.version_code }},
+            "shortcuts": [],
+            "generatorApp": "bubblewrap-cli",
+            "webManifestUrl": "https://emreanduv.github.io/kaptan-mecit-vr/manifest.webmanifest",
+            "fallbackType": "customtabs",
+            "features": {},
+            "alphaDependencies": { "enabled": false },
+            "enableSiteSettingsShortcut": false,
+            "isChromeOSOnly": false,
+            "isMetaQuest": true,
+            "horizonOSAppMode": "immersive",
+            "fullScopeUrl": "https://emreanduv.github.io/kaptan-mecit-vr/",
+            "minSdkVersion": 29,
+            "orientation": "landscape",
+            "fingerprints": [],
+            "additionalTrustedOrigins": [],
+            "retainedBundles": [],
+            "appVersion": "${{ inputs.version_name }}"
+          }
+          JSON
+          cat proje/twa-manifest.json
+      - name: Projeyi üret ve imzasız derle
+        working-directory: proje
+        run: |
+          (yes | bubblewrap update --skipVersionUpgrade --manifest=./twa-manifest.json) 2>&1 | tee /tmp/gunluk.txt || true
+          ls | tee -a /tmp/gunluk.txt
+          (yes | bubblewrap build --skipSigning --manifest=./twa-manifest.json) 2>&1 | tee -a /tmp/gunluk.txt || true
+          test -f app-release-unsigned-aligned.apk   # yes'in kırık boru çıkışı hata sayılmasın; asıl ölçüt APK
+      - name: Günlüğü kmvr-gunluk dalına yaz
+        if: always()
+        run: |
+          mkdir -p /tmp/g && cp /tmp/gunluk.txt /tmp/g/ 2>/dev/null || echo yok > /tmp/g/gunluk.txt; cd /tmp/g
+          git init -q -b kmvr-gunluk && git config user.name gha && git config user.email gha@x && git add . && git commit -qm gunluk
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" kmvr-gunluk
+      - name: Yayınla
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          T=kmvr-${{ inputs.version_name }}-${{ inputs.version_code }}-${{ github.run_number }}
+          cp proje/app-release-unsigned-aligned.apk "/tmp/kaptan-mecit-vr-${{ inputs.version_name }}-${{ inputs.version_code }}-unsigned.apk"
+          gh release create "$T" -R "${{ github.repository }}" --title "Kaptan Mecit VR ${{ inputs.version_name }} (${{ inputs.version_code }}) imzasız" --notes "Meta Quest imzasız APK + apksigner.jar (yerelde imza için)" "/tmp/kaptan-mecit-vr-${{ inputs.version_name }}-${{ inputs.version_code }}-unsigned.apk" "$ANDROID_HOME/build-tools/34.0.0/lib/apksigner.jar"
