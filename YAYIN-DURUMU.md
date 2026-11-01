@@ -1,6 +1,7 @@
 # Kaptan Mecit — Yayın durumu (23 Ekim 2026)
 
 ## Champion Battle Manager 3.4.0 (24 Eki)
+- 2 Kas gece: **1.3.0 (12)** — CBM'nin 34 dizilişi + asistanı (maç öncesi ◀ ▶ seçim ve şema, Otomatik; rakip yaygınlık payıyla seçer), kadrolar `HAVUZ`dan dizilişe göre kurulur. iOS TestFlight + Android dahili test yayında (`imza-anahtari/kaptan-mecit-1.3.0-12-imzali.aab`); VR menüsüne de diziliş geldi.
 - 2 Kas: **1.3.0 (11)** — kadrolar Champion Battle Manager'ın türetilmiş dünyasından (`araclar`: CBM `src` + gh-io `veri/cbm/v1/dunya.json` → LEAGUES + KADRO; 6 lig, 114 kulüp, Lukaku → Lakaka). iOS TestFlight (dış grup beta incelemesi bekliyor) + Android dahili test yayında (`imza-anahtari/kaptan-mecit-1.3.0-11-imzali.aab`). Kaptan Mecit VR de aynı motorla güncellendi (web üzerinden, APK değişmeden). Mağaza incelemesi Emre'de.
 - 2 Kas: **Kaptan Mecit VR** (Meta Quest, ayrı uygulama, ücretsiz) — https://emreanduv.github.io/kaptan-mecit-vr/ · paket com.anduv.kaptanmecit.vr · Horizon uygulama no 1486658967858040 · 1.0.0 (1) Alpha kanalına yüklendi (taslak). İmza: `imza-anahtari/kaptanmecit-vr-quest.jks` + `KMVR-QUEST-ANAHTAR-OKU.txt` (depoya girmez). Kalan (Emre): yaş grubu öz-sertifikası, Alpha'ya davet onayı, derlemeyi yayınla.
 - Malazgirt modu 1.4 (1071 bölüm, 22 sefer; `champion-battle` dalı `araclar/malazgirt-birlestir.py` ile tek dosya), güncel Kaptan Mecit motoru
