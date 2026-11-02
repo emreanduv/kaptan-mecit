@@ -52,3 +52,6 @@ func select(i: int) -> void:
 	if _ogeler.is_empty(): return
 	selected = clampi(i, 0, _ogeler.size() - 1)
 	_etiket.text = _ogeler[selected]
+
+func kay(d: int) -> void: _kay(d)
+func metin() -> String: return _etiket.text

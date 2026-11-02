@@ -14,9 +14,6 @@ var koken: XROrigin3D
 var kafa: XRCamera3D
 var sol: XRController3D
 var sag: XRController3D
-var panel: MeshInstance3D
-var panel_vp: SubViewport
-var isin: MeshInstance3D
 var karart: MeshInstance3D
 var _karart_mat: StandardMaterial3D
 var masa: Node3D
@@ -29,9 +26,9 @@ var _tetik_onceki := false
 var _afis_t := 0.0
 var _takip_t := 1.0
 
-static func baslat(ana_dugum: Node3D) -> VR:
+static func baslat(ana_dugum: Node3D, sahte := false) -> VR:
 	var x := XRServer.find_interface("OpenXR")
-	if x == null or not x.is_initialized(): return null
+	if not sahte and (x == null or not x.is_initialized()): return null
 	var v := VR.new()
 	v.ana = ana_dugum
 	v.xr = x
@@ -41,7 +38,7 @@ static func baslat(ana_dugum: Node3D) -> VR:
 
 func _kur() -> void:
 	var vp := get_viewport()
-	vp.use_xr = true
+	vp.use_xr = xr != null and xr.is_initialized()
 	vp.msaa_3d = Viewport.MSAA_2X
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 	if xr is OpenXRInterface:
@@ -53,6 +50,7 @@ func _kur() -> void:
 	koken = XROrigin3D.new(); add_child(koken)
 	kafa = XRCamera3D.new(); kafa.near = .05; kafa.far = 900; koken.add_child(kafa)
 	kafa.current = true
+	if not vp.use_xr: kafa.position = Vector3(0, 1.2, 0)   # masaüstü denemesi: oturan göz yüksekliği
 	sol = XRController3D.new(); sol.tracker = "left_hand"; koken.add_child(sol)
 	sag = XRController3D.new(); sag.tracker = "right_hand"; sag.pose = "aim"; koken.add_child(sag)
 	for c in [sol, sag]:
@@ -67,24 +65,9 @@ func _kur() -> void:
 	_karart_mat.no_depth_test = true; _karart_mat.render_priority = 100
 	karart.material_override = _karart_mat; karart.position = Vector3(0, 0, -.1); karart.visible = false
 	kafa.add_child(karart)
-	# menü / tabela paneli: ana arayüz bir SubViewport'a taşınır
-	panel_vp = SubViewport.new(); panel_vp.size = Vector2i(1280, 720); panel_vp.transparent_bg = true
-	panel_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	panel_vp.gui_embed_subwindows = true
-	add_child(panel_vp)
-	arayuz = ana.ui
-	arayuz.get_parent().remove_child(arayuz)
-	panel_vp.add_child(arayuz)
-	panel = MeshInstance3D.new(); var pq := QuadMesh.new(); pq.size = Vector2(1.6, .9); panel.mesh = pq
-	var pm := StandardMaterial3D.new(); pm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	pm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA; pm.albedo_texture = panel_vp.get_texture()
-	pm.no_depth_test = true; pm.render_priority = 50
-	panel.material_override = pm
-	koken.add_child(panel)
-	# lazer işaretçi
-	isin = MeshInstance3D.new(); var cm := CylinderMesh.new(); cm.top_radius = .003; cm.bottom_radius = .003; cm.height = 1
-	isin.mesh = cm; isin.material_override = _duz(Color("#f3d35a")); isin.rotation.x = -PI / 2; isin.position = Vector3(0, 0, -.5)
-	sag.add_child(isin)
+	# menü ve afiş: doğrudan 3B yazı (Label3D) — panel dokusuna, lazere ya da açılır pencereye bağlı değil
+	_menu3d_kur()
+	ana.ui.visible = false   # 2B arayüz gözlükte çizilmez; menü ve afiş 3B
 	# maket masası
 	masa = Node3D.new(); add_child(masa)
 	var tm := MeshInstance3D.new(); var cy := CylinderMesh.new(); cy.top_radius = 1.45; cy.bottom_radius = 1.45; cy.height = .06
@@ -97,7 +80,7 @@ func _kur() -> void:
 	ana.sec_kam.item_selected.connect(func(i): koltuga_gec(i))
 	koltuga_gec(ana.vr_koltuk, true)
 	ana.sec_kam.select(koltuk)
-	panel_goster(true)
+	menu3d_yerlestir()
 
 static func _duz(c: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new(); m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED; m.albedo_color = c
@@ -156,27 +139,6 @@ func _uygula(i: int) -> void:
 	if ana.M: _dinamik_yon = ana.M.goal_y_of(0)
 	ana.afis_goster("KOLTUK", KOLTUKLAR[i], 1.0)
 
-# ---------- panel ----------
-func panel_goster(v: bool) -> void:
-	panel.visible = v
-	if not v: return
-	# panel kafanın baktığı yöne, göz hizasının biraz altına, 1.7 m öteye kurulur (sonra yerinde kalır)
-	# (koltuğun içinde, kökene göre; kafa izlenmiyorsa oturma yüksekliği ve tam karşısı varsayılır)
-	var t := kafa.transform
-	var ileri := -t.basis.z; ileri.y = 0
-	ileri = ileri.normalized() if ileri.length() > .1 else Vector3.FORWARD
-	var goz := t.origin if t.origin.y > .3 else Vector3(0, 1.2, 0)
-	var p := goz + ileri * 1.6 + Vector3(0, -.12, 0)
-	panel.transform = Transform3D(Basis.looking_at(-ileri, Vector3.UP), p)
-
-# menü açıkken panel görüş alanının çok dışında kalırsa önüne gelir
-func _panel_takip() -> void:
-	var ileri := -kafa.transform.basis.z; ileri.y = 0
-	if ileri.length() < .1: return
-	var yon := panel.transform.origin - kafa.transform.origin; yon.y = 0
-	if yon.length() < .1 or ileri.normalized().angle_to(yon.normalized()) > deg_to_rad(55) or yon.length() > 3.0:
-		panel_goster(true)
-
 # ---------- girdi ----------
 func girdi(M) -> void:
 	# sol çubuk: baktığın yöne göre koş
@@ -192,7 +154,7 @@ func girdi(M) -> void:
 func _sag_bas(ad: String) -> void:
 	var M = ana.M
 	if ana.menu_acik:
-		if ad == "ax_button": ana.basla()     # menüde A: seçili takımlarla maça başla
+		if ad == "ax_button" or ad == "trigger_click": ana.basla()     # menüde A / tetik: seçili takımlarla maça başla
 		return
 	match ad:
 		"trigger_click", "ax_button": if M: M.giris.pasE = true
@@ -201,48 +163,94 @@ func _sag_bas(ad: String) -> void:
 func _sol_bas(ad: String) -> void:
 	match ad:
 		"menu_button", "by_button":
-			if ana.M and not ana.M.demo: ana.menu_goster(not ana.menu_acik)
+			if ana.M and not ana.M.demo:
+				ana.menu_goster(not ana.menu_acik)
+				if ana.menu_acik: menu3d_yerlestir()
 		"ax_button": koltuga_gec(koltuk + 1)
 
 func _process(dt: float) -> void:
-	# sağ çubuk sola/sağa: koltuk değiştir
 	_cubuk_bekle -= dt
 	var rs := sag.get_vector2("primary")
-	if absf(rs.x) > .7 and _cubuk_bekle <= 0 and not ana.menu_acik:
+	var ls := sol.get_vector2("primary")
+	if ana.menu_acik:
+		# menü: herhangi bir çubukla yukarı/aşağı satır, sola/sağa değer
+		var v := rs if rs.length() > ls.length() else ls
+		if _cubuk_bekle <= 0 and v.length() > .7:
+			if absf(v.y) > absf(v.x): _satir = posmod(_satir + (-1 if v.y > 0 else 1), SATIRLAR.size())
+			else: _deger(1 if v.x > 0 else -1)
+			_cubuk_bekle = .28
+		elif v.length() < .3: _cubuk_bekle = minf(_cubuk_bekle, 0.0)
+		_takip_t -= dt
+		if _takip_t <= 0: _takip_t = .5; _menu_takip()
+	elif absf(rs.x) > .7 and _cubuk_bekle <= 0:
 		koltuga_gec(koltuk + (1 if rs.x > 0 else -1)); _cubuk_bekle = .6
 	# devre arası: Dinamik koltuk takımın yeni hücum yönüne geçer
 	if koltuk == 3 and ana.M and ana.M.goal_y_of(0) != _dinamik_yon: koltuga_gec(3)
-	# panel: menü açıkken ya da afiş varken görünür
-	var gerek: bool = ana.menu_acik or ana.afis_gorunur()
-	if gerek and not panel.visible: panel_goster(true)
-	elif not gerek and panel.visible: panel.visible = false
-	if ana.menu_acik and panel.visible:
-		_takip_t -= dt
-		if _takip_t <= 0: _takip_t = .5; _panel_takip()
-	isin.visible = ana.menu_acik and panel.visible
-	if isin.visible: _isaretci()
+	menu3d.visible = ana.menu_acik
+	if menu3d.visible: _menu_ciz()
+	afis3d.visible = ana.afis_gorunur() and not ana.menu_acik
+	if afis3d.visible:
+		afis3d.text = ana.afis_ust.text + ("\n" + ana.afis_alt.text if ana.afis_alt.text != "" else "")
 
-func _isaretci() -> void:
-	var o := sag.global_position
-	var d := -sag.global_basis.z
-	var pt := panel.global_transform
-	var n := pt.basis.z
-	var den := n.dot(d)
-	if absf(den) < 1e-4: return
-	var t := n.dot(pt.origin - o) / den
-	if t <= 0 or t > 6: return
-	var hit := o + d * t
-	var yerel := pt.affine_inverse() * hit
-	var uv := Vector2(yerel.x / 1.6 + .5, .5 - yerel.y / .9)
-	var basil := sag.is_button_pressed("trigger_click")
-	if uv.x < 0 or uv.x > 1 or uv.y < 0 or uv.y > 1:
-		_tetik_onceki = basil; return
-	var px := uv * Vector2(panel_vp.size)
-	var mm := InputEventMouseMotion.new(); mm.position = px; mm.global_position = px
-	panel_vp.push_input(mm)
-	if basil != _tetik_onceki:
-		var mb := InputEventMouseButton.new(); mb.button_index = MOUSE_BUTTON_LEFT; mb.pressed = basil
-		mb.position = px; mb.global_position = px
-		panel_vp.push_input(mb)
-	_tetik_onceki = basil
-	isin.scale = Vector3(1, t, 1); isin.position = Vector3(0, 0, -t / 2)
+# ---------- 3B menü ----------
+const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Süre", "Zorluk", "Koltuk", "MAÇA BAŞLA"]
+const SURUM := "1.0.2"
+var menu3d: Node3D
+var _menu_satirlar: Array = []
+var _satir := 6
+var afis3d: Label3D
+
+func _yazi(boy: int, renk: Color) -> Label3D:
+	var l := Label3D.new(); l.font_size = boy; l.pixel_size = .0011; l.modulate = renk
+	l.outline_size = 0; l.shaded = false; l.double_sided = true; l.no_depth_test = true; l.render_priority = 60
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	return l
+
+func _menu3d_kur() -> void:
+	menu3d = Node3D.new(); koken.add_child(menu3d)
+	var zemin := MeshInstance3D.new(); var q := QuadMesh.new(); q.size = Vector2(1.5, 1.08); zemin.mesh = q
+	var zm := StandardMaterial3D.new(); zm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	zm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA; zm.albedo_color = Color(0.05, 0.1, 0.11, .95)
+	zm.no_depth_test = true; zm.render_priority = 55; zm.cull_mode = BaseMaterial3D.CULL_DISABLED
+	zemin.material_override = zm; menu3d.add_child(zemin)
+	var bas := _yazi(96, Color.WHITE); bas.text = "Kaptan Mecit 2"; bas.position = Vector3(0, .44, .001); menu3d.add_child(bas)
+	var imza := _yazi(36, Color("#cfe3d6")); imza.text = "Bir Mr. Anduv! yapımıdır.  ·  sürüm " + SURUM; imza.position = Vector3(0, .36, .001); menu3d.add_child(imza)
+	for i in SATIRLAR.size():
+		var l := _yazi(52, Color.WHITE); l.position = Vector3(0, .24 - i * .095, .001); menu3d.add_child(l)
+		_menu_satirlar.append(l)
+	var ipucu := _yazi(32, Color(1, 1, 1, .75))
+	ipucu.text = "Çubuk yukarı/aşağı: satır  ·  sola/sağa: değiştir  ·  A ya da tetik: MAÇA BAŞLA"
+	ipucu.position = Vector3(0, -.45, .001); menu3d.add_child(ipucu)
+	afis3d = _yazi(72, Color("#f3d35a")); afis3d.visible = false
+	koken.add_child(afis3d)
+
+func _secici(i: int) -> Secici:
+	return [ana.sec_lig, ana.sec_ev, ana.sec_dep, ana.sec_sure, ana.sec_zor, ana.sec_kam][i] if i < 6 else null
+
+func _deger(d: int) -> void:
+	var s := _secici(_satir)
+	if s: s.kay(d)
+
+func _menu_ciz() -> void:
+	for i in SATIRLAR.size():
+		var l: Label3D = _menu_satirlar[i]
+		var s := _secici(i)
+		var sec := i == _satir
+		if s: l.text = ("‹  " if sec else "") + SATIRLAR[i] + ":  " + s.metin() + ("  ›" if sec else "")
+		else: l.text = ("▶  " if sec else "") + SATIRLAR[i]
+		l.modulate = Color("#f3d35a") if sec else (Color("#e5722f") if s == null else Color.WHITE)
+
+func menu3d_yerlestir() -> void:
+	var t := kafa.transform
+	var ileri := -t.basis.z; ileri.y = 0
+	ileri = ileri.normalized() if ileri.length() > .1 else Vector3.FORWARD
+	var goz := t.origin if t.origin.y > .3 else Vector3(0, 1.2, 0)
+	menu3d.transform = Transform3D(Basis.looking_at(ileri, Vector3.UP), goz + ileri * 1.5 + Vector3(0, -.08, 0))
+	afis3d.transform = Transform3D(Basis.looking_at(ileri, Vector3.UP), goz + ileri * 2.4 + Vector3(0, .25, 0))
+
+func _menu_takip() -> void:
+	var ileri := -kafa.transform.basis.z; ileri.y = 0
+	if ileri.length() < .1: return
+	var yon := menu3d.transform.origin - kafa.transform.origin; yon.y = 0
+	if yon.length() < .1 or ileri.normalized().angle_to(yon.normalized()) > deg_to_rad(50) or yon.length() > 3.0:
+		menu3d_yerlestir()

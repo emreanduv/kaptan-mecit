@@ -76,7 +76,7 @@ func _ready() -> void:
 	sec_kam.select(kam_mod)
 	# açılışta arkada gösterim maçı döner (Kaptan Mecit'teki gibi)
 	_mac_kur(_takim(0, 0), _takim(0, 1), 4, 1, true)
-	vr = VR.baslat(self)
+	vr = VR.baslat(self, _arg.has("vrsahte"))
 	if vr:
 		kam.current = false
 		ses.baslat()
