@@ -193,11 +193,11 @@ func _process(dt: float) -> void:
 		afis3d.text = ana.afis_ust.text + ("\n" + ana.afis_alt.text if ana.afis_alt.text != "" else "")
 
 # ---------- 3B menü ----------
-const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Süre", "Zorluk", "Koltuk", "MAÇA BAŞLA"]
+const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "MAÇA BAŞLA"]
 const SURUM := "0.1.0"
 var menu3d: Node3D
 var _menu_satirlar: Array = []
-var _satir := 6
+var _satir := 7
 var afis3d: Label3D
 
 func _yazi(boy: int, renk: Color) -> Label3D:
@@ -208,7 +208,7 @@ func _yazi(boy: int, renk: Color) -> Label3D:
 
 func _menu3d_kur() -> void:
 	menu3d = Node3D.new(); koken.add_child(menu3d)
-	var zemin := MeshInstance3D.new(); var q := QuadMesh.new(); q.size = Vector2(1.5, 1.08); zemin.mesh = q
+	var zemin := MeshInstance3D.new(); var q := QuadMesh.new(); q.size = Vector2(1.5, 1.12); zemin.mesh = q
 	var zm := StandardMaterial3D.new(); zm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	zm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA; zm.albedo_color = Color(0.05, 0.1, 0.11, .95)
 	zm.no_depth_test = true; zm.render_priority = 55; zm.cull_mode = BaseMaterial3D.CULL_DISABLED
@@ -216,7 +216,7 @@ func _menu3d_kur() -> void:
 	var bas := _yazi(96, Color.WHITE); bas.text = "Kaptan Mecit 3"; bas.position = Vector3(0, .44, .001); menu3d.add_child(bas)
 	var imza := _yazi(36, Color("#cfe3d6")); imza.text = "Bir Mr. Anduv! yapımıdır.  ·  sürüm " + SURUM; imza.position = Vector3(0, .36, .001); menu3d.add_child(imza)
 	for i in SATIRLAR.size():
-		var l := _yazi(52, Color.WHITE); l.position = Vector3(0, .24 - i * .095, .001); menu3d.add_child(l)
+		var l := _yazi(52, Color.WHITE); l.position = Vector3(0, .25 - i * .085, .001); menu3d.add_child(l)
 		_menu_satirlar.append(l)
 	var ipucu := _yazi(32, Color(1, 1, 1, .75))
 	ipucu.text = "Çubuk yukarı/aşağı: satır  ·  sola/sağa: değiştir  ·  A ya da tetik: MAÇA BAŞLA"
@@ -225,7 +225,7 @@ func _menu3d_kur() -> void:
 	koken.add_child(afis3d)
 
 func _secici(i: int) -> Secici:
-	return [ana.sec_lig, ana.sec_ev, ana.sec_dep, ana.sec_sure, ana.sec_zor, ana.sec_kam][i] if i < 6 else null
+	return [ana.sec_lig, ana.sec_ev, ana.sec_dep, ana.sec_dz, ana.sec_sure, ana.sec_zor, ana.sec_kam][i] if i < 7 else null
 
 func _deger(d: int) -> void:
 	var s := _secici(_satir)

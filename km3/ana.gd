@@ -44,6 +44,7 @@ var sec_dep: Secici
 var sec_sure: Secici
 var sec_zor: Secici
 var sec_kam: Secici
+var sec_dz: Secici
 
 # test / ekran görüntüsü (komut satırı)
 var _arg := {}
@@ -92,8 +93,11 @@ func _ready() -> void:
 		var n := 0
 		while M.state != "over" and n < 60 * 60 * 20:
 			if n % 90 == 0: M.giris.x = randf_range(-1, 1); M.giris.y = randf_range(-1, 1); M.giris.pasE = randf() < .3; M.giris.sutE = randf() < .2
-			M.step(ADIM); M.olaylar.clear(); n += 1
-		print("TEST bitti: ", M.T[0].t.kisa, " ", M.T[0].score, "-", M.T[1].score, " ", M.T[1].t.kisa, " adım=", n, " dk=", M.min_label(), " goller=", M.events, " süre(ms)=", Time.get_ticks_msec() - t0)
+			M.step(ADIM)
+			for o in M.olaylar:
+				if o[0] == "banner" and o[1] in ["PENALTI", "OFSAYT", "FAUL"]: print("  ", M.min_label(), "' ", o[1], " · ", o[2])
+			M.olaylar.clear(); n += 1
+		print("TEST bitti: ", M.T[0].t.kisa, " ", M.T[0].score, "-", M.T[1].score, " ", M.T[1].t.kisa, " adım=", n, " dk=", M.min_label(), " goller=", M.events, " süre(ms)=", Time.get_ticks_msec() - t0, " faul=", M.faul, " ofsayt=", M.ofsayt, " kart=", M.kartlar, " korner=", M.korner)
 		get_tree().quit(); return
 	if _arg.has("ekran"):
 		menu_goster(_arg.has("menu"))
@@ -173,6 +177,7 @@ func _mac_kur(ev: Dictionary, dep: Dictionary, sure: int, zor: int, gosterim: bo
 		dunya.add_child(f)
 		f.kur(renk, p.no, .96 + float((p.no * 37) % 9) / 100.0)
 		oyuncular.append(f)
+		f.set_meta("oy", p)
 	_birikim = 0.0
 	if hafif: _golge_kur()
 	_tabela()
@@ -213,6 +218,11 @@ func _olay(o: Array) -> void:
 			ses.gol()
 			_tabela()
 		"tik": ses.tik()
+		"kart":
+			afis_goster({"S": "SARI KART", "K": "KIRMIZI KART", "K2": "İKİNCİ SARI · KIRMIZI"}[o[1]], o[2], 2.6)
+		"atildi":
+			for f in oyuncular:
+				if f.get_meta("oy") == o[1]: f.visible = false
 
 func _girdi() -> void:
 	if M == null or M.demo or menu_acik: return
@@ -251,9 +261,9 @@ func _ciz(dt: float) -> void:
 	if M == null: return
 	var now := Time.get_ticks_msec() / 1000.0
 	var gol := M.son_gol_takimi()
-	for i in M.P.size():
-		var p = M.P[i]
-		var f: Futbolcu = oyuncular[i]
+	for f: Futbolcu in oyuncular:
+		if not f.visible: continue
+		var p = f.get_meta("oy")
 		f.position = W(p.x, p.y)
 		f.poz(p, M, now, gol)
 	var b = M.ball
@@ -265,6 +275,7 @@ func _ciz(dt: float) -> void:
 			var p = M.P[i]
 			mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3(.9, 1, .9) * (1.6 if p.slide > 0 else 1.0)), W(p.x, p.y, .03)))
 		mm.set_instance_transform(M.P.size(), Transform3D(Basis().scaled(Vector3(.28, 1, .28) * (1.0 / (1.0 + b.z * .4))), W(b.x, b.y, .03)))
+		for i in range(M.P.size() + 1, mm.instance_count): mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3.ONE * .001), Vector3(0, -5, 0)))
 	isaret.visible = M.ctrl != null and not M.demo
 	if isaret.visible: isaret.position = W(M.ctrl.x, M.ctrl.y, .02)
 	# tribün heyecanı: gol, top kaleye yaklaştıkça
@@ -355,6 +366,9 @@ func _arayuz() -> void:
 	var bl2 := Label.new(); bl2.text = "Bir Mr. Anduv! yapımıdır."; bl2.add_theme_font_size_override("font_size", 15); bl2.add_theme_color_override("font_color", Color("#cfe3d6"))
 	bv.add_child(bl); bv.add_child(bl2); bas.add_child(bv); mv.add_child(bas)
 	sec_lig = _secici(mv, "Lig"); sec_ev = _secici(mv, "Senin takımın"); sec_dep = _secici(mv, "Rakip")
+	sec_dz = _secici(mv, "Diziliş (Otomatik: asistan kadroya en uygununu seçer)")
+	sec_dz.add_item("Otomatik")
+	for d in Taktik.siralama(): sec_dz.add_item(d)
 	var sat := HBoxContainer.new(); sat.add_theme_constant_override("separation", 10)
 	sec_sure = _secici(sat, "Süre"); sec_zor = _secici(sat, "Zorluk"); sec_kam = _secici(sat, "Kamera")
 	mv.add_child(sat)
@@ -395,7 +409,12 @@ func basla() -> void:
 	var a := sec_ev.selected; var b := sec_dep.selected
 	if a == b: b = (b + 1) % L.size()
 	menu_goster(false)
-	_mac_kur(L[a], L[b], SURELER[sec_sure.selected], sec_zor.selected, false)
+	var lig: String = veri.ligler[sec_lig.selected].id
+	var dz: String = "" if sec_dz.selected <= 0 else sec_dz.metin()
+	var ev := Taktik.kadro_kur(L[a], lig, dz)
+	var dep := Taktik.kadro_kur(L[b], lig, "")
+	_mac_kur(ev, dep, SURELER[sec_sure.selected], sec_zor.selected, false)
+	afis_goster(ev.dzAd + "  ·  " + ev.kisa, "rakip " + dep.kisa + " · " + dep.dzAd, 2.4)
 	kam_mod = sec_kam.selected
 	ses.baslat()
 

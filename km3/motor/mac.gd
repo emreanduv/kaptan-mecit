@@ -63,6 +63,7 @@ class Oy:
 	var dive := 0
 	var first_time := false
 	var won := false
+	var sari := false
 
 class Top:
 	var x := PW / 2
@@ -81,6 +82,7 @@ class Top:
 	var shot_t := 0.0
 	var gk_tried: Oy = null
 	var cross := false
+	var ofs = null       # {q, team, yakin}
 
 # --- durum ---
 var T: Array = []          # [{t, kit:{c1,c2}, score, human, str, spd, skill}]
@@ -113,6 +115,11 @@ var durdu := 0
 var uz = null
 var kick_team := 0
 var korner := [0, 0]
+var faul := [0, 0]
+var ofsayt := [0, 0]
+var kartlar: Array = []   # [takım, ad, "S"/"K"]
+var atilan: Array = []
+var avantaj_t := 0.0
 var giris := {"x": 0.0, "y": 0.0, "pasE": false, "sutE": false}
 var olaylar: Array = []    # görüntü/ses katmanına: [ad, ...]
 var _pass_score := 0.0
@@ -279,8 +286,9 @@ func step(dt: float) -> void:
 		set_piece.t += dt
 		if ball.owner != set_piece.p: set_piece = null
 	tactical_prep(dt)
-	for p: Oy in P: think(p, dt)
-	for p: Oy in P: move_player(p, dt)
+	for p: Oy in P.duplicate(): think(p, dt)
+	for p: Oy in P.duplicate():
+		if P.has(p): move_player(p, dt)
 	separate()
 	ball_step(dt)
 	giris.pasE = false; giris.sutE = false
@@ -537,6 +545,8 @@ func think_carrier(p: Oy, dt: float) -> void:
 	if set_piece != null and set_piece.p == p:
 		p.mx = 0; p.my = 0
 		if set_piece.t > .9:
+			if set_piece.get("pen", false): do_shoot(p, 0, 1.05); return
+			if set_piece.get("fk", false) and hyp(PW / 2 - p.x, goal_y_of(p.team) - p.y) < 28 and randf() < .45: do_shoot(p, 0, 1.0); return
 			if is_corner(p):
 				var q := cross_target(p)
 				if q != null: do_cross(p, q); return
@@ -609,6 +619,7 @@ func best_pass(p: Oy, dx: float, dy: float, _any: bool) -> Oy:
 		if q.team != p.team or q == p: continue
 		var vx := q.x - p.x; var vy := q.y - p.y; var d := hyp(vx, vy)
 		if d < 4 or d > 50: continue
+		if not hum and ofsayt_mi(p, q) > 1.2 and randf() < .85: continue
 		var cs := (vx * dx + vy * dy) / d
 		var prog := vy * f
 		var s := (cs * 2.2 if (dx != 0 or dy != 0) else 0.0) - d / 32 + (.6 if (q.vy * f > 3.5 and prog > 0) else 0.0)
@@ -837,6 +848,7 @@ func think_gk(p: Oy, dt: float) -> void:
 # ---------- eylemler ----------
 func release(p: Oy, vx: float, vy: float, vz: float, intended: Oy = null) -> void:
 	var b := ball
+	ofsayt_bak(p, intended)
 	b.owner = null; b.x = p.x + p.dx * .5; b.y = p.y + p.dy * .5; b.vx = vx; b.vy = vy; b.vz = vz; b.z = maxf(b.z, .05)
 	b.last = p; b.last_team = p.team; b.kicker = p; b.intended = intended; b.gk_tried = null; b.cross = false; b.shot = false
 	p.cd = .35; p.hold = 0; set_piece = null
@@ -910,6 +922,8 @@ func move_player(p: Oy, dt: float) -> void:
 		var b := ball
 		var d := hyp(b.x - p.x, b.y - p.y)
 		if d < 1.45 and b.z < 1 and b.owner != p:
+			if b.owner != null and b.owner.team != p.team and kayma_faul(p, b.owner):
+				p.slide = 0; return
 			if b.owner != null and b.owner.team != p.team:
 				var o := b.owner
 				o.stun = .8; o.cd = .9; b.owner = null
@@ -978,6 +992,7 @@ func ball_step(dt: float) -> void:
 				rate *= (1 - ozl(p, "hold", 0)) * (1 + ozl(q, "tackle", 0))
 				if not (Tp.human and p == ctrl): rate *= .55
 				if randf() < rate * dt * 2.2:
+					if mudahale_faul(q, p): return
 					b.owner = q; q.hold = 0; p.cd = .7; p.stun = .25; b.intended = null; set_piece = null; olay("vurus", .4); break
 		return
 	b.x += b.vx * dt; b.y += b.vy * dt
@@ -1054,6 +1069,9 @@ func out_of_play(b: Top) -> bool:
 
 func take(p: Oy) -> void:
 	var b := ball
+	if b.ofs != null and not b.ofs.get("yakin", false) and b.ofs.q == p and p.team == b.ofs.team and not demo:
+		ofsayt_cal(p); return
+	b.ofs = null
 	if b.cross and p.role != "G": p.first_time = true
 	b.cross = false; b.owner = p; p.hold = 0; b.intended = null; b.shot = false; b.vx = 0; b.vy = 0; b.vz = 0; b.z = 0
 	b.last_team = p.team; b.last = p; p.dec = rnd(.15, .35)
@@ -1121,3 +1139,125 @@ func score_goal(ti: int, scorer: Oy, own: Oy) -> void:
 
 func son_gol_takimi() -> int:
 	return events[events.size() - 1].team if (state == "goal" and events.size() > 0) else -1
+
+# =================== Kurallar: faul, kart, penaltı, ofsayt (Kaptan Mecit motorundan taşındı) ===================
+func kutuda_mi(ti: int, x: float, y: float) -> bool:
+	return absf(y - goal_y_of(ti)) < BOXD and x > (PW - BOXW) / 2 and x < (PW + BOXW) / 2
+
+# kayarak müdahale: arkadan ya da topa değmeden gelirse faul
+func kayma_faul(p: Oy, o: Oy) -> bool:
+	if demo: return false
+	var d := maxf(hyp(o.x - p.x, o.y - p.y), .01)
+	var arkadan := (o.dx * (o.x - p.x) + o.dy * (o.y - p.y)) / d > .35
+	var top_yakin := hyp(ball.x - p.x, ball.y - p.y) < d - .1
+	var f := (.1 if top_yakin else .3) + (.35 if arkadan else 0.0) + (-.08 if p.sari else 0.0)
+	if randf() > f: return false
+	faul_yap(p, o, arkadan, true); return true
+
+# omuz / çekme: top kapma denemelerinin küçük bir kısmı faul
+func mudahale_faul(q: Oy, p: Oy) -> bool:
+	if demo: return false
+	if randf() > (.05 if q.sari else .11): return false
+	faul_yap(q, p, false, false); return true
+
+func faul_yap(o: Oy, p: Oy, arkadan: bool, kayma: bool) -> void:
+	var ti := p.team
+	var b := ball
+	faul[o.team] += 1
+	var kutu := kutuda_mi(ti, p.x, p.y)
+	var dg := absf(goal_y_of(ti) - p.y)
+	var onunde := 0
+	for q: Oy in P:
+		if q.team != ti and q != o and q.role != "G" and absf(goal_y_of(ti) - q.y) < dg: onunde += 1
+	var son_adam := dg < 28 and onunde == 0 and absf(p.x - PW / 2) < 16 and b.owner == p and absf(p.vy) > 3
+	var sari := (.05 + (.13 if arkadan else 0.0) + (.05 if kayma else 0.0) + (.2 if kutu else 0.0)) * (.35 if o.sari else 1.0)
+	var kirmizi := .0015 + (.006 if (arkadan and kayma) else 0.0) + ((.04 if kutu else .14) if son_adam else 0.0)
+	var kart_ver := func():
+		var r := randf()
+		if r < kirmizi: kart(o, "K", "NET GOL FIRSATI" if son_adam else "SERT MÜDAHALE")
+		elif r < kirmizi + sari: kart(o, "S")
+	# avantaj: hücum sürer, faulcü bir an oyun dışı
+	if not kutu and dg < 55 and b.owner == p and randf() < .3:
+		o.cd = 1.2; o.stun = .5; o.slide = 0; olay("flash", "AVANTAJ"); kart_ver.call(); return
+	p.stun = .5; o.cd = .6; b.owner = null; b.vx = 0; b.vy = 0; b.vz = 0
+	if kutu:
+		olay("duduk", 1); kart_ver.call(); penalti_ver(ti); return
+	olay("duduk", 1); kart_ver.call()
+	if not atilan.has(p):
+		restart(ti, clampf(p.x, 1, PW - 1), clampf(p.y, 1, PL - 1))
+		set_piece.fk = true; durdu = 2 if dg < 38 else 1
+		olay("banner", "FAUL", o.n + " · " + T[ti].t.kisa + " serbest vuruş")
+
+func penalti_ver(ti: int) -> void:
+	var gy := goal_y_of(ti)
+	restart(ti, PW / 2, 11.0 if gy == 0 else PL - 11)
+	var at: Oy = set_piece.p
+	set_piece.pen = true; durdu = 2
+	for q: Oy in P:
+		if q == at: continue
+		if q.role == "G" and q.team != ti:
+			q.x = PW / 2; q.y = .4 if gy == 0 else PL - .4; continue
+		if absf(q.y - gy) < BOXD + 1.5:
+			q.y = (BOXD + rnd(1.8, 6)) if gy == 0 else (PL - BOXD - rnd(1.8, 6)); q.x = clampf(q.x, 6, PW - 6)
+	state = "pre"; state_t = 1.4
+	olay("banner", "PENALTI", at.n + " topun başında")
+
+func kart(o: Oy, renk: String, neden := "") -> void:
+	if atilan.has(o): return
+	if renk == "S" and o.sari:
+		kartlar.append([o.team, o.n, "S"]); renk = "K2"
+	if renk == "S":
+		o.sari = true; kartlar.append([o.team, o.n, "S"])
+		olay("kart", "S", "%d %s · %s" % [o.no, o.n, T[o.team].t.kisa]); return
+	kartlar.append([o.team, o.n, "K"])
+	olay("duduk", 2)
+	olay("kart", renk, "%d %s · %s · 10 KİŞİ%s" % [o.no, o.n, T[o.team].t.kisa, (" · " + neden) if neden != "" else ""])
+	oyundan_at(o)
+
+func oyundan_at(p: Oy) -> void:
+	var i := P.find(p)
+	if i < 0: return
+	P.remove_at(i); atilan.append(p)
+	olay("atildi", p)
+	if ball.owner == p: ball.owner = null
+	if ctrl == p: ctrl = null
+	if set_piece != null and set_piece.p == p: set_piece = null
+	if p.role == "G":
+		# kaleci atıldı: bir saha oyuncusu eldiveni giyer (önce forvet değil, en yorgun)
+		var aday: Oy = null
+		for q: Oy in P:
+			if q.team == p.team and q.role != "G" and (aday == null or (aday.role == "F" and q.role != "F")): aday = q
+		if aday != null:
+			aday.role = "G"; aday.pos = "GK"; aday.fx = .5; aday.fy = .02; aday.dz = false
+			olay("kaleci_degisti", aday)
+	TP = null
+
+# ofsayt: pas anında alıcı, toptan ve sondan ikinci rakipten daha ilerideyse (rakip yarı sahada). Dönüş: çizgiyi kaç metre geçtiği
+func ofsayt_mi(p: Oy, q: Oy) -> float:
+	if q == null or q.team != p.team: return -9.0
+	var ti := p.team
+	var dq := depth_of(ti, q.y)
+	if dq <= PL / 2: return -9.0
+	var rk: Array = []
+	for o: Oy in P:
+		if o.team != ti: rk.append(depth_of(ti, o.y))
+	rk.sort(); rk.reverse()
+	var ikinci: float = rk[1] if rk.size() > 1 else PL / 2
+	var cz := maxf(maxf(ikinci, depth_of(ti, ball.y)), PL / 2)
+	return dq - cz
+
+func ofsayt_bak(p: Oy, q: Oy) -> void:
+	var b := ball
+	b.ofs = null
+	if demo or q == null or q.team != p.team: return
+	if set_piece != null and set_piece.p == p and (is_corner(p) or set_piece.get("ko", false)): return
+	var g := ofsayt_mi(p, q)
+	var f := fwd_of(p.team)
+	if g > .3: b.ofs = {"q": q, "team": p.team}
+	elif g > -3.5 and q.vy * f > 2.2 and depth_of(p.team, q.y) > depth_of(p.team, p.y) + 3 and randf() < .3: b.ofs = {"q": q, "team": p.team}
+	elif g > -.8: b.ofs = {"q": q, "team": p.team, "yakin": true}
+
+func ofsayt_cal(p: Oy) -> void:
+	ball.ofs = null; ofsayt[p.team] += 1
+	olay("duduk", 1); olay("banner", "OFSAYT", "%d %s · %s" % [p.no, p.n, T[p.team].t.kisa])
+	restart(1 - p.team, clampf(p.x, 1, PW - 1), clampf(p.y, 1, PL - 1)); durdu = 1
