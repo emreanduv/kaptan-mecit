@@ -23,6 +23,7 @@ var sec := {"lig": 0, "ev": 0, "dep": 1, "sure": 1, "zor": 1}
 var menu_acik := true
 var dunya: Node3D
 var gunes: DirectionalLight3D
+var golgeler: MultiMeshInstance3D = null
 var vr: VR = null
 var vr_koltuk := 2
 var hafif := OS.has_feature("android")
@@ -104,6 +105,18 @@ func _ready() -> void:
 			" üçgen=", RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME))
 		get_tree().quit()
 
+func _golge_kur() -> void:
+	if golgeler: golgeler.queue_free()
+	var mm := MultiMesh.new(); mm.transform_format = MultiMesh.TRANSFORM_3D
+	var q := PlaneMesh.new(); q.size = Vector2(1, 1); mm.mesh = q
+	mm.instance_count = M.P.size() + 1
+	golgeler = MultiMeshInstance3D.new(); golgeler.multimesh = mm
+	var sm := ShaderMaterial.new(); var sh := Shader.new()
+	sh.code = "shader_type spatial;\nrender_mode unshaded, depth_draw_never, cull_disabled;\nvoid fragment(){ float d = length(UV - vec2(.5)) * 2.0; ALBEDO = vec3(0.0); ALPHA = .45 * (1.0 - smoothstep(.35, 1.0, d)); }"
+	sm.shader = sh; golgeler.material_override = sm
+	golgeler.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	dunya.add_child(golgeler)
+
 func _takim(lig: int, i: int) -> Dictionary: return veri.ligler[lig].takimlar[i]
 
 # ---------- ortam: gece maçı ----------
@@ -132,6 +145,9 @@ func _ortam() -> void:
 	gl.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	gl.directional_shadow_max_distance = 140.0
 	add_child(gl); gunes = gl
+	if hafif:
+		# Quest / telefon: gerçek gölge haritası yerine oyuncu altı yumuşak leke (çok daha ucuz)
+		gl.shadow_enabled = false
 	# karşı projektör: gölgesiz dolgu
 	var dl := DirectionalLight3D.new()
 	dl.rotation_degrees = Vector3(-50, 208, 0); dl.light_color = Color("#e8eeff"); dl.light_energy = .55
@@ -158,14 +174,17 @@ func _mac_kur(ev: Dictionary, dep: Dictionary, sure: int, zor: int, gosterim: bo
 		f.kur(renk, p.no, .96 + float((p.no * 37) % 9) / 100.0)
 		oyuncular.append(f)
 	_birikim = 0.0
+	if hafif: _golge_kur()
 	_tabela()
 
 # ---------- döngü ----------
 func _process(dt: float) -> void:
 	_girdi()
-	_birikim = minf(_birikim + dt, .25)
-	while _birikim >= ADIM:
-		_birikim -= ADIM
+	# en çok 2 motor adımı / kare: yavaş bir karenin ardından "yetişmeye çalışıp" kareleri daha da yavaşlatma sarmalı olmasın
+	_birikim = minf(_birikim + dt, ADIM * 2)
+	var adim := 0
+	while _birikim >= ADIM and adim < 2:
+		_birikim -= ADIM; adim += 1
 		_adim()
 	_ciz(dt)
 	if _afis_t > 0:
@@ -240,6 +259,12 @@ func _ciz(dt: float) -> void:
 	var b = M.ball
 	top.position = W(b.x, b.y, b.z + .12)
 	top.rotate(Vector3(b.vy, 0, -b.vx).normalized() if (b.vx != 0 or b.vy != 0) else Vector3.UP, Vector2(b.vx, b.vy).length() * dt / .12)
+	if golgeler:
+		var mm := golgeler.multimesh
+		for i in M.P.size():
+			var p = M.P[i]
+			mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3(.9, 1, .9) * (1.6 if p.slide > 0 else 1.0)), W(p.x, p.y, .03)))
+		mm.set_instance_transform(M.P.size(), Transform3D(Basis().scaled(Vector3(.28, 1, .28) * (1.0 / (1.0 + b.z * .4))), W(b.x, b.y, .03)))
 	isaret.visible = M.ctrl != null and not M.demo
 	if isaret.visible: isaret.position = W(M.ctrl.x, M.ctrl.y, .02)
 	# tribün heyecanı: gol, top kaleye yaklaştıkça

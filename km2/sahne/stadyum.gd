@@ -188,9 +188,11 @@ void fragment(){
 	float bas = length(p - vec2(0.5, 0.36)) - 0.24;
 	float omuz = max(abs(p.x - 0.5) - 0.42, p.y - 1.8);
 	omuz = max(omuz, 0.62 - p.y + 0.18 * pow(abs(p.x - 0.5) * 2.0, 2.0));
-	if (bas > 0.0 && omuz > 0.0) discard;
+	bool dis = bas > 0.0 && omuz > 0.0;
+	if (dis) discard;
 	vec3 c = bas <= 0.0 ? ten : forma;
 	if (bas <= 0.0 && p.y < 0.24 + fract(faz * 13.0) * 0.08) c = ten * 0.25;    // saç
+	if (dis) c = vec3(0.035, 0.045, 0.055);
 	ALBEDO = c;
 	ROUGHNESS = 1.0;
 }
@@ -282,7 +284,7 @@ func _tribun_ve_seyirci(ev: Dictionary, dep: Dictionary) -> void:
 		var d: float = satirlar[r][0]; var h: float = satirlar[r][1]
 		var nok := _halka(hx0 + d + .45, hz0 + d + .45, R0 + d + .45, .62)
 		for e in nok:
-			if rng.randf() > (.55 if hafif else .9): continue
+			if rng.randf() > (.5 if hafif else .9): continue
 			var p: Vector2 = e[0]; var ic: Vector2 = e[1]
 			var p2 := p + Vector2(rng.randf_range(-.08, .08), rng.randf_range(-.08, .08))
 			var deplasman := p.y < -HZ - 5 and absf(p.x) < 22    # kuzey kale arkası: misafir tribünü
@@ -312,7 +314,9 @@ func _tribun_ve_seyirci(ev: Dictionary, dep: Dictionary) -> void:
 	seyirci = MultiMeshInstance3D.new()
 	seyirci.multimesh = mm
 	seyirci_mat = ShaderMaterial.new()
-	var sh := Shader.new(); sh.code = SEYIRCI_SHADER
+	var sh := Shader.new()
+	# hafif modda "discard" yok: silüet dışı koyu tribün rengiyle boyanır (mobil GPU'da erken derinlik testi bozulmasın)
+	sh.code = SEYIRCI_SHADER.replace("if (dis) discard;", "") if hafif else SEYIRCI_SHADER
 	seyirci_mat.shader = sh
 	seyirci.material_override = seyirci_mat
 	seyirci.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
