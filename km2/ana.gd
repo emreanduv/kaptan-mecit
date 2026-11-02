@@ -37,12 +37,12 @@ var afis_alt: Label
 var _afis_t := 0.0
 var bilgi: Label
 var menu: PanelContainer
-var sec_lig: OptionButton
-var sec_ev: OptionButton
-var sec_dep: OptionButton
-var sec_sure: OptionButton
-var sec_zor: OptionButton
-var sec_kam: OptionButton
+var sec_lig: Secici
+var sec_ev: Secici
+var sec_dep: Secici
+var sec_sure: Secici
+var sec_zor: Secici
+var sec_kam: Secici
 
 # test / ekran görüntüsü (komut satırı)
 var _arg := {}
@@ -320,7 +320,7 @@ func _arayuz() -> void:
 	# menü
 	menu = PanelContainer.new()
 	menu.add_theme_stylebox_override("panel", _kutu(Color("#f5ecd8"), 16))
-	menu.custom_minimum_size = Vector2(560, 0)
+	menu.custom_minimum_size = Vector2(800, 0)
 	var mv := VBoxContainer.new(); mv.add_theme_constant_override("separation", 10)
 	var bas := PanelContainer.new(); bas.add_theme_stylebox_override("panel", _kutu(Color("#1f3b3c"), 12))
 	var bv := VBoxContainer.new()
@@ -343,16 +343,16 @@ func _arayuz() -> void:
 	dug.add_theme_stylebox_override("normal", _kutu(Color("#e5722f"), 12)); dug.add_theme_stylebox_override("hover", _kutu(Color("#f08442"), 12))
 	dug.add_theme_stylebox_override("pressed", _kutu(Color("#c95f22"), 12)); dug.add_theme_color_override("font_color", Color.WHITE)
 	dug.custom_minimum_size = Vector2(0, 58)
-	dug.pressed.connect(_basla)
+	dug.pressed.connect(basla)
 	mv.add_child(dug)
 	menu.add_child(mv)
 	var mk := CenterContainer.new(); mk.set_anchors_preset(Control.PRESET_FULL_RECT); mk.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mk.add_child(menu); ui.add_child(mk)
 
-func _secici(kap: Container, ad: String) -> OptionButton:
+func _secici(kap: Container, ad: String) -> Secici:
 	var v := VBoxContainer.new(); v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var l := Label.new(); l.text = ad; l.add_theme_font_size_override("font_size", 14); l.add_theme_color_override("font_color", Color("#5b6466"))
-	var o := OptionButton.new(); o.add_theme_font_size_override("font_size", 18); o.custom_minimum_size = Vector2(0, 40)
+	var o := Secici.new()
 	v.add_child(l); v.add_child(o); kap.add_child(v)
 	return o
 
@@ -363,7 +363,7 @@ func _takimlari_doldur() -> void:
 		for t in L: o.add_item("%s   ·   güç %d" % [t.ad, int(t.str)])
 	sec_ev.select(0); sec_dep.select(1)
 
-func _basla() -> void:
+func basla() -> void:
 	var L: Array = veri.ligler[sec_lig.selected].takimlar
 	var a := sec_ev.selected; var b := sec_dep.selected
 	if a == b: b = (b + 1) % L.size()

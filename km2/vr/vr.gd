@@ -27,6 +27,7 @@ var _cubuk_bekle := 0.0
 var _imlec := Vector2(-1, -1)
 var _tetik_onceki := false
 var _afis_t := 0.0
+var _takip_t := 1.0
 
 static func baslat(ana_dugum: Node3D) -> VR:
 	var x := XRServer.find_interface("OpenXR")
@@ -53,7 +54,7 @@ func _kur() -> void:
 	kafa = XRCamera3D.new(); kafa.near = .05; kafa.far = 900; koken.add_child(kafa)
 	kafa.current = true
 	sol = XRController3D.new(); sol.tracker = "left_hand"; koken.add_child(sol)
-	sag = XRController3D.new(); sag.tracker = "right_hand"; koken.add_child(sag)
+	sag = XRController3D.new(); sag.tracker = "right_hand"; sag.pose = "aim"; koken.add_child(sag)
 	for c in [sol, sag]:
 		var el := MeshInstance3D.new(); var bm := BoxMesh.new(); bm.size = Vector3(.04, .03, .12)
 		el.mesh = bm; el.material_override = _duz(Color("#1f3b3c")); c.add_child(el)
@@ -79,7 +80,7 @@ func _kur() -> void:
 	pm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA; pm.albedo_texture = panel_vp.get_texture()
 	pm.no_depth_test = true; pm.render_priority = 50
 	panel.material_override = pm
-	add_child(panel)
+	koken.add_child(panel)
 	# lazer işaretçi
 	isin = MeshInstance3D.new(); var cm := CylinderMesh.new(); cm.top_radius = .003; cm.bottom_radius = .003; cm.height = 1
 	isin.mesh = cm; isin.material_override = _duz(Color("#f3d35a")); isin.rotation.x = -PI / 2; isin.position = Vector3(0, 0, -.5)
@@ -90,7 +91,7 @@ func _kur() -> void:
 	tm.mesh = cy; tm.material_override = _std(Color("#3a2a1e"), .6); tm.position = Vector3(0, .74, -1.55); masa.add_child(tm)
 	var ay := MeshInstance3D.new(); var ac := CylinderMesh.new(); ac.top_radius = .12; ac.bottom_radius = .3; ac.height = .72
 	ay.mesh = ac; ay.material_override = _std(Color("#2a1e16"), .7); ay.position = Vector3(0, .36, -1.55); masa.add_child(ay)
-	ana.bilgi.text = "Sol çubuk: koş (baktığın yöne) · Sağ tetik / A: pas · B / sağ kavrama: şut · kay · Sağ çubuk sola/sağa ya da sol X: koltuk · Sol menü / Y: menü"
+	ana.bilgi.text = "Menü: lazerle seç, tetikle bas · A: maça başla   ·   Maçta: sol çubuk koş (baktığın yöne) · Sağ tetik / A: pas · B / sağ kavrama: şut · kay · Sağ çubuk sola/sağa ya da sol X: koltuk · Sol menü / Y: menü"
 	ana.sec_kam.clear()
 	for k in KOLTUKLAR: ana.sec_kam.add_item(k)
 	ana.sec_kam.item_selected.connect(func(i): koltuga_gec(i))
@@ -160,10 +161,21 @@ func panel_goster(v: bool) -> void:
 	panel.visible = v
 	if not v: return
 	# panel kafanın baktığı yöne, göz hizasının biraz altına, 1.7 m öteye kurulur (sonra yerinde kalır)
-	var t := kafa.global_transform
-	var ileri := -t.basis.z; ileri.y = 0; ileri = ileri.normalized()
-	var p := t.origin + ileri * 1.7 + Vector3(0, -.15, 0)
-	panel.global_transform = Transform3D(Basis.looking_at(-ileri, Vector3.UP), p)
+	# (koltuğun içinde, kökene göre; kafa izlenmiyorsa oturma yüksekliği ve tam karşısı varsayılır)
+	var t := kafa.transform
+	var ileri := -t.basis.z; ileri.y = 0
+	ileri = ileri.normalized() if ileri.length() > .1 else Vector3.FORWARD
+	var goz := t.origin if t.origin.y > .3 else Vector3(0, 1.2, 0)
+	var p := goz + ileri * 1.6 + Vector3(0, -.12, 0)
+	panel.transform = Transform3D(Basis.looking_at(-ileri, Vector3.UP), p)
+
+# menü açıkken panel görüş alanının çok dışında kalırsa önüne gelir
+func _panel_takip() -> void:
+	var ileri := -kafa.transform.basis.z; ileri.y = 0
+	if ileri.length() < .1: return
+	var yon := panel.transform.origin - kafa.transform.origin; yon.y = 0
+	if yon.length() < .1 or ileri.normalized().angle_to(yon.normalized()) > deg_to_rad(55) or yon.length() > 3.0:
+		panel_goster(true)
 
 # ---------- girdi ----------
 func girdi(M) -> void:
@@ -179,7 +191,9 @@ func girdi(M) -> void:
 
 func _sag_bas(ad: String) -> void:
 	var M = ana.M
-	if ana.menu_acik: return
+	if ana.menu_acik:
+		if ad == "ax_button": ana.basla()     # menüde A: seçili takımlarla maça başla
+		return
 	match ad:
 		"trigger_click", "ax_button": if M: M.giris.pasE = true
 		"by_button", "grip_click": if M: M.giris.sutE = true
@@ -202,6 +216,9 @@ func _process(dt: float) -> void:
 	var gerek: bool = ana.menu_acik or ana.afis_gorunur()
 	if gerek and not panel.visible: panel_goster(true)
 	elif not gerek and panel.visible: panel.visible = false
+	if ana.menu_acik and panel.visible:
+		_takip_t -= dt
+		if _takip_t <= 0: _takip_t = .5; _panel_takip()
 	isin.visible = ana.menu_acik and panel.visible
 	if isin.visible: _isaretci()
 
