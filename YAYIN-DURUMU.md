@@ -87,3 +87,9 @@
 - İmza anahtarı: Belgeler/Kaptan-Mecit/imza-anahtari/kaptanmecit2-quest.jks (+ KM2-QUEST-ANAHTAR-OKU.txt). Depoya girmez.
 - Derleme: Actions > Kaptan Mecit 2 (Meta Quest APK) → imzasız APK; Mac'te apksigner ile imzalanır.
 - Emre bekleyen: yaş grubu öz sertifikası; Alpha davetinde "Kabul ediyorum" + "Davet Gönder".
+
+## Kaptan Mecit 3 · Meta Quest (2026-11-03)
+- Horizon uygulaması: Kaptan Mecit 3 (id 1488865890970681), paket com.anduv.kaptanmecit3, Alpha kanalına 0.2.0 (1) yüklendi.
+- İmza anahtarı: Belgeler/Kaptan-Mecit/imza-anahtari/kaptanmecit3-quest.jks (+ KM3-QUEST-ANAHTAR-OKU.txt), şifre Mac'te üretildi. Depoya girmez.
+- Derleme: Actions > Kaptan Mecit 3 (Meta Quest APK). Web: emreanduv.github.io/kaptan-mecit-3/
+- Emre bekleyen: Alpha davetinde "Kabul ediyorum" + "Davet Gönder"; yaş grubu öz sertifikası.
