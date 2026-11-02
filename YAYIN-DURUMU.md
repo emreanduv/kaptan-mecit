@@ -81,3 +81,9 @@
 
 ## VR · Gerçekçi görünüm (2026-11-02)
 - emreanduv.github.io/kaptan-mecit-vr: iskeletli 3B futbolcular (gercekci.js), gölgeler, biçilmiş çim, desenli top. Menü > Görünüm: Gerçekçi / Retro. Quest uygulaması TWA olduğu için kendiliğinden güncellenir.
+
+## Kaptan Mecit 2 · Meta Quest (2026-11-02)
+- Horizon uygulaması: Kaptan Mecit 2 (id 1488570437666893), paket com.anduv.kaptanmecit2, Alpha kanalına 1.0.0 (1) yüklendi.
+- İmza anahtarı: Belgeler/Kaptan-Mecit/imza-anahtari/kaptanmecit2-quest.jks (+ KM2-QUEST-ANAHTAR-OKU.txt). Depoya girmez.
+- Derleme: Actions > Kaptan Mecit 2 (Meta Quest APK) → imzasız APK; Mac'te apksigner ile imzalanır.
+- Emre bekleyen: yaş grubu öz sertifikası; Alpha davetinde "Kabul ediyorum" + "Davet Gönder".
