@@ -1,2 +1,4 @@
 .godot/
 *.tmp
+android/
+addons/godotopenxrvendors/

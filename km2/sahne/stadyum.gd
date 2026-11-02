@@ -16,6 +16,7 @@ var pano_icerik: Array = [] # [[yazı, zemin, yazı rengi], ...]
 var skor_etiketleri: Array = []
 var _pano_t := 0.0
 var _heyecan := 0.0
+var hafif := false   # Quest / telefon: daha az seyirci
 
 func kur(ev_kit: Dictionary, dep_kit: Dictionary, icerik: Array) -> void:
 	pano_icerik = icerik
@@ -281,7 +282,7 @@ func _tribun_ve_seyirci(ev: Dictionary, dep: Dictionary) -> void:
 		var d: float = satirlar[r][0]; var h: float = satirlar[r][1]
 		var nok := _halka(hx0 + d + .45, hz0 + d + .45, R0 + d + .45, .62)
 		for e in nok:
-			if rng.randf() > .9: continue
+			if rng.randf() > (.55 if hafif else .9): continue
 			var p: Vector2 = e[0]; var ic: Vector2 = e[1]
 			var p2 := p + Vector2(rng.randf_range(-.08, .08), rng.randf_range(-.08, .08))
 			var deplasman := p.y < -HZ - 5 and absf(p.x) < 22    # kuzey kale arkası: misafir tribünü
@@ -316,6 +317,14 @@ func _tribun_ve_seyirci(ev: Dictionary, dep: Dictionary) -> void:
 	seyirci.material_override = seyirci_mat
 	seyirci.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(seyirci)
+
+# VR koltuğunun çevresindeki seyircileri kaldır (oyuncu birinin içinde oturmasın)
+func koltuk_bosalt(poz: Vector3, r: float) -> void:
+	var mm := seyirci.multimesh
+	for i in mm.instance_count:
+		var t := mm.get_instance_transform(i)
+		if Vector2(t.origin.x - poz.x, t.origin.z - poz.z).length() < r * 3 and absf(t.origin.y - poz.y) < 3.5 and t.origin.y < poz.y + 1.2:
+			mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3.ONE * .001), t.origin))
 
 func seyirci_sayisi() -> int: return seyirci.multimesh.instance_count if seyirci else 0
 

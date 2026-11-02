@@ -15,6 +15,7 @@ const EBEVEYN := {"kalca": "kok", "bel": "kalca", "gogus": "bel", "boyun": "gogu
 
 # ---------- taban geometri (bir kez üretilir, tüm futbolcular paylaşır) ----------
 static var _taban: Dictionary = {}
+static var hafif := false   # Quest / telefon: daha az üçgen
 
 static func _k(ad: String) -> int: return KEMIK.find(ad)
 
@@ -60,7 +61,9 @@ static func _kure(r: float, seg: int, hs: int, olcek := Vector3.ONE, oteleme := 
 	return [v, n, ix]
 
 # a'dan b'ye konik silindir (uçları ayrı küreler kapatır)
-static func _silindir(a: Vector3, b: Vector3, r0: float, r1: float, seg: int, hs := 14) -> Array:
+static func _silindir(a: Vector3, b: Vector3, r0: float, r1: float, seg: int, hs := 0) -> Array:
+	if hs <= 0: hs = 6 if hafif else 14
+	if hafif: seg = maxi(6, seg - 2)
 	var v := PackedVector3Array(); var n := PackedVector3Array(); var ix := PackedInt32Array()
 	var yon := (b - a).normalized()
 	var ref := Vector3.FORWARD if absf(yon.y) > .9 else Vector3.UP

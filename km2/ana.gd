@@ -21,6 +21,11 @@ var _birikim := 0.0
 var ses: Ses
 var sec := {"lig": 0, "ev": 0, "dep": 1, "sure": 1, "zor": 1}
 var menu_acik := true
+var dunya: Node3D
+var gunes: DirectionalLight3D
+var vr: VR = null
+var vr_koltuk := 2
+var hafif := OS.has_feature("android")
 
 # arayüz
 var ui: CanvasLayer
@@ -46,8 +51,10 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		var kv := a.trim_prefix("--").split("=", true, 1)
 		_arg[kv[0]] = kv[1] if kv.size() > 1 else "1"
+	if _arg.has("hafif"): hafif = true
 	veri = JSON.parse_string(FileAccess.get_file_as_string("res://veri/takimlar.json"))
 	_ortam()
+	dunya = Node3D.new(); add_child(dunya)
 	kam = Camera3D.new(); kam.current = true; kam.near = .3; kam.far = 900
 	add_child(kam)
 	top = MeshInstance3D.new()
@@ -55,22 +62,26 @@ func _ready() -> void:
 	top.mesh = sm
 	var tm := ShaderMaterial.new(); var sh := Shader.new(); sh.code = TOP_SHADER; tm.shader = sh
 	top.material_override = tm
-	add_child(top)
+	dunya.add_child(top)
 	isaret = MeshInstance3D.new()
 	var tor := TorusMesh.new(); tor.inner_radius = .62; tor.outer_radius = .78; tor.rings = 32
 	isaret.mesh = tor; isaret.scale = Vector3(1, .05, 1)
 	var im := StandardMaterial3D.new(); im.albedo_color = Color("#f3d35a"); im.emission_enabled = true; im.emission = Color("#f3d35a"); im.emission_energy_multiplier = 1.5
 	im.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	isaret.material_override = im; isaret.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(isaret)
+	dunya.add_child(isaret)
 	ses = Ses.new(); add_child(ses)
 	_arayuz()
 	kam_mod = int(_arg.get("kamera", "0"))
 	sec_kam.select(kam_mod)
 	# açılışta arkada gösterim maçı döner (Kaptan Mecit'teki gibi)
 	_mac_kur(_takim(0, 0), _takim(0, 1), 4, 1, true)
+	vr = VR.baslat(self)
+	if vr:
+		kam.current = false
+		ses.baslat()
 	if _arg.has("mac"):
-		_menu_goster(false); _mac_kur(_takim(0, 0), _takim(0, 1), 4, 1, _arg.has("gosterim"))
+		menu_goster(false); _mac_kur(_takim(0, 0), _takim(0, 1), 4, 1, _arg.has("gosterim"))
 	if _arg.has("ileri"):
 		var n := int(float(_arg.ileri) * 60)
 		for i in n: _adim()
@@ -84,7 +95,7 @@ func _ready() -> void:
 		print("TEST bitti: ", M.T[0].t.kisa, " ", M.T[0].score, "-", M.T[1].score, " ", M.T[1].t.kisa, " adım=", n, " dk=", M.min_label(), " goller=", M.events, " süre(ms)=", Time.get_ticks_msec() - t0)
 		get_tree().quit(); return
 	if _arg.has("ekran"):
-		_menu_goster(_arg.has("menu"))
+		menu_goster(_arg.has("menu"))
 		await get_tree().create_timer(float(_arg.get("bekle", "1.5"))).timeout
 		await RenderingServer.frame_post_draw
 		get_viewport().get_texture().get_image().save_png(_arg.ekran)
@@ -120,7 +131,7 @@ func _ortam() -> void:
 	gl.shadow_enabled = true; gl.shadow_bias = .03; gl.shadow_normal_bias = 1.2
 	gl.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	gl.directional_shadow_max_distance = 140.0
-	add_child(gl)
+	add_child(gl); gunes = gl
 	# karşı projektör: gölgesiz dolgu
 	var dl := DirectionalLight3D.new()
 	dl.rotation_degrees = Vector3(-50, 208, 0); dl.light_color = Color("#e8eeff"); dl.light_energy = .55
@@ -130,8 +141,9 @@ func _ortam() -> void:
 func _mac_kur(ev: Dictionary, dep: Dictionary, sure: int, zor: int, gosterim: bool) -> void:
 	M = Mac.new(ev, dep, sure, zor, gosterim)
 	if stad: stad.queue_free()
-	stad = Stadyum.new(); add_child(stad)
+	stad = Stadyum.new(); stad.hafif = hafif; dunya.add_child(stad)
 	stad.kur(M.T[0].kit, M.T[1].kit, veri.panolar)
+	Futbolcu.hafif = hafif
 	for f in oyuncular: f.queue_free()
 	oyuncular.clear()
 	var trim := func(c1: String, c2: String) -> String: return c2 if Mac.renk_farki(c1, c2) > 128 else "#ffffff"
@@ -142,7 +154,7 @@ func _mac_kur(ev: Dictionary, dep: Dictionary, sure: int, zor: int, gosterim: bo
 			"serit": "#1d1d1d" if gk else trim.call(kit.c1, kit.c2), "sort": "#1d1d1d" if gk else kit.c2,
 			"tozluk": "#1d1d1d" if gk else kit.c1, "ten": p.ten, "sac": p.sac, "eldiven": "#f4f4f4" if gk else null}
 		var f := Futbolcu.new()
-		add_child(f)
+		dunya.add_child(f)
 		f.kur(renk, p.no, .96 + float((p.no * 37) % 9) / 100.0)
 		oyuncular.append(f)
 	_birikim = 0.0
@@ -173,8 +185,8 @@ func _adim() -> void:
 
 func _olay(o: Array) -> void:
 	match o[0]:
-		"banner": _afis(o[1], o[2], 2.2)
-		"flash": _afis(o[1], "", 1.0)
+		"banner": afis_goster(o[1], o[2], 2.2)
+		"flash": afis_goster(o[1], "", 1.0)
 		"duduk": ses.duduk(int(o[1]))
 		"vurus": ses.vurus(float(o[1]))
 		"ooo": ses.ooo()
@@ -185,6 +197,7 @@ func _olay(o: Array) -> void:
 
 func _girdi() -> void:
 	if M == null or M.demo or menu_acik: return
+	if vr: vr.girdi(M); return
 	var v := Vector2(Input.get_axis("ui_left", "ui_right"), Input.get_axis("ui_up", "ui_down"))
 	if Input.is_key_pressed(KEY_A): v.x -= 1
 	if Input.is_key_pressed(KEY_D): v.x += 1
@@ -205,13 +218,13 @@ func _unhandled_input(e: InputEvent) -> void:
 			KEY_X, KEY_K: if M: M.giris.pasE = true
 			KEY_Z, KEY_SPACE, KEY_L: if M: M.giris.sutE = true
 			KEY_C: _kamera((kam_mod + 1) % KAMERALAR.size())
-			KEY_ESCAPE, KEY_M: if M and not M.demo: _menu_goster(not menu_acik)
+			KEY_ESCAPE, KEY_M: if M and not M.demo: menu_goster(not menu_acik)
 	elif e is InputEventJoypadButton and e.pressed:
 		match e.button_index:
 			JOY_BUTTON_A: if M: M.giris.pasE = true
 			JOY_BUTTON_B, JOY_BUTTON_X: if M: M.giris.sutE = true
 			JOY_BUTTON_Y: _kamera((kam_mod + 1) % KAMERALAR.size())
-			JOY_BUTTON_START: if M and not M.demo: _menu_goster(not menu_acik)
+			JOY_BUTTON_START: if M and not M.demo: menu_goster(not menu_acik)
 
 static func W(x: float, y: float, z := 0.0) -> Vector3: return Vector3(x - PW / 2, z, y - PL / 2)
 
@@ -237,6 +250,7 @@ func _ciz(dt: float) -> void:
 	_kamera_guncelle(dt)
 
 func _kamera_guncelle(dt: float) -> void:
+	if vr: return
 	var b = M.ball
 	var bw := W(b.x, b.y, b.z)
 	var ileri_y := 1.0 if M.goal_y_of(0) == 0.0 else -1.0     # ev sahibinin hücum yönü (dünya Z'de ters)
@@ -262,7 +276,7 @@ func _kamera_guncelle(dt: float) -> void:
 func _kamera(i: int) -> void:
 	kam_mod = i
 	sec_kam.select(i)
-	_afis("KAMERA", KAMERALAR[i], .9)
+	afis_goster("KAMERA", KAMERALAR[i], .9)
 
 # ---------- arayüz ----------
 func _arayuz() -> void:
@@ -353,12 +367,12 @@ func _basla() -> void:
 	var L: Array = veri.ligler[sec_lig.selected].takimlar
 	var a := sec_ev.selected; var b := sec_dep.selected
 	if a == b: b = (b + 1) % L.size()
-	_menu_goster(false)
+	menu_goster(false)
 	_mac_kur(L[a], L[b], SURELER[sec_sure.selected], sec_zor.selected, false)
 	kam_mod = sec_kam.selected
 	ses.baslat()
 
-func _menu_goster(v: bool) -> void:
+func menu_goster(v: bool) -> void:
 	menu_acik = v
 	menu.visible = v
 
@@ -366,7 +380,9 @@ func _tabela() -> void:
 	tabela.text = "%s  %d - %d  %s" % [M.T[0].t.kisa, M.T[0].score, M.T[1].score, M.T[1].t.kisa]
 	stad.skor("%s %d-%d %s" % [M.T[0].t.kisa, M.T[0].score, M.T[1].score, M.T[1].t.kisa])
 
-func _afis(ust: String, alt, sure: float) -> void:
+func afis_gorunur() -> bool: return afis.visible
+
+func afis_goster(ust: String, alt, sure: float) -> void:
 	afis_ust.text = ust; afis_alt.text = str(alt) if alt != null else ""
 	afis_alt.visible = afis_alt.text != ""
 	afis.visible = true; _afis_t = sure
