@@ -120,6 +120,12 @@ var ofsayt := [0, 0]
 var kartlar: Array = []   # [takım, ad, "S"/"K"]
 var atilan: Array = []
 var avantaj_t := 0.0
+var B: Array = [[], []]          # yedek kulübeleri
+var hak := {"n": 5, "w": 3}      # 5 değişiklik, 3 ara (devre arası sayılmaz)
+var sub: Array = [{"n": 0, "win": {}}, {"n": 0, "win": {}}]
+var degisiklikler: Array = []
+var oto_t := [0, 0]
+var yakin_ofs = null
 var giris := {"x": 0.0, "y": 0.0, "pasE": false, "sutE": false}
 var olaylar: Array = []    # görüntü/ses katmanına: [ad, ...]
 var _pass_score := 0.0
@@ -158,6 +164,7 @@ func _init(ev: Dictionary, dep: Dictionary, sure_dk: float, zorluk: int, gosteri
 			p.ten = s.ten; p.sac = s.sac; p.st = float(s.st); p.dz = bool(s.dz); p.fx = float(s.fx); p.fy = float(s.fy)
 			p.dy = -1.0 if ti == 0 else 1.0
 			P.append(p)
+	for ti in 2: B[ti] = (T[ti].t.get("yedek", []) as Array).duplicate()
 	kickoff(0)
 	olay("banner", T[0].t.kisa + " - " + T[1].t.kisa, "BAŞLAMA VURUŞU")
 	olay("duduk", 1)
@@ -271,6 +278,7 @@ func step(dt: float) -> void:
 	if half == 1 and uzatma_kontrol(dur / 2):
 		uz = null; clock = dur / 2; half = 2; state = "half"; state_t = 3.0
 		olay("duduk", 2); olay("banner", "DEVRE ARASI", str(T[0].score) + " - " + str(T[1].score))
+		mola(1)
 		after = func():
 			flip = true; t_att = null; poss_team = null; TP = null
 			kickoff(1); state = "pre"; state_t = .8
@@ -285,6 +293,7 @@ func step(dt: float) -> void:
 	if set_piece != null:
 		set_piece.t += dt
 		if ball.owner != set_piece.p: set_piece = null
+	kondisyon(dt); oto_degisiklik()
 	tactical_prep(dt)
 	for p: Oy in P.duplicate(): think(p, dt)
 	for p: Oy in P.duplicate():
@@ -1071,6 +1080,7 @@ func take(p: Oy) -> void:
 	var b := ball
 	if b.ofs != null and not b.ofs.get("yakin", false) and b.ofs.q == p and p.team == b.ofs.team and not demo:
 		ofsayt_cal(p); return
+	if b.ofs != null and b.ofs.get("yakin", false) and b.ofs.q == p: yakin_ofs = {"team": p.team, "t": clock}
 	b.ofs = null
 	if b.cross and p.role != "G": p.first_time = true
 	b.cross = false; b.owner = p; p.hold = 0; b.intended = null; b.shot = false; b.vx = 0; b.vy = 0; b.vz = 0; b.z = 0
@@ -1134,8 +1144,10 @@ func score_goal(ti: int, scorer: Oy, own: Oy) -> void:
 	olay("gol", ti)
 	olay("banner", "GOOOL!", (str(who.no) + " · " if who != null else "") + name + " · " + Tt.t.kisa + " " + str(T[0].score) + "-" + str(T[1].score))
 	ball.vx *= .2; ball.vy *= .2
-	after = func():
-		kickoff(1 - ti); state = "pre"; state_t = .8; olay("duduk", 1)
+	after = func(): var_gol(ti)
+
+func _gol_devam(ti: int) -> void:
+	kickoff(1 - ti); state = "pre"; state_t = .8; olay("duduk", 1)
 
 func son_gol_takimi() -> int:
 	return events[events.size() - 1].team if (state == "goal" and events.size() > 0) else -1
@@ -1188,7 +1200,18 @@ func faul_yap(o: Oy, p: Oy, arkadan: bool, kayma: bool) -> void:
 		set_piece.fk = true; durdu = 2 if dg < 38 else 1
 		olay("banner", "FAUL", o.n + " · " + T[ti].t.kisa + " serbest vuruş")
 
-func penalti_ver(ti: int) -> void:
+func penalti_ver(ti: int, incelendi := false) -> void:
+	# VAR: temas yeterli mi?
+	if not incelendi and not demo and randf() < .18:
+		state = "var"; state_t = 3.2
+		olay("banner", "VAR", "PENALTI KARARI İNCELENİYOR…")
+		var iptal := randf() < .35
+		after = func():
+			if iptal:
+				olay("banner", "VAR", "TEMAS YETERSİZ · PENALTI İPTAL"); goal_kick(1 - ti)
+			else:
+				olay("banner", "VAR", "PENALTI KARARI GEÇERLİ"); penalti_ver(ti, true)
+		return
 	var gy := goal_y_of(ti)
 	restart(ti, PW / 2, 11.0 if gy == 0 else PL - 11)
 	var at: Oy = set_piece.p
@@ -1261,3 +1284,134 @@ func ofsayt_cal(p: Oy) -> void:
 	ball.ofs = null; ofsayt[p.team] += 1
 	olay("duduk", 1); olay("banner", "OFSAYT", "%d %s · %s" % [p.no, p.n, T[p.team].t.kisa])
 	restart(1 - p.team, clampf(p.x, 1, PW - 1), clampf(p.y, 1, PL - 1)); durdu = 1
+
+# =================== Kondisyon, sakatlık, oyuncu değişikliği, VAR (Kaptan Mecit / CBM'den) ===================
+# kondisyon: koştukça düşer (≈90 dakikada %20–25), düşük kondisyon hızı keser; sakatlık riski yorgunlukla artar
+func kondisyon(dt: float) -> void:
+	if demo: return
+	var gm := dt / dur * 90.0
+	for p: Oy in P:
+		var v := hyp(p.vx, p.vy)
+		p.st = maxf(.3, p.st - gm * (.0016 + .0013 * minf(1.3, v / 6.6)) * (.35 if p.role == "G" else 1.0))
+		if not p.inj and p.role != "G" and randf() < gm * .00009 * (1.6 - p.st): sakatlan(p)
+
+func sakatlan(p: Oy) -> void:
+	if p.inj or demo: return
+	p.inj = true; p.st = minf(p.st, .4)
+	var ti := p.team
+	if degisebilir(ti):
+		var b = yedek_sec(ti, p.role, false, [])
+		if b == null: b = yedek_sec(ti, "O", false, [])
+		if b != null: degistir(ti, p, b, "SAKATLIK"); return
+	olay("banner", "SAKATLIK", p.n + " · " + T[ti].t.kisa)
+
+func molada() -> bool: return state == "half"
+func kalan(ti: int) -> Dictionary: return {"hak": hak.n - sub[ti].n, "ara": hak.w - sub[ti].win.size()}
+func degisebilir(ti: int) -> bool:
+	var d: Dictionary = sub[ti]
+	return state != "over" and d.n < hak.n and (d.win.size() < hak.w or d.win.has(minute()) or molada()) and B[ti].size() > 0
+
+func degistir(ti: int, p: Oy, b: Dictionary, neden: String) -> bool:
+	if not degisebilir(ti) or p == null or p.team != ti or not B[ti].has(b): return false
+	var d: Dictionary = sub[ti]
+	if not molada(): d.win[minute()] = true
+	d.n += 1
+	degisiklikler.append({"team": ti, "min": maxi(1, minute()), "out": p.n, "in": b.n})
+	if ball.owner == p: ball.owner = null
+	var eski := p.n
+	p.n = b.n; p.no = int(b.no); p.ten = b.ten; p.sac = b.sac; p.st = 1.0; p.inj = false; p.stun = 0; p.slide = 0
+	B[ti].erase(b)
+	olay("degisiklik", p)
+	if state != "half": olay("banner", "DEĞİŞİKLİK", "%s · %d %s ↔ %s%s" % [T[ti].t.kisa, int(b.no), b.n, eski, (" · " + neden) if neden != "" else ""])
+	return true
+
+func yedek_sec(ti: int, istenen: String, kaleci: bool, plan: Array):
+	var aday: Array = B[ti].filter(func(b): return (b.mevki == "G") == kaleci and not plan.any(func(x): return x.b == b))
+	if aday.is_empty(): return null
+	aday.sort_custom(func(a, b): return int(a.mevki == istenen) > int(b.mevki == istenen))
+	return aday[0]
+
+func plan_kur(ti: int, kac: int) -> Array:
+	var m := minute()
+	var f: int = T[ti].score - T[1 - ti].score
+	var son := m >= 82
+	var on: Array = P.filter(func(p): return p.team == ti and p.role != "G" and not p.inj)
+	var used := {}
+	var out: Array = []
+	for k in kac:
+		var c: Array = on.filter(func(p): return not used.has(p))
+		c.sort_custom(func(a, b): return a.st < b.st)
+		if c.is_empty(): break
+		var p: Oy = null; var istenen := ""; var neden := ""
+		if f < 0 and m >= 60:
+			var dler := on.filter(func(x): return x.role == "D" and not used.has(x))
+			p = c[0]
+			if dler.size() > 3:
+				for q in c:
+					if q.role == "D": p = q; break
+			istenen = "F"; neden = "SKOR İÇİN HÜCUM"
+		elif f > 0 and son:
+			p = c[0]
+			for q in c:
+				if q.role == "F" and q.st < .9: p = q; break
+			istenen = "D" if p.role == "F" else p.role; neden = "SKORU KORUMAK"
+		else:
+			p = c[0]
+			if p.st >= (.84 if m >= 75 else .8): break
+			istenen = p.role; neden = "YORGUNLUK %" + str(int(p.st * 100))
+		var b = yedek_sec(ti, istenen, false, out)
+		if b == null: break
+		used[p] = true; out.append({"p": p, "b": b, "neden": neden})
+	return out
+
+# iki takımın da asistanı değişiklik yapar (insan takımında da: VR'da kulübe ekranı yok)
+func oto_degisiklik() -> void:
+	if demo: return
+	var m := minute()
+	var E := [58, 66, 74, 81, 86]
+	for ti in 2:
+		for p: Oy in P:
+			if p.team == ti and p.inj and degisebilir(ti):
+				var b = yedek_sec(ti, "G" if p.role == "G" else p.role, p.role == "G", [])
+				if b == null: b = yedek_sec(ti, "O", false, [])
+				if b != null: degistir(ti, p, b, "SAKATLIK")
+				break
+	for ti in 2:
+		var e := -1
+		for x in E:
+			if m >= x and oto_t[ti] < x: e = x; break
+		if e < 0: continue
+		if ball.owner != null and ball.owner.team != ti and absf(ball.y - goal_y_of(ball.owner.team)) < PL * .35: continue   # tehlikede değişiklik yok
+		oto_t[ti] = e
+		if not degisebilir(ti): continue
+		var k := kalan(ti)
+		var sakla := 0 if m >= 84 else 1
+		var kac := maxi(0, mini(mini(k.hak - sakla, (k.hak - sakla) if k.ara <= 1 else (2 if e == 58 else 1)), 3))
+		for x in plan_kur(ti, kac): degistir(ti, x.p, x.b, x.neden)
+
+func mola(kac: int) -> void:
+	if demo: return
+	for ti in 2:
+		if not degisebilir(ti): continue
+		var k := kalan(ti)
+		for x in plan_kur(ti, mini(kac, k.hak - 1)): degistir(ti, x.p, x.b, x.neden)
+
+# VAR: gol öncesi çizgide kalan ofsayt ya da atak başlangıcı incelenir
+func var_gol(ti: int) -> void:
+	var cizgide: bool = yakin_ofs != null and yakin_ofs.team == ti and clock - yakin_ofs.t < 9
+	yakin_ofs = null
+	if demo or not (randf() < .9 if cizgide else randf() < .06):
+		_gol_devam(ti); return
+	var iptal := randf() < (.5 if cizgide else .3)
+	state = "var"; state_t = 3.4
+	olay("banner", "VAR", "OFSAYT ÇİZGİSİ ÇEKİLİYOR…" if cizgide else "ATAĞIN BAŞLANGICI İZLENİYOR…")
+	after = func():
+		if not iptal:
+			olay("banner", "VAR", "GOL GEÇERLİ"); _gol_devam(ti); return
+		T[ti].score -= 1
+		for i in range(events.size() - 1, -1, -1):
+			if events[i].team == ti: events.remove_at(i); break
+		olay("gol_iptal", ti)
+		olay("banner", "VAR", "GOL İPTAL · %s · %d-%d" % ["OFSAYT" if cizgide else "ATAKTA FAUL", T[0].score, T[1].score])
+		var og := own_goal_y(1 - ti)
+		restart(1 - ti, PW / 2, 14.0 if og == 0 else PL - 14)

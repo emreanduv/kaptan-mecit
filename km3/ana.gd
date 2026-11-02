@@ -77,13 +77,13 @@ func _ready() -> void:
 	kam_mod = int(_arg.get("kamera", "0"))
 	sec_kam.select(kam_mod)
 	# açılışta arkada gösterim maçı döner (Kaptan Mecit'teki gibi)
-	_mac_kur(_takim(0, 0), _takim(0, 1), 4, 1, true)
+	_mac_kur(Taktik.kadro_kur(_takim(0, 0), veri.ligler[0].id), Taktik.kadro_kur(_takim(0, 1), veri.ligler[0].id), 4, 1, true)
 	vr = VR.baslat(self, _arg.has("vrsahte"))
 	if vr:
 		kam.current = false
 		ses.baslat()
 	if _arg.has("mac"):
-		menu_goster(false); _mac_kur(_takim(0, 0), _takim(0, 1), 4, 1, _arg.has("gosterim"))
+		menu_goster(false); _mac_kur(Taktik.kadro_kur(_takim(0, 0), veri.ligler[0].id, _arg.get("dz", "")), Taktik.kadro_kur(_takim(0, 1), veri.ligler[0].id), 4, 1, _arg.has("gosterim"))
 	if _arg.has("ileri"):
 		var n := int(float(_arg.ileri) * 60)
 		for i in n: _adim()
@@ -95,9 +95,9 @@ func _ready() -> void:
 			if n % 90 == 0: M.giris.x = randf_range(-1, 1); M.giris.y = randf_range(-1, 1); M.giris.pasE = randf() < .3; M.giris.sutE = randf() < .2
 			M.step(ADIM)
 			for o in M.olaylar:
-				if o[0] == "banner" and o[1] in ["PENALTI", "OFSAYT", "FAUL"]: print("  ", M.min_label(), "' ", o[1], " · ", o[2])
+				if o[0] == "banner" and o[1] in ["PENALTI", "OFSAYT", "VAR", "SAKATLIK"] or o[0] == "kart": print("  ", M.min_label(), "' ", o[1], " · ", o[2])
 			M.olaylar.clear(); n += 1
-		print("TEST bitti: ", M.T[0].t.kisa, " ", M.T[0].score, "-", M.T[1].score, " ", M.T[1].t.kisa, " adım=", n, " dk=", M.min_label(), " goller=", M.events, " süre(ms)=", Time.get_ticks_msec() - t0, " faul=", M.faul, " ofsayt=", M.ofsayt, " kart=", M.kartlar, " korner=", M.korner)
+		print("TEST bitti: ", M.T[0].t.kisa, " ", M.T[0].score, "-", M.T[1].score, " ", M.T[1].t.kisa, " adım=", n, " dk=", M.min_label(), " goller=", M.events, " süre(ms)=", Time.get_ticks_msec() - t0, " faul=", M.faul, " ofsayt=", M.ofsayt, " kart=", M.kartlar, " korner=", M.korner, " değişiklik=", M.degisiklikler.map(func(d): return str(d.min) + "' " + d.in + "↔" + d.out))
 		get_tree().quit(); return
 	if _arg.has("ekran"):
 		menu_goster(_arg.has("menu"))
@@ -108,6 +108,28 @@ func _ready() -> void:
 			" çizim=", RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME),
 			" üçgen=", RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME))
 		get_tree().quit()
+
+func _futbolcu_kur(p) -> Futbolcu:
+	var kit: Dictionary = M.T[p.team].kit
+	var gk: bool = p.role == "G"
+	var serit: String = kit.c2 if Mac.renk_farki(kit.c1, kit.c2) > 128 else "#ffffff"
+	var renk := {"forma": ("#f3d35a" if p.team == 0 else "#3ec46d") if gk else kit.c1,
+		"serit": "#1d1d1d" if gk else serit, "sort": "#1d1d1d" if gk else kit.c2,
+		"tozluk": "#1d1d1d" if gk else kit.c1, "ten": p.ten, "sac": p.sac, "eldiven": "#f4f4f4" if gk else null}
+	var f := Futbolcu.new()
+	dunya.add_child(f)
+	f.kur(renk, p.no, .96 + float((p.no * 37) % 9) / 100.0)
+	oyuncular.append(f)
+	f.set_meta("oy", p)
+	return f
+
+# oyuncu değişikliği / eldiven giyen saha oyuncusu: o oyuncunun görünümünü yeniden kur
+func _yeniden_kur(p) -> void:
+	for f in oyuncular:
+		if f.get_meta("oy") == p:
+			oyuncular.erase(f); f.queue_free(); break
+	var yeni := _futbolcu_kur(p)
+	yeni.position = W(p.x, p.y)
 
 func _golge_kur() -> void:
 	if golgeler: golgeler.queue_free()
@@ -166,18 +188,7 @@ func _mac_kur(ev: Dictionary, dep: Dictionary, sure: int, zor: int, gosterim: bo
 	Futbolcu.hafif = hafif
 	for f in oyuncular: f.queue_free()
 	oyuncular.clear()
-	var trim := func(c1: String, c2: String) -> String: return c2 if Mac.renk_farki(c1, c2) > 128 else "#ffffff"
-	for p in M.P:
-		var kit: Dictionary = M.T[p.team].kit
-		var gk: bool = p.role == "G"
-		var renk := {"forma": ("#f3d35a" if p.team == 0 else "#3ec46d") if gk else kit.c1,
-			"serit": "#1d1d1d" if gk else trim.call(kit.c1, kit.c2), "sort": "#1d1d1d" if gk else kit.c2,
-			"tozluk": "#1d1d1d" if gk else kit.c1, "ten": p.ten, "sac": p.sac, "eldiven": "#f4f4f4" if gk else null}
-		var f := Futbolcu.new()
-		dunya.add_child(f)
-		f.kur(renk, p.no, .96 + float((p.no * 37) % 9) / 100.0)
-		oyuncular.append(f)
-		f.set_meta("oy", p)
+	for p in M.P: _futbolcu_kur(p)
 	_birikim = 0.0
 	if hafif: _golge_kur()
 	_tabela()
@@ -203,9 +214,10 @@ func _adim() -> void:
 	M.olaylar.clear()
 	if M.state == "over" and M.demo:
 		# gösterim maçı biter bitmez yenisi başlar
-		var L: Array = veri.ligler[randi() % veri.ligler.size()].takimlar
+		var lg: Dictionary = veri.ligler[randi() % veri.ligler.size()]
+		var L: Array = lg.takimlar
 		var a := randi() % L.size(); var b := (a + 1 + randi() % (L.size() - 1)) % L.size()
-		_mac_kur(L[a], L[b], 4, 1, true)
+		_mac_kur(Taktik.kadro_kur(L[a], lg.id), Taktik.kadro_kur(L[b], lg.id), 4, 1, true)
 
 func _olay(o: Array) -> void:
 	match o[0]:
@@ -220,6 +232,8 @@ func _olay(o: Array) -> void:
 		"tik": ses.tik()
 		"kart":
 			afis_goster({"S": "SARI KART", "K": "KIRMIZI KART", "K2": "İKİNCİ SARI · KIRMIZI"}[o[1]], o[2], 2.6)
+		"degisiklik", "kaleci_degisti": _yeniden_kur(o[1])
+		"gol_iptal": _tabela()
 		"atildi":
 			for f in oyuncular:
 				if f.get_meta("oy") == o[1]: f.visible = false
