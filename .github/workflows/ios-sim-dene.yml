@@ -48,12 +48,16 @@ jobs:
           xcrun simctl install $UDID "$APP"
           xcrun simctl launch --console-pty --terminate-running-process $UDID com.anduv.kaptanmecit > sonuc/konsol.txt 2>&1 &
           LP=$!
-          sleep 25
+          sleep 12
+          xcrun simctl io $UDID screenshot sonuc/ekran-12sn.png
+          sleep 15
           xcrun simctl io $UDID screenshot sonuc/ekran.png
+          xcrun simctl spawn $UDID launchctl list 2>/dev/null | grep -i kaptan > sonuc/calisiyor.txt || echo "uygulama çalışmıyor" > sonuc/calisiyor.txt
           kill $LP 2>/dev/null || true
           xcrun simctl spawn $UDID log show --last 3m --predicate 'processImagePath CONTAINS "App.app" OR eventMessage CONTAINS "⚡️"' --style compact > sonuc/log.txt 2>&1 || true
           grep -i "⚡️\|error\|exception\|crash\|fault" sonuc/log.txt | head -120 > sonuc/log-ozet.txt || true
-          ls ~/Library/Logs/DiagnosticReports/ 2>/dev/null | tail -5 > sonuc/cokme.txt || true
+          ls -t ~/Library/Logs/DiagnosticReports/ 2>/dev/null | head -5 > sonuc/cokme.txt || true
+          F=$(ls -t ~/Library/Logs/DiagnosticReports/*App* 2>/dev/null | head -1); [ -n "$F" ] && head -c 6000 "$F" > sonuc/cokme-rapor.txt || true
           cat sonuc/konsol.txt | head -100; echo ----; cat sonuc/log-ozet.txt
       - name: Dala yaz
         if: always()
