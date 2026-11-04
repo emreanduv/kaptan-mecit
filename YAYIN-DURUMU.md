@@ -97,4 +97,5 @@
 - Horizon uygulaması: Kaptan Mecit 3 (id 1488865890970681), paket com.anduv.kaptanmecit3, Alpha kanalına 0.2.0 (1) yüklendi.
 - İmza anahtarı: Belgeler/Kaptan-Mecit/imza-anahtari/kaptanmecit3-quest.jks (+ KM3-QUEST-ANAHTAR-OKU.txt), şifre Mac'te üretildi. Depoya girmez.
 - Derleme: Actions > Kaptan Mecit 3 (Meta Quest APK). Web: emreanduv.github.io/kaptan-mecit-3/
-- 4 Kas: Alpha'da 0.4.0 (3) yayında: tribün tezahüratları, mola / yedek kulübesi, rehber, Nasıl oynanır. Alpha daveti (emreanduv@hotmail.com) gönderildi, yaş sertifikası tamam.
+- 4 Kas: Alpha'da 0.4.0 (3) yayında: tribün tezahüratları, mola / yedek kulübesi, rehber, Nasıl oynanır. Alpha daveti (emreanduv@hotmail.com) gönderildi, yaş sertifikası tamam. Aynı gün 0.4.1 (4: yeni tribün sesleri) ve 0.5.0 (5: kaleci uçuşu, dokunmatik kontrol).
+- Karar (4 Kas, Emre): mağazalarda TEK uygulama "Kaptan Mecit" olacak, KM3 motoruyla (App Store'da reddedilen KM 1.0.0'ın yerine aynı uygulamanın yeni sürümü; ayrı "Kaptan Mecit 3" açılmaz). Sıra: Meta Horizon Store → Google Play kapalı test → App Store (Kurt Yolu ve CBM sonuçlandıktan sonra) → Steam (Valve doğrulaması bitince).
