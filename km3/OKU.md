@@ -16,3 +16,10 @@ penaltı (ceza sahasında faul), ofsayt (pas anında sondan ikinci rakip çizgis
 
 Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (`motor/taktik.gd`, veri: `veri/taktik.json`,
 üretici: `araclar/km2-veri/taktik-uret.js`). Menüde Diziliş: Otomatik ya da 34'ten biri; asistan havuzdan en uygun 11'i ve 9 yedeği kurar.
+
+## 0.4.0
+- Tribün sesleri: her tribün kendi takımı için (ev: güney kale arkası + ana tribün, misafir: kuzey kale arkası), sesler tribünün yerinden gelir (AudioStreamPlayer3D). Klipler `araclar/ses/tezahurat.py` ile sentezlenir (28 sesli kalabalık şarkısı + davul + alkış, ıslık, yuh): `python3 araclar/ses/tezahurat.py`.
+  - Gol: atan takımın tribünü tezahürata başlar, diğeri susar. Faul: faul yiyenin taraftarı ıslıklar; kart: kart görenin taraftarı ıslıklar / yuhalar; ofsayt: ofsayta düşenin taraftarı ıslıklar; korner ve penaltı: alkış; VAR iptali: yuh. Arada hücum eden / önde olan tribün kendiliğinden tezahürat yapar.
+- Mola (yedek kulübesi): maç içinde menü = mola. Çıkan (sakat ve en yorgun önce, kondisyon %), Giren (aynı mevki önce), Değişikliği yap (5 hak / 3 ara), Asistan değişiklikleri Açık/Kapalı (kapalıyken sakatlıkta yine girer), Nasıl oynanır, Maçı bırak. `arayuz/mola.gd`; ekranda ve VR'da aynı satırlar.
+- Rehber: ilk maçlarda yeri gelince bir kez ipucu (koş, pas/şut, top kap, koltuk/kamera, mola); "Rehberi baştan göster". Nasıl oynanır: ana menüde ve molada, görüş için e-posta.
+- Deneme: `--mac --ileri=200 --menu --ekran=x.png` (mola), `--menu --yardim` (Nasıl oynanır), `--vrsahte` ile VR paneli.

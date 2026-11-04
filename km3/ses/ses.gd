@@ -14,6 +14,17 @@ var _hey := 0.08
 var _hey_hedef := 0.08
 var _basladi := false
 
+# taraftar: her tribünün kendi sesi, tribünün yerinden gelir (VR'da başını çevirince duyulur).
+# 0 = ev sahibi (ana tribün + güney kale arkası), 1 = misafir (kuzey kale arkası). Klipler araclar/ses/tezahurat.py ile sentezlenir.
+const TARAF_KLIP := {"tezahurat1": "res://ses/klip/tezahurat1.wav", "tezahurat2": "res://ses/klip/tezahurat2.wav",
+	"alkis": "res://ses/klip/alkis.wav", "islik": "res://ses/klip/islik.wav", "yuh": "res://ses/klip/yuh.wav"}
+const TARAF_YER := [[Vector3(0, 9, 68), Vector3(-50, 12, 0)], [Vector3(0, 9, -68)]]
+var _taraf: Array = [[], []]           # her taraf için AudioStreamPlayer3D'ler
+var _taraf_klip := {}
+var _taraf_t := [12.0, 20.0]           # sıradaki kendiliğinden tezahürata kalan süre
+var _taraf_hey := [0.0, 0.0]
+var taraf_acik := true
+
 static func _wav(ornekler: PackedFloat32Array, dongu := false) -> AudioStreamWAV:
 	var b := PackedByteArray(); b.resize(ornekler.size() * 2)
 	for i in ornekler.size(): b.encode_s16(i * 2, int(clampf(ornekler[i], -1, 1) * 32000))
@@ -69,6 +80,13 @@ func _ready() -> void:
 		var t := float(i) / HZ; tk[i] = sin(TAU * (880 + 6000 * t) * t) * exp(-t * 40) * .3
 	_klip.tik = _wav(tk)
 	for i in 6: _havuz.append(_oynatici(null, 0))
+	for ad in TARAF_KLIP: _taraf_klip[ad] = load(TARAF_KLIP[ad])
+	for t in 2:
+		for yer: Vector3 in TARAF_YER[t]:
+			var a := AudioStreamPlayer3D.new()
+			a.position = yer; a.unit_size = 38.0; a.max_db = 0.0; a.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+			a.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED; a.panning_strength = .8
+			add_child(a); _taraf[t].append(a)
 
 func _kalabalik(sure: float, guc: float) -> PackedFloat32Array:
 	var n := int(HZ * sure * 2.2)
@@ -105,7 +123,37 @@ func ooo() -> void: _cal("ooo", -6.0)
 func tik() -> void: _cal("tik", -10.0)
 func gol() -> void: _cal("gol", 0.0); _cal("gol", -6.0, .15)
 
+# taraf (0 ev, 1 misafir) tribünü bir tezahürat / alkış / ıslık / yuh başlatır. Aynı tribün aynı anda tek şey söyler;
+# ıslık ve yuh bir tezahüratı keser (tepki önce gelir).
+func taraftar(taraf: int, tur: String, gecikme := 0.0) -> void:
+	if not acik or not taraf_acik or not _basladi or taraf < 0 or taraf > 1: return
+	if gecikme > 0:
+		get_tree().create_timer(gecikme).timeout.connect(func(): taraftar(taraf, tur))
+		return
+	if tur == "tezahurat": tur = "tezahurat1" if randf() < .55 else "tezahurat2"
+	var kes := tur == "islik" or tur == "yuh"
+	var oyn: Array = _taraf[taraf]
+	if not kes:
+		for a: AudioStreamPlayer3D in oyn:
+			if a.playing: return
+	var db := 0.0 if taraf == 0 else -3.0            # misafir tribünü daha az kalabalık
+	for i in oyn.size():
+		var a: AudioStreamPlayer3D = oyn[i]
+		a.stream = _taraf_klip[tur]; a.volume_db = db - (4.0 if i > 0 else 0.0)
+		a.pitch_scale = (1.0 if taraf == 0 else .94) * randf_range(.97, 1.03)
+		a.play(randf_range(0, .03) if i > 0 else 0.0)
+	_taraf_t[taraf] = randf_range(16, 30)
+
+# kendiliğinden tezahürat için tribün coşkusu (0..1): hücumdayken, öndeyken yükselir
+func taraf_heyecan(ev: float, dep: float) -> void: _taraf_hey = [ev, dep]
+func taraf_sustur(taraf: int, sure: float) -> void: _taraf_t[taraf] = maxf(_taraf_t[taraf], sure)
+
 func _process(dt: float) -> void:
 	if not _basladi: return
+	for t in 2:
+		_taraf_t[t] -= dt * (1.0 + 2.5 * _taraf_hey[t])
+		if _taraf_t[t] <= 0:
+			taraftar(t, "alkis" if (_taraf_hey[t] > .5 and randf() < .5) else "tezahurat")
+			_taraf_t[t] = maxf(_taraf_t[t], 6.0)
 	_hey += (_hey_hedef - _hey) * minf(1, dt * 1.5)
 	_tribun.volume_db = linear_to_db(maxf(.001, _hey * 3.0)) - 2 if acik else -80.0

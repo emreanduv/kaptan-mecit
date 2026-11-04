@@ -125,6 +125,7 @@ var hak := {"n": 5, "w": 3}      # 5 değişiklik, 3 ara (devre arası sayılmaz
 var sub: Array = [{"n": 0, "win": {}}, {"n": 0, "win": {}}]
 var degisiklikler: Array = []
 var oto_t := [0, 0]
+var asistan := [true, true]      # asistan değişiklikleri (kullanıcı kendi takımı için kapatabilir; sakatlıkta yine devreye girer)
 var yakin_ofs = null
 var gol_atan: Oy = null
 var kutlama_yer := Vector2.ZERO
@@ -1127,7 +1128,7 @@ func throw_in(ti: int, x: float, y: float) -> void:
 func corner_kick(ti: int, x: float) -> void:
 	durdu = 2; korner[ti] += 1
 	var y := goal_y_of(ti)
-	restart(ti, .3 if x <= 0 else PW - .3, .3 if y == 0 else PL - .3); olay("duduk", 1); olay("flash", "KORNER")
+	restart(ti, .3 if x <= 0 else PW - .3, .3 if y == 0 else PL - .3); olay("duduk", 1); olay("flash", "KORNER"); olay("taraftar", ti, "alkis")
 
 func goal_kick(ti: int) -> void:
 	durdu = 1
@@ -1200,8 +1201,8 @@ func faul_yap(o: Oy, p: Oy, arkadan: bool, kayma: bool) -> void:
 		o.cd = 1.2; o.stun = .5; o.slide = 0; olay("flash", "AVANTAJ"); kart_ver.call(); return
 	p.stun = .5; o.cd = .6; b.owner = null; b.vx = 0; b.vy = 0; b.vz = 0
 	if kutu:
-		olay("duduk", 1); kart_ver.call(); penalti_ver(ti); return
-	olay("duduk", 1); kart_ver.call()
+		olay("duduk", 1); kart_ver.call(); olay("taraftar", 1 - ti, "islik"); penalti_ver(ti); return
+	olay("duduk", 1); kart_ver.call(); olay("taraftar", ti, "islik")
 	if not atilan.has(p):
 		restart(ti, clampf(p.x, 1, PW - 1), clampf(p.y, 1, PL - 1))
 		set_piece.fk = true; durdu = 2 if dg < 38 else 1
@@ -1215,7 +1216,7 @@ func penalti_ver(ti: int, incelendi := false) -> void:
 		var iptal := randf() < .35
 		after = func():
 			if iptal:
-				olay("banner", "VAR", "TEMAS YETERSİZ · PENALTI İPTAL"); goal_kick(1 - ti)
+				olay("banner", "VAR", "TEMAS YETERSİZ · PENALTI İPTAL"); olay("taraftar", ti, "yuh"); goal_kick(1 - ti)
 			else:
 				olay("banner", "VAR", "PENALTI KARARI GEÇERLİ"); penalti_ver(ti, true)
 		return
@@ -1230,17 +1231,17 @@ func penalti_ver(ti: int, incelendi := false) -> void:
 		if absf(q.y - gy) < BOXD + 1.5:
 			q.y = (BOXD + rnd(1.8, 6)) if gy == 0 else (PL - BOXD - rnd(1.8, 6)); q.x = clampf(q.x, 6, PW - 6)
 	state = "pre"; state_t = 1.4
-	olay("banner", "PENALTI", at.n + " topun başında")
+	olay("banner", "PENALTI", at.n + " topun başında"); olay("taraftar", ti, "alkis")
 
 func kart(o: Oy, renk: String, neden := "") -> void:
 	if atilan.has(o): return
 	if renk == "S" and o.sari:
 		kartlar.append([o.team, o.n, "S"]); renk = "K2"
 	if renk == "S":
-		o.sari = true; kartlar.append([o.team, o.n, "S"])
+		o.sari = true; kartlar.append([o.team, o.n, "S"]); olay("taraftar", o.team, "islik")
 		olay("kart", "S", "%d %s · %s" % [o.no, o.n, T[o.team].t.kisa]); return
 	kartlar.append([o.team, o.n, "K"])
-	olay("duduk", 2)
+	olay("duduk", 2); olay("taraftar", o.team, "yuh")
 	olay("kart", renk, "%d %s · %s · 10 KİŞİ%s" % [o.no, o.n, T[o.team].t.kisa, (" · " + neden) if neden != "" else ""])
 	oyundan_at(o)
 
@@ -1289,7 +1290,7 @@ func ofsayt_bak(p: Oy, q: Oy) -> void:
 
 func ofsayt_cal(p: Oy) -> void:
 	ball.ofs = null; ofsayt[p.team] += 1
-	olay("duduk", 1); olay("banner", "OFSAYT", "%d %s · %s" % [p.no, p.n, T[p.team].t.kisa])
+	olay("duduk", 1); olay("taraftar", p.team, "islik"); olay("banner", "OFSAYT", "%d %s · %s" % [p.no, p.n, T[p.team].t.kisa])
 	restart(1 - p.team, clampf(p.x, 1, PW - 1), clampf(p.y, 1, PL - 1)); durdu = 1
 
 # =================== Kondisyon, sakatlık, oyuncu değişikliği, VAR (Kaptan Mecit / CBM'den) ===================
@@ -1384,6 +1385,7 @@ func oto_degisiklik() -> void:
 				if b != null: degistir(ti, p, b, "SAKATLIK")
 				break
 	for ti in 2:
+		if not asistan[ti]: continue
 		var e := -1
 		for x in E:
 			if m >= x and oto_t[ti] < x: e = x; break
@@ -1399,7 +1401,7 @@ func oto_degisiklik() -> void:
 func mola(kac: int) -> void:
 	if demo: return
 	for ti in 2:
-		if not degisebilir(ti): continue
+		if not asistan[ti] or not degisebilir(ti): continue
 		var k := kalan(ti)
 		for x in plan_kur(ti, mini(kac, k.hak - 1)): degistir(ti, x.p, x.b, x.neden)
 

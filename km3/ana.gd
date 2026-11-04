@@ -46,6 +46,16 @@ var sec_zor: Secici
 var sec_kam: Secici
 var sec_dz: Secici
 
+# mola (yedek kulübesi), rehber, Nasıl oynanır
+var mola: Mola
+var mola_panel: PanelContainer
+var mola_baslik: Label
+var mola_dugmeler: Array = []
+var mola_mesaj: Label
+var mola_satir := 0
+var yardim_acik := false
+var yardim_panel: PanelContainer
+
 # test / ekran görüntüsü (komut satırı)
 var _arg := {}
 
@@ -73,6 +83,7 @@ func _ready() -> void:
 	isaret.material_override = im; isaret.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	dunya.add_child(isaret)
 	ses = Ses.new(); add_child(ses)
+	mola = Mola.new(self); mola.rehber_yukle()
 	_arayuz()
 	kam_mod = int(_arg.get("kamera", "0"))
 	sec_kam.select(kam_mod)
@@ -105,6 +116,7 @@ func _ready() -> void:
 		get_tree().quit(); return
 	if _arg.has("ekran"):
 		menu_goster(_arg.has("menu"))
+		if _arg.has("yardim"): yardim_goster(true)
 		await get_tree().create_timer(float(_arg.get("bekle", "1.5"))).timeout
 		await RenderingServer.frame_post_draw
 		get_viewport().get_texture().get_image().save_png(_arg.ekran)
@@ -207,6 +219,8 @@ func _process(dt: float) -> void:
 		_birikim -= ADIM; adim += 1
 		_adim()
 	_ciz(dt)
+	mola.rehber(dt, vr != null)
+	if mola_panel.visible: _mola_ciz()
 	if _afis_t > 0:
 		_afis_t -= dt
 		if _afis_t <= 0: afis.visible = false
@@ -232,12 +246,15 @@ func _olay(o: Array) -> void:
 		"ooo": ses.ooo()
 		"gol":
 			ses.gol()
+			ses.taraftar(int(o[1]), "tezahurat", 2.4); ses.taraf_sustur(1 - int(o[1]), 25.0)
 			_tabela()
+		"taraftar": ses.taraftar(int(o[1]), o[2])
 		"tik": ses.tik()
 		"kart":
 			afis_goster({"S": "SARI KART", "K": "KIRMIZI KART", "K2": "İKİNCİ SARI · KIRMIZI"}[o[1]], o[2], 2.6)
 		"degisiklik", "kaleci_degisti": _yeniden_kur(o[1])
-		"gol_iptal": _tabela()
+		"gol_iptal":
+			_tabela(); ses.taraftar(int(o[1]), "yuh"); ses.taraftar(1 - int(o[1]), "alkis", 1.2)
 		"atildi":
 			for f in oyuncular:
 				if f.get_meta("oy") == o[1]: f.visible = false
@@ -260,6 +277,13 @@ func _girdi() -> void:
 	M.giris.x = w.x; M.giris.y = w.z
 
 func _unhandled_input(e: InputEvent) -> void:
+	if e is InputEventKey and e.pressed and mola_panel.visible:
+		match e.keycode:
+			KEY_UP, KEY_W: mola_satir = posmod(mola_satir - 1, Mola.SATIRLAR.size()); return
+			KEY_DOWN, KEY_S: mola_satir = posmod(mola_satir + 1, Mola.SATIRLAR.size()); return
+			KEY_LEFT, KEY_A: mola.kay(mola_satir, -1); return
+			KEY_RIGHT, KEY_D: mola.kay(mola_satir, 1); return
+			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE: mola.bas(mola_satir); return
 	if e is InputEventKey and e.pressed and not e.echo:
 		match e.keycode:
 			KEY_X, KEY_K: if M: M.giris.pasE = true
@@ -304,6 +328,8 @@ func _ciz(dt: float) -> void:
 	if gol >= 0: stad.heyecan(1.0 if gol == 0 else 0.0, 1.0 if gol == 1 else 0.0, 1.0 if gol == 1 else 0.0, 1.0 if gol == 0 else 0.0)
 	else: stad.heyecan(yakin * .3 if hucum == 0 else 0.0, yakin * .3 if hucum == 1 else 0.0)
 	ses.heyecan(1.0 if gol >= 0 else yakin)
+	var fark: int = M.T[0].score - M.T[1].score
+	ses.taraf_heyecan(clampf((yakin if hucum == 0 else 0.0) + .15 * fark, 0, 1), clampf((yakin if hucum == 1 else 0.0) - .15 * fark, 0, 1))
 	dakika.text = M.min_label() + "'"
 	_kamera_guncelle(dt)
 
@@ -411,9 +437,71 @@ func _arayuz() -> void:
 	dug.custom_minimum_size = Vector2(0, 58)
 	dug.pressed.connect(basla)
 	mv.add_child(dug)
+	var yd := Button.new(); yd.text = "Nasıl oynanır"; yd.add_theme_font_size_override("font_size", 18)
+	yd.add_theme_stylebox_override("normal", _kutu(Color("#1f3b3c"), 10)); yd.add_theme_stylebox_override("hover", _kutu(Color("#2a4e50"), 10))
+	yd.add_theme_color_override("font_color", Color.WHITE)
+	yd.pressed.connect(func(): yardim_goster(not yardim_acik))
+	mv.add_child(yd)
 	menu.add_child(mv)
 	var mk := CenterContainer.new(); mk.set_anchors_preset(Control.PRESET_FULL_RECT); mk.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mk.add_child(menu); ui.add_child(mk)
+	# mola: yedek kulübesi
+	mola_panel = PanelContainer.new(); mola_panel.visible = false
+	mola_panel.add_theme_stylebox_override("panel", _kutu(Color("#f5ecd8"), 16))
+	mola_panel.custom_minimum_size = Vector2(760, 0)
+	var ov := VBoxContainer.new(); ov.add_theme_constant_override("separation", 8)
+	var ob := PanelContainer.new(); ob.add_theme_stylebox_override("panel", _kutu(Color("#1f3b3c"), 12))
+	mola_baslik = Label.new(); mola_baslik.add_theme_font_size_override("font_size", 26); mola_baslik.add_theme_color_override("font_color", Color.WHITE)
+	ob.add_child(mola_baslik); ov.add_child(ob)
+	for i in Mola.SATIRLAR.size():
+		var b := Button.new(); b.alignment = HORIZONTAL_ALIGNMENT_LEFT; b.add_theme_font_size_override("font_size", 18)
+		b.add_theme_stylebox_override("normal", _kutu(Color(1, 1, 1, .55), 8)); b.add_theme_stylebox_override("hover", _kutu(Color(1, 1, 1, .9), 8))
+		b.add_theme_stylebox_override("pressed", _kutu(Color("#f3d35a"), 8))
+		b.add_theme_color_override("font_color", Color("#1d2b2c")); b.add_theme_color_override("font_hover_color", Color("#1d2b2c"))
+		b.pressed.connect(func(): mola_satir = i; mola.bas(i))
+		ov.add_child(b); mola_dugmeler.append(b)
+	mola_mesaj = Label.new(); mola_mesaj.add_theme_font_size_override("font_size", 15); mola_mesaj.add_theme_color_override("font_color", Color("#5b6466"))
+	mola_mesaj.text = "Oklar: satır ve değer  ·  Enter: seç  ·  M / Esc: maça dön"
+	ov.add_child(mola_mesaj)
+	mola_panel.add_child(ov)
+	var omk := CenterContainer.new(); omk.set_anchors_preset(Control.PRESET_FULL_RECT); omk.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	omk.add_child(mola_panel); ui.add_child(omk)
+	# Nasıl oynanır
+	yardim_panel = PanelContainer.new(); yardim_panel.visible = false
+	yardim_panel.add_theme_stylebox_override("panel", _kutu(Color(0.04, 0.07, 0.09, .95), 16))
+	var yv := VBoxContainer.new()
+	var yl := Label.new(); yl.text = Mola.YARDIM; yl.add_theme_font_size_override("font_size", 17); yl.add_theme_color_override("font_color", Color.WHITE)
+	var yk := Button.new(); yk.text = "Kapat"; yk.pressed.connect(func(): yardim_goster(false))
+	var ys := Button.new(); ys.text = "Rehberi baştan göster"; ys.pressed.connect(func(): mola.rehber_sifirla(); yardim_goster(false))
+	var yh := HBoxContainer.new(); yh.add_child(ys); yh.add_child(yk)
+	yv.add_child(yl); yv.add_child(yh); yardim_panel.add_child(yv)
+	var ymk := CenterContainer.new(); ymk.set_anchors_preset(Control.PRESET_FULL_RECT); ymk.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ymk.add_child(yardim_panel); ui.add_child(ymk)
+
+func _mola_ciz() -> void:
+	mola_baslik.text = "MOLA   ·   %s %d-%d %s   ·   %s'" % [M.T[0].t.kisa, M.T[0].score, M.T[1].score, M.T[1].t.kisa, M.min_label()]
+	for i in mola_dugmeler.size():
+		mola_dugmeler[i].text = mola.satir_metni(i, i == mola_satir)
+
+func mola_mi() -> bool: return M != null and not M.demo and menu_acik
+
+func mola_bilgi(t: String) -> void:
+	mola_mesaj.text = t
+	if vr: vr.mola_bilgi(t)
+
+func yardim_goster(v: bool) -> void:
+	yardim_acik = v
+	yardim_panel.visible = v and vr == null
+	# Nasıl oynanır açıkken arkadaki menü / mola paneli gizlenir
+	var mol := menu_acik and M != null and not M.demo
+	menu.visible = menu_acik and not mol and not v
+	mola_panel.visible = mol and vr == null and not v
+
+func maci_birak() -> void:
+	yardim_goster(false)
+	var lg: Dictionary = veri.ligler[sec_lig.selected]
+	_mac_kur(Taktik.kadro_kur(lg.takimlar[sec_ev.selected], lg.id), Taktik.kadro_kur(lg.takimlar[sec_dep.selected], lg.id), 4, 1, true)
+	menu_goster(true)
 
 func _secici(kap: Container, ad: String) -> Secici:
 	var v := VBoxContainer.new(); v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -445,7 +533,11 @@ func basla() -> void:
 
 func menu_goster(v: bool) -> void:
 	menu_acik = v
-	menu.visible = v
+	var mol := v and M != null and not M.demo
+	menu.visible = v and not mol
+	mola_panel.visible = mol and vr == null
+	if mol: mola_satir = 0; mola.cikan = 0; mola.giren = 0; mola_mesaj.text = "Oklar: satır ve değer  ·  Enter: seç  ·  M / Esc: maça dön"
+	yardim_goster(false)
 
 func _tabela() -> void:
 	tabela.text = "%s  %d - %d  %s" % [M.T[0].t.kisa, M.T[0].score, M.T[1].score, M.T[1].t.kisa]
