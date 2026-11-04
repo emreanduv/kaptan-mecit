@@ -171,7 +171,9 @@ func _sol_bas(ad: String) -> void:
 			if ana.M and not ana.M.demo:
 				ana.menu_goster(not ana.menu_acik)
 				if ana.menu_acik: _satir = 0; _mesaj.text = ""; menu3d_yerlestir()
-		"ax_button": koltuga_gec(koltuk + 1)
+		"ax_button":
+			if ana.menu_acik and ana.yardim_acik: _yardim_alt.text = ana.mola.veri_sil()
+			else: koltuga_gec(koltuk + 1)
 
 func _process(dt: float) -> void:
 	_cubuk_bekle -= dt
@@ -199,13 +201,14 @@ func _process(dt: float) -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA"]
-const SURUM := "0.5.0"
+const SURUM := "0.5.1"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
 var _yardim: Label3D
 var _onceki_mol := false
 var _imza: Label3D
+var _yardim_alt: Label3D
 var menu3d: Node3D
 var _menu_satirlar: Array = []
 var _satir := 8
@@ -233,8 +236,9 @@ func _menu3d_kur() -> void:
 	ipucu.text = "Çubuk yukarı/aşağı: satır  ·  sola/sağa: değiştir  ·  A ya da tetik: MAÇA BAŞLA"
 	ipucu.position = Vector3(0, -.47, .001); menu3d.add_child(ipucu); _ipucu = ipucu
 	_mesaj = _yazi(40, Color("#f3d35a")); _mesaj.position = Vector3(0, -.40, .001); menu3d.add_child(_mesaj)
-	_yardim = _yazi(30, Color.WHITE); _yardim.text = Mola.YARDIM + "\n\nA / tetik ya da B: kapat"; _yardim.position = Vector3(0, -.02, .001)
+	_yardim = _yazi(30, Color.WHITE); _yardim.text = Mola.YARDIM + "\n\nA / tetik ya da B: kapat   ·   sol X: Verilerimi sil"; _yardim.position = Vector3(0, -.02, .001)
 	_yardim.visible = false; menu3d.add_child(_yardim)
+	_yardim_alt = _yazi(36, Color("#f3d35a")); _yardim_alt.position = Vector3(0, -.5, .001); _yardim_alt.visible = false; menu3d.add_child(_yardim_alt)
 	afis3d = _yazi(72, Color("#f3d35a")); afis3d.visible = false
 	koken.add_child(afis3d)
 
@@ -256,6 +260,8 @@ func _menu_ciz() -> void:
 	_onceki_mol = mol
 	var yd: bool = ana.yardim_acik
 	_yardim.visible = yd
+	_yardim_alt.visible = yd
+	if not yd: _yardim_alt.text = ""
 	_ipucu.visible = not yd; _mesaj.visible = not yd; _bas.visible = not yd; _imza.visible = not yd
 	var M = ana.M
 	_bas.text = ("MOLA  ·  %s %d-%d %s  ·  %s'" % [M.T[0].t.kisa, M.T[0].score, M.T[1].score, M.T[1].t.kisa, M.min_label()]) if mol else "Kaptan Mecit 3"

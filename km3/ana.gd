@@ -92,6 +92,7 @@ func _ready() -> void:
 	sec_kam.select(kam_mod)
 	# açılışta arkada gösterim maçı döner (Kaptan Mecit'teki gibi)
 	_mac_kur(Taktik.kadro_kur(_takim(0, 0), veri.ligler[0].id), Taktik.kadro_kur(_takim(0, 1), veri.ligler[0].id), 4, 1, true)
+	if _arg.has("koltuk"): vr_koltuk = int(_arg.koltuk)
 	vr = VR.baslat(self, _arg.has("vrsahte"))
 	if vr:
 		kam.current = false
@@ -126,6 +127,7 @@ func _ready() -> void:
 				M.ball.x = p.x + 3; M.ball.y = p.y + M.fwd_of(p.team) * 9; M.ball.owner = null; M.ball.vx = 0; M.ball.vy = 0
 		_donuk = true
 	if _arg.has("ekran"):
+		if vr and _arg.has("bak"): vr.kafa.rotation_degrees = Vector3(float(_arg.bak), float(_arg.get("don", "0")), 0)
 		menu_goster(_arg.has("menu"))
 		if _arg.has("yardim"): yardim_goster(true)
 		await get_tree().create_timer(float(_arg.get("bekle", "1.5"))).timeout
@@ -230,7 +232,7 @@ func _process(dt: float) -> void:
 		_birikim -= ADIM; adim += 1
 		_adim()
 	_ciz(dt)
-	mola.rehber(dt, 1 if vr != null else (2 if dokunmatik else 0))
+	if not _arg.has("temiz"): mola.rehber(dt, 1 if vr != null else (2 if dokunmatik else 0))
 	if mola_panel.visible: _mola_ciz()
 	if _afis_t > 0:
 		_afis_t -= dt
@@ -494,7 +496,9 @@ func _arayuz() -> void:
 	var yl := Label.new(); yl.text = Mola.YARDIM; yl.add_theme_font_size_override("font_size", 17); yl.add_theme_color_override("font_color", Color.WHITE)
 	var yk := Button.new(); yk.text = "Kapat"; yk.pressed.connect(func(): yardim_goster(false))
 	var ys := Button.new(); ys.text = "Rehberi baştan göster"; ys.pressed.connect(func(): mola.rehber_sifirla(); yardim_goster(false))
-	var yh := HBoxContainer.new(); yh.add_child(ys); yh.add_child(yk)
+	var yvs := Button.new(); yvs.text = "Verilerimi sil"
+	yvs.pressed.connect(func(): yvs.text = mola.veri_sil())
+	var yh := HBoxContainer.new(); yh.add_theme_constant_override("separation", 10); yh.add_child(ys); yh.add_child(yvs); yh.add_child(yk)
 	yv.add_child(yl); yv.add_child(yh); yardim_panel.add_child(yv)
 	var ymk := CenterContainer.new(); ymk.set_anchors_preset(Control.PRESET_FULL_RECT); ymk.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ymk.add_child(yardim_panel); ui.add_child(ymk)
@@ -567,6 +571,7 @@ func _tabela() -> void:
 func afis_gorunur() -> bool: return afis.visible
 
 func afis_goster(ust: String, alt, sure: float) -> void:
+	if _arg.has("temiz"): return     # mağaza görüntüsü: afiş yok
 	afis_ust.text = ust; afis_alt.text = str(alt) if alt != null else ""
 	afis_alt.visible = afis_alt.text != ""
 	afis.visible = true; _afis_t = sure

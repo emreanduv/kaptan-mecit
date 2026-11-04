@@ -106,6 +106,18 @@ func rehber_yukle() -> void:
 	var c := ConfigFile.new()
 	if c.load(AYAR) == OK: _gorulen = c.get_value("rehber", "gorulen", {})
 
+# Verilerimi sil: cihazda tutulan tek dosyayı (rehber ipuçları) siler. İlk çağrı onay ister, 4 sn içinde ikincisi siler.
+var _sil_onay := 0.0
+func veri_sil() -> String:
+	var simdi := Time.get_ticks_msec() / 1000.0
+	if simdi - _sil_onay > 4.0:
+		_sil_onay = simdi
+		return "Emin misin? Silmek için bir kez daha bas"
+	_sil_onay = 0.0
+	if FileAccess.file_exists(AYAR): DirAccess.remove_absolute(ProjectSettings.globalize_path(AYAR))
+	_gorulen = {}; _sira.clear()
+	return "Cihazdaki verilerin silindi"
+
 func rehber_sifirla() -> void:
 	_gorulen = {}; _kaydet()
 
@@ -152,4 +164,6 @@ Arkadan ve kutu içinde kayarak müdahale karta gider.
 Oyuncular yorulur: molada kondisyonlarına bakıp değişiklik yap
 (5 hak, devre arası dışında 3 ara). Asistanı kapatırsan değişiklikler senin.
 
+Verilerin: oyun seninle ilgili hiçbir veri toplamaz; cihazda yalnızca
+gördüğün ipuçları tutulur. Silmek için: Verilerimi sil.
 Görüş ve öneri: emreanduvart@gmail.com"""
