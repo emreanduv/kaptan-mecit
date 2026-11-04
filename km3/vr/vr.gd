@@ -199,7 +199,7 @@ func _process(dt: float) -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA"]
-const SURUM := "0.4.0"
+const SURUM := "0.4.1"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D

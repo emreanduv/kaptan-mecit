@@ -43,18 +43,9 @@ static func _pembe(n: int, tohum: int) -> PackedFloat32Array:
 	return o
 
 func _ready() -> void:
-	# tribün: 4 sn'lik döngü, iki faz kaydırılmış katman (tekdüzelik duyulmasın)
-	var p := _pembe(HZ * 4, 7)
-	var lp := 0.0
-	for i in p.size():
-		lp += (p[i] - lp) * .25; p[i] = (p[i] - lp * .6) * 2.2
-	# döngü dikişi: başı ve sonu yumuşak birleşsin
-	var k := 2000
-	for i in k:
-		var t := float(i) / k
-		p[i] = p[i] * t + p[p.size() - k + i] * (1 - t)
-	_tribun = _oynatici(_wav(p, true), -14)
-	_tribun2 = _oynatici(_wav(_pembe(HZ * 3, 11), true), -40)
+	# tribün uğultusu: kalabalık mırıltısı döngüsü (araclar/ses/tezahurat.py), gürültü değil
+	_tribun = _oynatici(load("res://ses/klip/ugultu.wav"), -14)     # döngü: içe aktarma ayarında (edit/loop_mode=2)
+	_tribun2 = _oynatici(null, -80)
 	# düdük
 	var d := PackedFloat32Array(); d.resize(int(HZ * .32)); var faz := 0.0
 	for i in d.size():
@@ -72,9 +63,9 @@ func _ready() -> void:
 		var t := float(i) / HZ
 		v[i] = (r.randf() * 2 - 1) * exp(-t * 45) * .5 + sin(TAU * 90 * t) * exp(-t * 30) * .7
 	_klip.vurus = _wav(v)
-	# "ooo" ve gol: zarflı kalabalık
-	_klip.ooo = _wav(_kalabalik(.9, .55))
-	_klip.gol = _wav(_kalabalik(2.6, 1.0))
+	# "ooo" ve gol: bağıran kalabalık
+	_klip.ooo = load("res://ses/klip/ooo.wav")
+	_klip.gol = load("res://ses/klip/gol.wav")
 	var tk := PackedFloat32Array(); tk.resize(int(HZ * .07))
 	for i in tk.size():
 		var t := float(i) / HZ; tk[i] = sin(TAU * (880 + 6000 * t) * t) * exp(-t * 40) * .3
@@ -104,7 +95,7 @@ func _oynatici(s: AudioStream, db: float) -> AudioStreamPlayer:
 func baslat() -> void:
 	if _basladi: return
 	_basladi = true
-	_tribun.play(); _tribun2.play()
+	_tribun.play()
 
 func _cal(ad: String, db := 0.0, gecikme := 0.0) -> void:
 	if not acik or not _basladi: return
@@ -121,7 +112,7 @@ func duduk(kez := 1) -> void:
 func vurus(guc := 1.0) -> void: _cal("vurus", linear_to_db(clampf(guc, .2, 1.0)) - 4)
 func ooo() -> void: _cal("ooo", -6.0)
 func tik() -> void: _cal("tik", -10.0)
-func gol() -> void: _cal("gol", 0.0); _cal("gol", -6.0, .15)
+func gol() -> void: _cal("gol", 0.0)
 
 # taraf (0 ev, 1 misafir) tribünü bir tezahürat / alkış / ıslık / yuh başlatır. Aynı tribün aynı anda tek şey söyler;
 # ıslık ve yuh bir tezahüratı keser (tepki önce gelir).
