@@ -23,3 +23,8 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Mola (yedek kulübesi): maç içinde menü = mola. Çıkan (sakat ve en yorgun önce, kondisyon %), Giren (aynı mevki önce), Değişikliği yap (5 hak / 3 ara), Asistan değişiklikleri Açık/Kapalı (kapalıyken sakatlıkta yine girer), Nasıl oynanır, Maçı bırak. `arayuz/mola.gd`; ekranda ve VR'da aynı satırlar.
 - Rehber: ilk maçlarda yeri gelince bir kez ipucu (koş, pas/şut, top kap, koltuk/kamera, mola); "Rehberi baştan göster". Nasıl oynanır: ana menüde ve molada, görüş için e-posta.
 - Deneme: `--mac --ileri=200 --menu --ekran=x.png` (mola), `--menu --yardim` (Nasıl oynanır), `--vrsahte` ile VR paneli.
+
+## 0.5.0
+- Dokunmatik kontrol (`arayuz/dokunmatik.gd`): ekranın solunda parmağın altında beliren çubuk, sağ altta PAS / ŞUT, üstte II mola. Dokunmatik ekran varsa kendiliğinden açılır; `--dokun` ile masaüstünde denenir. Rehber ve Nasıl oynanır dokunmatiğe göre yazar.
+- Kaleci uçuşu: kurtarış denemesinde kaleci topun kale çizgisine geleceği yere yana uçar (yük al → uç, kollar topa → yere düş → kalk); yakın ve alçak topta göğüste tutar. Motor konumu iniş yerine geçer, görüntü oraya süzülür. Deneme: `dene/kaleci_dene.tscn -- cikti.png [tur=0|1] [yan=±1] [z=yükseklik]`.
+- Molaya Kamera (VR'da Koltuk) satırı.

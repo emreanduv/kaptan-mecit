@@ -61,6 +61,12 @@ class Oy:
 	var mx := 0.0
 	var my := 0.0
 	var dive := 0
+	# kaleci uçuşu (görüntü): kalan süre, tür (0 göğüste tutma, 1 yana uçuş), yön, top yüksekliği, görüntünün yetişeceği konum farkı
+	var ucus := 0.0
+	var ucus_tur := 0
+	var ucus_yan := 0.0
+	var ucus_z := 0.0
+	var ucus_ofs := Vector2.ZERO
 	var first_time := false
 	var won := false
 	var sari := false
@@ -178,6 +184,24 @@ func olay(ad: String, a = null, b = null) -> void:
 # ---------- yardımcılar ----------
 func goal_y_of(ti: int) -> float: return 0.0 if ((ti == 0) != flip) else PL
 func own_goal_y(ti: int) -> float: return PL - goal_y_of(ti)
+# kaleci kurtarışa uzanır: topun kale çizgisine geleceği yere doğru yana uçar (ya da yakınsa göğsünde tutar).
+# Motor konumu uçuşun bittiği yere hemen geçer; görüntü ucus_ofs ile eski yerden oraya süzülür (geri sıçrama yok).
+func kaleci_uc(g: Oy, b: Top, ly: float) -> void:
+	var hx := b.x
+	if b.vy != 0:
+		var tt := (ly - b.y) / b.vy
+		if tt > 0 and tt < 2: hx = b.x + b.vx * tt
+	var dx := clampf(hx - g.x, -2.6, 2.6)
+	g.ucus_z = clampf(b.z, 0, 2.4)
+	if absf(dx) < .7 and g.ucus_z < 1.6:
+		g.ucus_tur = 0; g.ucus = .7; g.ucus_yan = 0; g.ucus_ofs = Vector2.ZERO
+		return
+	g.ucus_tur = 1; g.ucus = 1.5; g.ucus_yan = signf(dx) if dx != 0 else 1.0
+	var kay := dx * .85
+	g.x = clampf(g.x + kay, GX0 - 1.2, GX1 + 1.2)
+	g.ucus_ofs = Vector2(-kay, 0)
+	g.vx = 0; g.vy = 0
+
 func fwd_of(ti: int) -> float: return -1.0 if goal_y_of(ti) == 0.0 else 1.0
 func depth_of(ti: int, yy: float) -> float: return absf(yy - own_goal_y(ti))
 func y_at_depth(ti: int, d: float) -> float: return own_goal_y(ti) + fwd_of(ti) * d
@@ -294,6 +318,7 @@ func step(dt: float) -> void:
 	update_ctrl()
 	for p: Oy in P:
 		p.cd = maxf(0, p.cd - dt); p.scd = maxf(0, p.scd - dt); p.stun = maxf(0, p.stun - dt); p.dec -= dt
+		if p.ucus > 0: p.ucus = maxf(0, p.ucus - dt)
 	if set_piece != null:
 		set_piece.t += dt
 		if ball.owner != set_piece.p: set_piece = null
@@ -952,7 +977,8 @@ func move_player(p: Oy, dt: float) -> void:
 		vx = p.vx * .8; vy = p.vy * .8
 	else:
 		var hum := not demo and p == ctrl
-		var top: float = 6.6 * (Tt.spd + ozl(p, "spd", 0)) * (1.1 if hum else (.9 if ball.owner == p else 1.0)) * (1.15 if (p.role == "G" and p.dive) else 1.0) * (.72 + .28 * p.st) * (.6 if p.inj else 1.0)
+		var ucuyor := p.ucus > .65          # uçan kaleci yerden kalkana kadar koşamaz
+		var top: float = (0.0 if ucuyor else 6.6) * (Tt.spd + ozl(p, "spd", 0)) * (1.1 if hum else (.9 if ball.owner == p else 1.0)) * (1.15 if (p.role == "G" and p.dive) else 1.0) * (.72 + .28 * p.st) * (.6 if p.inj else 1.0)
 		var mx := 0.0; var my := 0.0; var sp := 0.0
 		if p.hedef:
 			var dx := p.tx - p.x; var dy := p.ty - p.y; var d := hyp(dx, dy)
@@ -1043,6 +1069,7 @@ func ball_step(dt: float) -> void:
 			if Tg.human: ps += [.14, .07, .02][diff]
 			if not Tg.human and T[1 - g.team].human: ps += DIFF.gk[diff]
 			g.dive = 2  # görüntü: uçuş
+			kaleci_uc(g, b, ly)
 			if randf() < ps:
 				if sp < 21 and randf() < .55: take(g); olay("ooo")
 				elif randf() < .45:

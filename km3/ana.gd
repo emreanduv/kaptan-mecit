@@ -55,9 +55,12 @@ var mola_mesaj: Label
 var mola_satir := 0
 var yardim_acik := false
 var yardim_panel: PanelContainer
+var dok: Dokunmatik
+var dokunmatik := false
 
 # test / ekran görüntüsü (komut satırı)
 var _arg := {}
+var _donuk := false
 
 func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
@@ -114,6 +117,14 @@ func _ready() -> void:
 			M.olaylar.clear(); n += 1
 		print("TEST bitti: ", M.T[0].t.kisa, " ", M.T[0].score, "-", M.T[1].score, " ", M.T[1].t.kisa, " adım=", n, " dk=", M.min_label(), " goller=", M.events, " süre(ms)=", Time.get_ticks_msec() - t0, " faul=", M.faul, " ofsayt=", M.ofsayt, " kart=", M.kartlar, " korner=", M.korner, " değişiklik=", M.degisiklikler.map(func(d): return str(d.min) + "' " + d.in + "↔" + d.out))
 		get_tree().quit(); return
+	if _arg.has("plonjon"):
+		# deneme: misafir kalecisini uçuşun t. saniyesinde dondur
+		for p in M.P:
+			if p.role == "G" and p.team == int(_arg.get("kt", "1")):
+				p.ucus_tur = int(_arg.get("tur", "1")); p.ucus = Futbolcu.UCUS_T - float(_arg.plonjon); p.ucus_yan = float(_arg.get("yan", "1"))
+				p.ucus_z = float(_arg.get("z", ".8")); p.ucus_ofs = Vector2.ZERO
+				M.ball.x = p.x + 3; M.ball.y = p.y + M.fwd_of(p.team) * 9; M.ball.owner = null; M.ball.vx = 0; M.ball.vy = 0
+		_donuk = true
 	if _arg.has("ekran"):
 		menu_goster(_arg.has("menu"))
 		if _arg.has("yardim"): yardim_goster(true)
@@ -215,11 +226,11 @@ func _process(dt: float) -> void:
 	# en çok 2 motor adımı / kare: yavaş bir karenin ardından "yetişmeye çalışıp" kareleri daha da yavaşlatma sarmalı olmasın
 	_birikim = minf(_birikim + dt, ADIM * 2)
 	var adim := 0
-	while _birikim >= ADIM and adim < 2:
+	while _birikim >= ADIM and adim < 2 and not _donuk:
 		_birikim -= ADIM; adim += 1
 		_adim()
 	_ciz(dt)
-	mola.rehber(dt, vr != null)
+	mola.rehber(dt, 1 if vr != null else (2 if dokunmatik else 0))
 	if mola_panel.visible: _mola_ciz()
 	if _afis_t > 0:
 		_afis_t -= dt
@@ -260,6 +271,7 @@ func _olay(o: Array) -> void:
 				if f.get_meta("oy") == o[1]: f.visible = false
 
 func _girdi() -> void:
+	if dok: dok.visible = dokunmatik and M != null and not M.demo and not menu_acik and vr == null
 	if M == null or M.demo or menu_acik: return
 	if vr: vr.girdi(M); return
 	var v := Vector2(Input.get_axis("ui_left", "ui_right"), Input.get_axis("ui_up", "ui_down"))
@@ -269,6 +281,9 @@ func _girdi() -> void:
 	if Input.is_key_pressed(KEY_S): v.y += 1
 	var joy := Vector2(Input.get_joy_axis(0, JOY_AXIS_LEFT_X), Input.get_joy_axis(0, JOY_AXIS_LEFT_Y))
 	if joy.length() > .2: v = joy
+	if dok and dok.vec != Vector2.ZERO: v = dok.vec
+	if dok and dok.pas: M.giris.pasE = true; dok.pas = false
+	if dok and dok.sut: M.giris.sutE = true; dok.sut = false
 	if v.length() > 1: v = v.normalized()
 	# ekran yönünü sahaya çevir: kameranın sağı ve ileri yönü (yere izdüşüm)
 	var sag := kam.global_basis.x; sag.y = 0; sag = sag.normalized()
@@ -406,6 +421,12 @@ func _arayuz() -> void:
 	imza.add_theme_font_size_override("font_size", 15); imza.add_theme_color_override("font_color", Color(1, 1, 1, .8))
 	imza.set_anchors_preset(Control.PRESET_TOP_RIGHT); imza.position = Vector2(-250, 16)
 	ui.add_child(imza)
+	# dokunmatik (telefon / tablet)
+	dokunmatik = DisplayServer.is_touchscreen_available() or _arg.has("dokun")
+	if dokunmatik:
+		bilgi.visible = false
+		dok = Dokunmatik.new(); dok.visible = false; ui.add_child(dok)
+		dok.mola_istendi.connect(func(): if M and not M.demo: menu_goster(true))
 	# menü
 	menu = PanelContainer.new()
 	menu.add_theme_stylebox_override("panel", _kutu(Color("#f5ecd8"), 16))

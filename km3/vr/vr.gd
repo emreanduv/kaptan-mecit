@@ -199,7 +199,7 @@ func _process(dt: float) -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA"]
-const SURUM := "0.4.1"
+const SURUM := "0.5.0"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -269,10 +269,11 @@ func _menu_ciz() -> void:
 		l.visible = i < n and not yd
 		if not l.visible: continue
 		var sec := i == _satir
+		l.position.y = (.27 - i * .075) if mol else (.25 - i * .075)
 		if mol:
 			l.text = ana.mola.satir_metni(i, sec)
 			l.font_size = 44
-			l.modulate = Color("#f3d35a") if sec else (Color.WHITE if i in [1, 2, 4] else Color("#e5722f"))
+			l.modulate = Color("#f3d35a") if sec else (Color.WHITE if i in [1, 2, 4, 5] else Color("#e5722f"))
 			continue
 		l.font_size = 52
 		var s := _secici(i)

@@ -256,6 +256,8 @@ func _poz_yordamsal(p, M, now: float, gol_takim: int) -> void:
 		_s("omuzL", Vector3(-.6, 0, -1.0)); _s("omuzR", Vector3(-.2, 0, 1.1)); _x("dirsekL", -.5); _x("bas", .6 if kay else .3)
 		_uygula(); return
 	var kaleci: bool = p.role == "G"
+	if kaleci and p.ucus > 0:
+		_kaleci_ucus(p, M); return
 	var top = M.ball
 	var top_yakin := sqrt((top.x - p.x) ** 2 + (top.y - p.y) ** 2)
 	var adim := .12 + .78 * a
@@ -288,6 +290,44 @@ func _poz_yordamsal(p, M, now: float, gol_takim: int) -> void:
 		_s("omuzL", Vector3(-2.8, 0, -.35)); _s("omuzR", Vector3(-2.8, 0, .35)); _x("dirsekL", -.2); _x("dirsekR", -.2); _x("bas", -.3)
 	elif gol_takim >= 0:
 		_x("bel", .45); _x("bas", .35); _x("omuzL", .1); _x("omuzR", .1)
+	_uygula()
+
+# kaleci kurtarışı: yükle → yana uç (kollar topa uzanır) → yere düş → kalk. Motor konumu iniş yerinde; görüntü oraya süzülür.
+const UCUS_T := 1.5
+func _kaleci_ucus(p, M) -> void:
+	var fwd: float = M.fwd_of(p.team)
+	yaw = 0.0 if fwd > 0 else PI
+	if p.ucus_tur == 0:
+		# göğüste tutma: çömel, kollar öne, top gövdeye
+		var e: float = .7 - p.ucus
+		var c := sin(clampf(e / .7, 0, 1) * PI)
+		_kok_y = -.18 * c
+		_x("bacakL", -.55 * c); _x("bacakR", -.55 * c); _x("dizL", 1.0 * c); _x("dizR", 1.0 * c); _x("bel", .45 * c); _x("bas", .2 * c)
+		_s("omuzL", Vector3(-1.25, 0, -.25)); _s("omuzR", Vector3(-1.25, 0, .25)); _x("dirsekL", -1.3); _x("dirsekR", -1.3)
+		_uygula(); return
+	var e: float = UCUS_T - p.ucus
+	var yuk := clampf(e / .12, 0, 1) * (1.0 - clampf((e - .12) / .08, 0, 1))      # kısa çömelme (yük alma)
+	var k := smoothstep(.1, .5, e)                                                 # uçuş ilerleyişi
+	var kalk := smoothstep(1.05, 1.5, e)                                           # kalkış
+	var yuksek: float = clampf(p.ucus_z / 2.0, 0, 1)
+	var aci := (1.5 - .45 * yuksek * (1.0 - smoothstep(.55, .75, e))) * k * (1.0 - kalk)   # yüksek topta havada dikçe, inişte yatay
+	var s_: float = p.ucus_yan * (1.0 if fwd > 0 else -1.0)
+	_z("kok", -s_ * aci)
+	var kemer := sin(clampf((e - .1) / .5, 0, 1) * PI) * (.35 + .55 * yuksek)    # havadaki yay
+	_kok_y = -.14 * yuk + (.16 * k + kemer) * (1.0 - kalk)        # kök ayak hizasında: yan yatınca gövde yerden ~16 cm
+	# kollar başın üstünden topa uzanır, alttaki kol hafif bükük
+	var kol := maxf(k, yuk * .4) * (1.0 - kalk)
+	_s("omuzL", Vector3(-.25 * kol, 0, -2.75 * kol - .12)); _s("omuzR", Vector3(-.25 * kol, 0, 2.75 * kol + .12))
+	_x("dirsekL", -.15); _x("dirsekR", -.15)
+	_x("bas", -.15 * k)
+	# bacaklar: üstteki bacak dizden bükük, alttaki uzanık
+	_x("bacakL", -.2 * k - .5 * yuk); _x("bacakR", -.2 * k - .5 * yuk); _x("dizL", .2 + .7 * yuk + .5 * k * (1 if s_ < 0 else 0)); _x("dizR", .2 + .7 * yuk + .5 * k * (1 if s_ > 0 else 0))
+	_z("bacakL", -.2 * k); _z("bacakR", .2 * k)
+	if kalk > 0:
+		_x("bel", .5 * sin(kalk * PI)); _x("dizL", .9 * sin(kalk * PI)); _x("dizR", .9 * sin(kalk * PI))
+	# görüntü eski yerden iniş yerine süzülür
+	var o: Vector2 = p.ucus_ofs * (1.0 - smoothstep(.1, .55, e))
+	position += Vector3(o.x, 0, o.y)
 	_uygula()
 
 # =================== Kaptan Mecit 3: gerçek hareket (CMU hareket yakalama) ===================
@@ -338,7 +378,7 @@ func poz(p, M, now: float, gol_takim: int) -> void:
 	var kaleci_hazir: bool = p.role == "G" and spd < 3 and sqrt((M.ball.x - p.x) ** 2 + (M.ball.y - p.y) ** 2) < 22
 	var vuruyor: bool = M.ball.kicker == p and p.cd > .1
 	# yere düşme, kayma, kaleci duruşu/uçuşu, gol sevinci ve duran oyuncu: el yapımı hareketler
-	if _hareket.has("yok") or p.slide > 0 or p.stun > .3 or kaleci_hazir or (p.role == "G" and p.dive == 1) or spd < .45 and not vuruyor:
+	if _hareket.has("yok") or p.slide > 0 or p.stun > .3 or kaleci_hazir or (p.role == "G" and (p.dive == 1 or p.ucus > 0)) or spd < .45 and not vuruyor:
 		_son_yol = p.anim
 		_poz_yordamsal(p, M, now, gol_takim); return
 	var dx: float = p.dx; var dy: float = p.dy
