@@ -21,6 +21,18 @@ jobs:
           if [ -n "$X" ]; then sudo xcode-select -s "$X"; fi
           xcodebuild -version
       - run: npm ci
+      - name: Hata yakalayıcı ekle (yalnız deneme derlemesi)
+        run: |
+          python3 - <<'PY'
+          p='www/index.html'; s=open(p,encoding='utf-8').read()
+          js="""<script>(function(){function g(t){try{var d=document.getElementById('__hata');if(!d){d=document.createElement('pre');d.id='__hata';d.style.cssText='position:fixed;z-index:999999;left:0;right:0;top:0;bottom:0;margin:0;padding:60px 10px;background:#200;color:#fff;font:12px monospace;white-space:pre-wrap;overflow:auto';(document.body||document.documentElement).appendChild(d)}d.textContent+=t+'\\n\\n'}catch(e){}}
+          window.addEventListener('error',function(e){g('HATA: '+e.message+' @'+e.lineno+':'+e.colno+'\\n'+(e.error&&e.error.stack||''))});
+          window.addEventListener('unhandledrejection',function(e){g('PROMISE: '+(e.reason&&(e.reason.stack||e.reason.message)||e.reason))});
+          setTimeout(function(){g('5sn: app='+((document.getElementById('app')||{}).innerHTML||'').length+' body='+document.body.innerHTML.length)},5000)})();</script>"""
+          i=s.index('<head>')+6; s=s[:i]+js+s[i:]
+          open(p,'w',encoding='utf-8').write(s)
+          PY
+          head -c 1500 www/index.html
       - run: npx cap sync ios
       - name: Simülatör için derle
         working-directory: ios/App
