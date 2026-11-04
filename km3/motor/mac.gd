@@ -126,6 +126,8 @@ var sub: Array = [{"n": 0, "win": {}}, {"n": 0, "win": {}}]
 var degisiklikler: Array = []
 var oto_t := [0, 0]
 var yakin_ofs = null
+var gol_atan: Oy = null
+var kutlama_yer := Vector2.ZERO
 var giris := {"x": 0.0, "y": 0.0, "pasE": false, "sutE": false}
 var olaylar: Array = []    # görüntü/ses katmanına: [ad, ...]
 var _pass_score := 0.0
@@ -243,7 +245,8 @@ func step(dt: float) -> void:
 		state_t -= dt
 		for p: Oy in P:
 			p.vx *= .85; p.vy *= .85; p.x += p.vx * dt; p.y += p.vy * dt; p.anim += hyp(p.vx, p.vy) * dt
-		if state == "goal" or state == "half": move_off_ball(dt, true)
+		if state == "goal" and gol_atan != null: gol_kutlama(dt)
+		elif state == "goal" or state == "half": move_off_ball(dt, true)
 		var yol = set_piece.get("yol") if (state == "pre" and set_piece != null) else null
 		if yol != null:
 			var q: Oy = set_piece.p
@@ -1140,6 +1143,10 @@ func score_goal(ti: int, scorer: Oy, own: Oy) -> void:
 		who = sq[randi() % sq.size()]
 	var name: String = who.n if who != null else "Kendi kalesine (" + own.n + ")"
 	events.append({"min": maxi(1, minute()), "n": name, "team": ti})
+	gol_atan = who if (who != null and P.has(who)) else null
+	if gol_atan != null:
+		var gy := goal_y_of(ti)
+		kutlama_yer = Vector2(1.5 if gol_atan.x < PW / 2 else PW - 1.5, 2.0 if gy == 0 else PL - 2.0)
 	state = "goal"; state_t = 3.2
 	olay("gol", ti)
 	olay("banner", "GOOOL!", (str(who.no) + " · " if who != null else "") + name + " · " + Tt.t.kisa + " " + str(T[0].score) + "-" + str(T[1].score))
@@ -1415,3 +1422,30 @@ func var_gol(ti: int) -> void:
 		olay("banner", "VAR", "GOL İPTAL · %s · %d-%d" % ["OFSAYT" if cizgide else "ATAKTA FAUL", T[0].score, T[1].score])
 		var og := own_goal_y(1 - ti)
 		restart(1 - ti, PW / 2, 14.0 if og == 0 else PL - 14)
+
+# gol sevinci: golcü köşe bayrağına koşar, takım arkadaşları ona doğru koşup etrafında toplanır; rakipler başları önde yerlerine yürür
+func _kos(p: Oy, hedef: Vector2, hiz: float, dt: float, dur := .4) -> void:
+	var dx := hedef.x - p.x; var dy := hedef.y - p.y; var d := hyp(dx, dy)
+	if d > dur:
+		var v := minf(hiz, 1.2 + d * 1.4)
+		p.vx = dx / d * v; p.vy = dy / d * v; p.dx = dx / d; p.dy = dy / d
+	else:
+		p.vx *= .8; p.vy *= .8
+	p.x += p.vx * dt; p.y += p.vy * dt; p.anim += hyp(p.vx, p.vy) * dt
+
+func gol_kutlama(dt: float) -> void:
+	var g := gol_atan
+	var ti := g.team
+	_kos(g, kutlama_yer, 6.8, dt, .6)
+	var i := 0
+	for p: Oy in P:
+		if p == g: continue
+		if p.team == ti and p.role != "G":
+			# golcünün çevresinde bir halka: herkes kendi açısında 1.3 m ötede durur
+			var a := float(i) * 1.1
+			i += 1
+			if hyp(p.x - g.x, p.y - g.y) < 32:
+				_kos(p, Vector2(g.x + cos(a) * 1.3, g.y + sin(a) * 1.3), 6.2, dt, .5)
+				continue
+		var h := form_target(p)
+		_kos(p, h, 1.6 if p.team != ti else 2.4, dt, .5)

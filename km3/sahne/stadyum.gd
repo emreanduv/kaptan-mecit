@@ -170,7 +170,10 @@ func _kale(s: float) -> void:
 const SEYIRCI_SHADER := """
 shader_type spatial;
 render_mode cull_disabled, diffuse_lambert, specular_disabled;
-uniform float heyecan = 0.0;
+uniform float heyecan_ev = 0.0;
+uniform float heyecan_dep = 0.0;
+uniform float uzgun_ev = 0.0;
+uniform float uzgun_dep = 0.0;
 uniform float zaman_olcek = 1.0;
 varying vec3 ten;
 varying vec3 forma;
@@ -181,7 +184,12 @@ void vertex(){
 	faz = INSTANCE_CUSTOM.a;
 	float sic = max(0.0, sin(TIME * (5.0 + faz * 3.0) + faz * 40.0));
 	float sakin = sin(TIME * 0.7 + faz * 30.0) * 0.015;
-	VERTEX.y += sakin + sic * heyecan * (0.22 + 0.18 * fract(faz * 7.0));
+	// COLOR.a: 1 ev sahibi taraftarı, 0 misafir taraftar (tribün bölümüne göre, formasının renginden bağımsız)
+	float ev = step(0.5, COLOR.a);
+	float h = mix(heyecan_dep, heyecan_ev, ev);
+	float u = mix(uzgun_dep, uzgun_ev, ev);
+	VERTEX.y += sakin + sic * h * (0.22 + 0.18 * fract(faz * 7.0));
+	VERTEX.y -= u * 0.09 * (1.0 - UV.y);     // üzgün: omuzlar çöker, baş öne düşer
 }
 void fragment(){
 	vec2 p = UV * vec2(1.0, 1.8);          // 0..1 x 0..1.8 (üst = 0)
@@ -293,6 +301,7 @@ func _tribun_ve_seyirci(ev: Dictionary, dep: Dictionary) -> void:
 			if deplasman: c = dp1 if z < .6 else (dp2 if z < .85 else notr[rng.randi() % 5])
 			else: c = ev1 if z < .55 else (ev2 if z < .8 else notr[rng.randi() % 5])
 			c = c * rng.randf_range(.8, 1.05)
+			c.a = 0.0 if deplasman else 1.0
 			var tn: Color = tenler[rng.randi() % 5]
 			konumlar.append([Vector3(p2.x, h + .02, p2.y), ic, c, tn, rng.randf()])
 	var mm := MultiMesh.new()
@@ -435,9 +444,12 @@ func _skor_ekranlari() -> void:
 func skor(yazi: String) -> void:
 	for l in skor_etiketleri: l.text = yazi
 
-func heyecan(h: float) -> void:
-	_heyecan = h
-	seyirci_mat.set_shader_parameter("heyecan", h)
+func heyecan(ev: float, dep: float, uzgun_ev := 0.0, uzgun_dep := 0.0) -> void:
+	_heyecan = maxf(ev, dep)
+	seyirci_mat.set_shader_parameter("heyecan_ev", ev)
+	seyirci_mat.set_shader_parameter("heyecan_dep", dep)
+	seyirci_mat.set_shader_parameter("uzgun_ev", uzgun_ev)
+	seyirci_mat.set_shader_parameter("uzgun_dep", uzgun_dep)
 
 func _process(dt: float) -> void:
 	_pano_t += dt

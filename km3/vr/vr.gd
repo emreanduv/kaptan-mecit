@@ -194,7 +194,7 @@ func _process(dt: float) -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "MAÇA BAŞLA"]
-const SURUM := "0.2.0"
+const SURUM := "0.3.0"
 var menu3d: Node3D
 var _menu_satirlar: Array = []
 var _satir := 7

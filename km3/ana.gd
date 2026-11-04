@@ -84,6 +84,10 @@ func _ready() -> void:
 		ses.baslat()
 	if _arg.has("mac"):
 		menu_goster(false); _mac_kur(Taktik.kadro_kur(_takim(0, 0), veri.ligler[0].id, _arg.get("dz", "")), Taktik.kadro_kur(_takim(0, 1), veri.ligler[0].id), 4, 1, _arg.has("gosterim"))
+	if _arg.has("gol"):
+		var n := 0
+		while M.state != "goal" and n < 60 * 600: _adim(); n += 1
+		for i in int(float(_arg.gol) * 60): _adim()
 	if _arg.has("ileri"):
 		var n := int(float(_arg.ileri) * 60)
 		for i in n: _adim()
@@ -293,8 +297,12 @@ func _ciz(dt: float) -> void:
 	isaret.visible = M.ctrl != null and not M.demo
 	if isaret.visible: isaret.position = W(M.ctrl.x, M.ctrl.y, .02)
 	# tribün heyecanı: gol, top kaleye yaklaştıkça
-	var yakin := 1.0 - clampf(minf(b.y, PL - b.y) / 30.0, 0, 1)
-	stad.heyecan(1.0 if gol >= 0 else yakin * .25)
+	# her tribün kendi takımı için coşar: golde atan takımın taraftarı zıplar, diğeri yıkılır;
+	# hücumda top rakip kaleye yaklaştıkça hücum edenin taraftarı kıpırdanır
+	var hucum: int = b.owner.team if b.owner != null else b.last_team
+	var yakin := 1.0 - clampf(absf(b.y - M.goal_y_of(hucum)) / 30.0, 0, 1)
+	if gol >= 0: stad.heyecan(1.0 if gol == 0 else 0.0, 1.0 if gol == 1 else 0.0, 1.0 if gol == 1 else 0.0, 1.0 if gol == 0 else 0.0)
+	else: stad.heyecan(yakin * .3 if hucum == 0 else 0.0, yakin * .3 if hucum == 1 else 0.0)
 	ses.heyecan(1.0 if gol >= 0 else yakin)
 	dakika.text = M.min_label() + "'"
 	_kamera_guncelle(dt)
@@ -316,6 +324,9 @@ func _kamera_guncelle(dt: float) -> void:
 			poz = Vector3(39.5, 6.5, clampf(bw.z + 3, -48, 48)); bak = Vector3(bw.x, .8, bw.z); fov = clampf(46 - (39.5 - bw.x) * .38, 18, 46)
 		_:  # saha kenarı: göz hizası
 			poz = Vector3(PW / 2 + 5, 1.75, clampf(bw.z, -40, 40) * .7); bak = Vector3(bw.x, .9, bw.z); fov = 52
+	if _arg.has("golcu") and M.gol_atan != null:
+		var g := W(M.gol_atan.x, M.gol_atan.y)
+		kam.position = g + Vector3(-9.0 if g.x > 0 else 9.0, 4.0, 6.0); kam.fov = 45; kam.look_at(g + Vector3(0, .9, 0)); return
 	if _arg.has("yakin"):
 		if b.owner != null: bw = W(b.owner.x, b.owner.y)
 		kam.position = bw + Vector3(4.0, 1.9, 3.0); kam.fov = 42; kam.look_at(bw + Vector3(0, .9, 0)); return
