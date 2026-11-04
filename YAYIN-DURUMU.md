@@ -101,3 +101,8 @@
 - 4 Kas 14:10: ✅ Horizon Store'a İNCELEMEYE GÖNDERİLDİ (başvuru v1, derleme 0.5.1 (6) Production kanalında). Metinler EN, Oyun > Spor > Takım sporları, Early Access, tek oyunculu, Touch, oturarak/ayakta, Konforlu, internet gerekmez, ücretsiz, dil Türkçe; yaş grubu 13+, IARC: PEGI 3; görseller store/km3-meta; gizlilik https://emreanduv.github.io/kaptan-mecit-3/gizlilik.html. Onay gelince yayın tarihi Emre'de.
 - Karar (4 Kas, Emre): telefonda şimdilik KM1 1.4.0 (lig modu) kalır; KM3 önce Horizon Store'a çıkar, lig modu gelince telefonda Kaptan Mecit 2.0 olarak KM1'in yerine geçer. Play'in 16 KB sayfa şartı için KM3'ün telefon derlemesi Godot 4.5+ ister (4.3 kütüphaneleri 4 KB hizalı).
 - Önceki Karar (4 Kas, Emre): mağazalarda TEK uygulama "Kaptan Mecit" olacak, KM3 motoruyla (App Store'da reddedilen KM 1.0.0'ın yerine aynı uygulamanın yeni sürümü; ayrı "Kaptan Mecit 3" açılmaz). Sıra: Meta Horizon Store → Google Play kapalı test → App Store (Kurt Yolu ve CBM sonuçlandıktan sonra) → Steam (Valve doğrulaması bitince).
+
+## Kaptan Mecit 1.4.1 (4 Kas): açılışta boş ekran düzeltmesi
+- Sorun: 1.4.0 (13) iPhone'da açılınca yalnız çim çizgileri; ana menü çizilmiyordu. Neden: 1.0–1.2'den kalan kariyer kaydında artık olmayan kurmaca kulüpler fikstürde duruyordu; eski denetim yalnız kullanıcının kendi takımına bakıyordu → puan tablosu (table) çöküyor, render hiç bitmiyordu.
+- Düzeltme: kmKariyerGecerli: fikstürdeki bütün takımlar denetlenir, biri bile yoksa kariyer sıfırlanır. render() artık korumalı: hata olursa kariyeri sıfırlayıp ana menüyü yine çizer (bilgi notu çıkar).
+- Deneme: araclar/dene/ (WebKit), .github/workflows/ios-sim-dene.yml (iOS simülatörü; macos-15-intel kuyruğu daha hızlı).

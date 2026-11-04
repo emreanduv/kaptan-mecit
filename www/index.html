@@ -330,7 +330,11 @@ const SND={ctx:null,on:true,amb:null,
 
 /* ===================== DURUM ===================== */
 let S=store()||{};
-if(S.car&&!team(S.car.lg,S.car.id))S.car=null; /* eski kurmaca kulüplerle başlamış kariyer: kulüpler Champion Battle Manager dünyasına geçti */
+/* eski kurmaca kulüplerle başlamış kariyer (1.0–1.2): kulüpler Champion Battle Manager dünyasına geçti. Yalnız kendi takımına değil,
+   fikstürdeki bütün takımlara bakılır; biri bile yoksa kariyer güvenle sıfırlanır (yoksa puan tablosu çöker, ana menü boş kalır) */
+function kmKariyerGecerli(c){try{const L=c&&LEAGUES[c.lg];if(!L||!team(c.lg,c.id)||!Array.isArray(c.fx))return false;const V=new Set(L.t.map(r=>r[0]));
+  return c.fx.every(w=>Array.isArray(w)&&w.every(m=>m&&V.has(m.h)&&V.has(m.a)))}catch(e){return false}}
+if(S.car&&!kmKariyerGecerli(S.car)){S.car=null;persist()}
 S.set=Object.assign({dur:4,diff:0,snd:1,cam:0,asist:1},S.set||{});
 if(!S.set.v2){S.set.diff=0;S.set.v2=1}
 const DIFF={spd:[-.1,-.03,.03],skill:[-.16,-.04,.045],steal:[.3,.45,.75],slide:[.25,.55,1],gk:[-.02,0,.05]};
@@ -339,7 +343,7 @@ let UI={screen:'home',qlg:'tr',qh:'gs',qa:'fb',clg:'tr',cteam:null,tab:'tablo',q
 
 /* ===================== REHBER · PUAN · PAYLAŞ · BİZE YAZ · VERİLERİMİ SİL (test ekibinin önerileri, Malazgirt Akıncıları 1.6 ile aynı paket) =====================
    Hiçbir veri toplanmaz: puan ve paylaşım telefonun/mağazanın kendi ekranlarıyla yapılır; ilerleme yalnız bu cihazda (km.rehber, km.puan). */
-const KM_SURUM='1.4.0',KM_IOS_ID=''; /* App Store'da yayımlanınca uygulama numarası yazılır (ör. '67…'); boşken iOS'ta mağaza araması açılır */
+const KM_SURUM='1.4.1',KM_IOS_ID=''; /* App Store'da yayımlanınca uygulama numarası yazılır (ör. '67…'); boşken iOS'ta mağaza araması açılır */
 const KM_GOMULU=/[?&](mac|vr)=1/.test(window.__KM_Q||location.search); /* Champion Battle maç modu ya da VR motoru: rehber/puan gösterilmez */
 const kmOku=(k,v)=>{try{return JSON.parse(localStorage.getItem(k))??v}catch(e){return v}},kmYaz=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const kmPlatform=()=>{try{const p=window.Capacitor&&window.Capacitor.getPlatform&&window.Capacitor.getPlatform();if(p&&p!=='web')return p}catch(e){}return 'web'};
@@ -507,6 +511,13 @@ function settingsScreen(){
    <p class="credit">Bir Mr. Anduv! yapımıdır. · Sürüm ${KM_SURUM} · Tüm kulüp ve oyuncu adları kurmacadır.</p></section>`;
 }
 function render(){
+  try{render0()}catch(e){
+    /* ana menü hiçbir zaman boş kalmasın: bozuk kayıt varsa kariyeri sıfırla, yine olmazsa ana menüye dön */
+    if(S.car){S.car=null;persist();UI.screen='home';try{render0();kmTost('Eski kariyer kaydı bu sürümle uyumsuzdu, sıfırlandı.');return}catch(e2){}}
+    UI.screen='home';try{render0()}catch(e3){$('#app').innerHTML='<section class="screen veil"><p>Bir sorun oldu. Ayarlar sıfırlanıyor…</p></section>';try{localStorage.removeItem(SAVE_KEY)}catch(x){}setTimeout(()=>location.reload(),1500)}
+  }
+}
+function render0(){
   const map={home:homeScreen,quick:quickScreen,'career-new':careerNewScreen,career:careerScreen,result:resultScreen,howto:howtoScreen,settings:settingsScreen};
   const ek=UI.screen==='career'&&!S.car?'career-new':UI.screen,kart=rhKart(ek);
   let h=(map[UI.screen]||homeScreen)();
