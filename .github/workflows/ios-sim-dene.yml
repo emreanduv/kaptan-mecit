@@ -4,11 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       ref: { description: "Denenecek commit/dal", default: "main" }
+      runner: { description: "Makine", default: "macos-latest" }
 permissions:
   contents: write
 jobs:
   dene:
-    runs-on: macos-latest
+    runs-on: ${{ inputs.runner }}
     steps:
       - uses: actions/checkout@v4
         with: { ref: "${{ inputs.ref }}" }
