@@ -105,4 +105,5 @@
 ## Kaptan Mecit 1.4.1 (4 Kas): açılışta boş ekran düzeltmesi
 - Sorun: 1.4.0 (13) iPhone'da açılınca yalnız çim çizgileri; ana menü çizilmiyordu. Neden: 1.0–1.2'den kalan kariyer kaydında artık olmayan kurmaca kulüpler fikstürde duruyordu; eski denetim yalnız kullanıcının kendi takımına bakıyordu → puan tablosu (table) çöküyor, render hiç bitmiyordu.
 - Düzeltme: kmKariyerGecerli: fikstürdeki bütün takımlar denetlenir, biri bile yoksa kariyer sıfırlanır. render() artık korumalı: hata olursa kariyeri sıfırlayıp ana menüyü yine çizer (bilgi notu çıkar).
+- Dağıtım: iOS 1.4.1 (14) TestFlight 'Mr. Anduv! Testçiler' grubuna eklendi (beta incelemesi bekliyor); Android 1.4.1 (14) imzalandı (imza-anahtari/kaptan-mecit-1.4.1-14-imzali.aab; Mac VM'de Temurin 17 jarsigner) ve dahili teste yayınlandı.
 - Deneme: araclar/dene/ (WebKit), .github/workflows/ios-sim-dene.yml (iOS simülatörü; macos-15-intel kuyruğu daha hızlı).
