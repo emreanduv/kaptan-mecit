@@ -97,4 +97,4 @@
 - Horizon uygulaması: Kaptan Mecit 3 (id 1488865890970681), paket com.anduv.kaptanmecit3, Alpha kanalına 0.2.0 (1) yüklendi.
 - İmza anahtarı: Belgeler/Kaptan-Mecit/imza-anahtari/kaptanmecit3-quest.jks (+ KM3-QUEST-ANAHTAR-OKU.txt), şifre Mac'te üretildi. Depoya girmez.
 - Derleme: Actions > Kaptan Mecit 3 (Meta Quest APK). Web: emreanduv.github.io/kaptan-mecit-3/
-- Emre bekleyen: Alpha davetinde "Kabul ediyorum" + "Davet Gönder"; yaş grubu öz sertifikası.
+- 4 Kas: Alpha'da 0.4.0 (3) yayında: tribün tezahüratları, mola / yedek kulübesi, rehber, Nasıl oynanır. Alpha daveti (emreanduv@hotmail.com) gönderildi, yaş sertifikası tamam.
