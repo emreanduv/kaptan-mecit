@@ -1,0 +1,21 @@
+name: WebKit denemesi (iOS motoru)
+# www/index.html'i WebKit'te (iOS Safari / WKWebView motoru) açar, sayfa hatalarını ve ekran görüntüsünü "webkit-dene" dalına yazar.
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  dene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p /tmp/w && cd /tmp/w && npm init -y >/dev/null && npm i playwright@1.49.1 >/dev/null
+          npx playwright install --with-deps webkit >/dev/null 2>&1
+          cp $GITHUB_WORKSPACE/araclar/dene/webkit-dene.js .
+          node webkit-dene.js $GITHUB_WORKSPACE/www/index.html km-webkit.png > sonuc.txt 2>&1 || true
+          cat sonuc.txt
+      - run: |
+          git init -q d && cd d && cp /tmp/w/sonuc.txt /tmp/w/km-webkit.png . 2>/dev/null; git add -A
+          git -c user.name=gha -c user.email=gha@x commit -qm dene
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:webkit-dene
