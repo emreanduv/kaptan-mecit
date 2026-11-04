@@ -1,5 +1,10 @@
 # Kaptan Mecit — Yayın durumu (23 Ekim 2026)
 
+## 1.4.0 (hazırlanıyor, 4 Kas)
+- Test önerileri paketi (Malazgirt 1.6 / CBM 4.4 ile aynı): Rehber ipucu kartları (ana menü, Hızlı Maç, lig, ilk maç, mola, değişiklik, maç sonu, Ayarlar; eski oyunculara temel ipuçları gösterilmez), Nasıl Oynanır (ana menü, mola menüsü, Ayarlar), ★ Puan ver (`@capacitor-community/in-app-review` 8.0.0; 3. ve 10. galibiyette ya da ligi ilk üçte bitirince, en çok 2 kez), paylaş (`@capacitor/share` 8.0.3), Bize yaz, Verilerimi sil
+- Mağaza metinleri + gizlilik politikası güncel (`store/`); App Store numarası çıkınca `www/index.html` → `KM_IOS_ID`
+- Derleme: `ios.yml` / `android.yml` (version_name 1.4.0); derleme numarası iş akışının çalıştırma sayısından gelir
+
 ## Champion Battle Manager 3.4.0 (24 Eki)
 - 2 Kas gece: **1.3.0 (12)** — CBM'nin 34 dizilişi + asistanı (maç öncesi ◀ ▶ seçim ve şema, Otomatik; rakip yaygınlık payıyla seçer), kadrolar `HAVUZ`dan dizilişe göre kurulur. iOS TestFlight + Android dahili test yayında (`imza-anahtari/kaptan-mecit-1.3.0-12-imzali.aab`); VR menüsüne de diziliş geldi.
 - 2 Kas: **1.3.0 (11)** — kadrolar Champion Battle Manager'ın türetilmiş dünyasından (`araclar`: CBM `src` + gh-io `veri/cbm/v1/dunya.json` → LEAGUES + KADRO; 6 lig, 114 kulüp, Lukaku → Lakaka). iOS TestFlight (dış grup beta incelemesi bekliyor) + Android dahili test yayında (`imza-anahtari/kaptan-mecit-1.3.0-11-imzali.aab`). Kaptan Mecit VR de aynı motorla güncellendi (web üzerinden, APK değişmeden). Mağaza incelemesi Emre'de.

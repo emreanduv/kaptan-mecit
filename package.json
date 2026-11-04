@@ -1,6 +1,6 @@
 {
   "name": "kaptan-mecit",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "private": true,
   "description": "Kaptan Mecit - nostaljik üstten görünümlü futbol (iOS + Android, Capacitor)",
   "scripts": {
@@ -11,10 +11,12 @@
     "ikonlar": "capacitor-assets generate --ios --android --iconBackgroundColor '#2f7a34' --iconBackgroundColorDark '#2f7a34' --splashBackgroundColor '#0d2416' --splashBackgroundColorDark '#0d2416'"
   },
   "dependencies": {
+    "@capacitor-community/in-app-review": "8.0.0",
     "@capacitor/android": "^8.5.3",
     "@capacitor/cli": "^8.5.3",
     "@capacitor/core": "^8.5.3",
-    "@capacitor/ios": "^8.5.3"
+    "@capacitor/ios": "^8.5.3",
+    "@capacitor/share": "8.0.3"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5"

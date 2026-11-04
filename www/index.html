@@ -116,6 +116,18 @@ tr.z1 td:first-child{box-shadow:inset 4px 0 var(--gold)} tr.z4 td:first-child{bo
 .verdict.w{background:var(--grass-d)} .verdict.l{background:var(--red)}
 .howto ul{margin:0;padding-left:18px}.howto li{margin:6px 0}
 .kbd{display:inline-block;font-family:var(--f-px);font-size:10px;background:var(--ink);color:#fff;border-radius:4px;padding:3px 5px;margin:0 1px}
+/* rehber · puan · tost */
+.rh-kart{width:100%;max-width:620px;background:var(--paper);color:var(--ink);border:3px solid var(--gold);border-radius:14px;box-shadow:0 5px 0 var(--gold-d);padding:10px 12px;display:flex;flex-direction:column;gap:6px;text-align:left}
+.rh-kart b{font-family:var(--f-px);font-weight:400;font-size:11px;color:var(--navy);line-height:1.5}.rh-kart p{margin:0;font-size:14px}
+.rh-d{display:flex;gap:8px;flex-wrap:wrap}
+.pmenu .rh-kart{max-width:360px;box-shadow:none;border-width:2px}
+.pmenu .box.intro{max-height:94vh;overflow:auto}
+.rh-liste{display:flex;flex-direction:column;gap:8px}
+.rh-sat{background:#fff;border:2px solid #eadfc6;border-radius:10px;padding:7px 9px}.rh-sat b{font-size:13px}.rh-sat p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.rh-sat.yeni{border-color:var(--gold);box-shadow:inset 4px 0 var(--gold)}
+.card .alt{width:100%}
+.rh-ort{position:fixed;inset:0;z-index:40;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px}.rh-ort .card{max-width:400px;text-align:center}
+.km-tost{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);z-index:90;background:#000d;color:#fff;border:2px solid #fff;border-radius:10px;padding:8px 14px;font-weight:800;font-size:14px;max-width:90vw;text-align:center}
 
 /* MAÇ EKRANI */
 #game{position:fixed;inset:0;background:#0b1a10;z-index:50;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}
@@ -325,6 +337,59 @@ const DIFF={spd:[-.1,-.03,.03],skill:[-.16,-.04,.045],steal:[.3,.45,.75],slide:[
 SND.on=!!S.set.snd;
 let UI={screen:'home',qlg:'tr',qh:'gs',qa:'fb',clg:'tr',cteam:null,tab:'tablo',qside:'me'};
 
+/* ===================== REHBER · PUAN · PAYLAŞ · BİZE YAZ · VERİLERİMİ SİL (test ekibinin önerileri, Malazgirt Akıncıları 1.6 ile aynı paket) =====================
+   Hiçbir veri toplanmaz: puan ve paylaşım telefonun/mağazanın kendi ekranlarıyla yapılır; ilerleme yalnız bu cihazda (km.rehber, km.puan). */
+const KM_SURUM='1.4.0',KM_IOS_ID=''; /* App Store'da yayımlanınca uygulama numarası yazılır (ör. '67…'); boşken iOS'ta mağaza araması açılır */
+const KM_GOMULU=/[?&](mac|vr)=1/.test(window.__KM_Q||location.search); /* Champion Battle maç modu ya da VR motoru: rehber/puan gösterilmez */
+const kmOku=(k,v)=>{try{return JSON.parse(localStorage.getItem(k))??v}catch(e){return v}},kmYaz=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const kmPlatform=()=>{try{const p=window.Capacitor&&window.Capacitor.getPlatform&&window.Capacitor.getPlatform();if(p&&p!=='web')return p}catch(e){}return 'web'};
+const kmMobil=()=>['ios','android'].includes(kmPlatform());
+const KM_PLAY='https://play.google.com/store/apps/details?id=com.anduv.kaptanmecit';
+const kmMagaza=()=>kmPlatform()==='ios'?(KM_IOS_ID?'https://apps.apple.com/app/id'+KM_IOS_ID:'itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=Kaptan%20Mecit'):KM_PLAY;
+const kmPayUrl=()=>kmPlatform()==='ios'&&KM_IOS_ID?'https://apps.apple.com/app/id'+KM_IOS_ID:KM_PLAY;
+const IPUCU={
+  home:['🏠 Ana menü','HIZLI MAÇ ile iki takım seçip hemen sahaya çıkarsın. LİG ile bir kulüp seçip bütün sezonu oynarsın. Süre, zorluk, kamera ve ses AYARLAR\'da.'],
+  quick:['⚡ Hızlı Maç','Önce Takımım, sonra Rakip sekmesinden kulüp seç. Farklı liglerden takımları da karşılaştırabilirsin. Yıldızlar takımın gücünü gösterir.'],
+  'career-new':['🏆 Lig kariyeri','Ligini ve kulübünü seç. Kariyerin bu cihazda saklanır; istediğin an kaldığın haftadan devam edersin.'],
+  career:['📋 Kulübün','MAÇA ÇIK ile haftanın maçını oynarsın, SİMÜLE ET ile sonucu hemen alırsın. Puan durumu, fikstür ve gol krallığı alttaki sekmelerde.'],
+  mac:['⚽ İlk maçın','Maçtan önce dizilişini seç ya da OTOMATİK bırak: asistan kadrona en uygununu kurar. Kamerayı burada ve maç içinde II menüsünden değiştirebilirsin.'],
+  mola:['⏸ Mola menüsü','Buradan oyuncu değiştirir, asistanı açıp kapatır, kamerayı ve sesi değiştirirsin. Lig maçında kalan süreyi simüle edebilirsin.'],
+  degisiklik:['🔁 Oyuncu değişikliği','Önce çıkacak oyuncuya, sonra girecek yedeğe dokun, DEĞİŞTİR\'e bas. Renkli çubuk kondisyonu gösterir; kırmızıya düşen oyuncu yavaşlar.'],
+  result:['🏁 Maç sonu','Lig maçında DEVAM ile puan durumuna dönersin. Hızlı Maç\'ta RÖVANŞ ile aynı eşleşmeyi yeniden oynarsın. Galibiyeti arkadaşlarınla paylaşabilirsin.'],
+  settings:['⚙️ Ayarlar','Görüşünü ve önerini Bize yaz ile ilet. Verilerimi sil kariyerini ve ayarlarını bu cihazdan siler.']
+};
+const IPUCU_SIRA=['home','quick','career-new','career','mac','mola','degisiklik','result','settings'];
+const rhDurum=()=>kmOku('km.rehber',null)||{gor:{},kapali:false};
+if(!KM_GOMULU&&!kmOku('km.rehber',null)){const d={gor:{},kapali:false};if(S.car||store())['home','quick','career-new','career','mac','result'].forEach(k=>d.gor[k]=1);kmYaz('km.rehber',d)} /* eski oyunculara temel ipuçları zorla gösterilmez */
+function rhGoruldu(k){const d=rhDurum();d.gor[k]=1;kmYaz('km.rehber',d)}
+function rhKart(k,g){const d=rhDurum(),x=IPUCU[k];if(KM_GOMULU||!x||d.kapali||d.gor[k])return '';const a=g?'data-g':'data-act';
+  return `<div class="rh-kart"><b>${x[0]}</b><p>${esc(x[1])}</p><div class="rh-d"><button class="chip on" ${a}="rhTamam" data-v="${k}">Anladım</button><button class="chip" ${a}="rhKapat">Rehberi kapat</button></div></div>`}
+function rhListe(){const d=rhDurum();return `<div class="rh-liste">${IPUCU_SIRA.map(k=>`<div class="rh-sat${d.gor[k]?'':' yeni'}"><b>${IPUCU[k][0]}</b><p>${esc(IPUCU[k][1])}</p></div>`).join('')}</div>`}
+const KURALLAR='Taç, korner ve aut kendiliğinden kullanılır. Hakem faul çalar, sarı ve kırmızı kart gösterir; ceza sahasındaki faul penaltıdır. Ofsayt ve VAR var. Sol üstteki küçük harita bütün sahayı gösterir.';
+function kmPaylas(metin){metin=metin||'Kaptan Mecit: üstten görünümlü nostaljik futbol. 6 lig, 114 kulüp, internetsiz. Bir maç yapalım mı?';
+  const url=kmPayUrl(),P=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Share;
+  const kopya=()=>{try{navigator.clipboard.writeText(metin+' '+url).then(()=>kmTost('Bağlantı kopyalandı, istediğin yere yapıştır.'),()=>kmTost(url))}catch(e){kmTost(url)}};
+  const hata=e=>{if(!/cancel|abort/i.test((e&&(e.message||e.name))||''))kopya()};
+  try{if(P&&P.share){P.share({title:'Kaptan Mecit',text:metin,url,dialogTitle:'Arkadaşına öner'}).catch(hata);return}
+    if(navigator.share){navigator.share({title:'Kaptan Mecit',text:metin,url}).catch(hata);return}}catch(e){}
+  kopya()}
+function kmIlerleme(){const c=S.car,p=kmOku('km.puan',{g:0});return (c?`${LEAGUES[c.lg].kurgu} · ${team(c.lg,c.id).name} · ${c.year} · ${Math.min(c.week,c.fx.length)}. hafta`:'kariyer yok')+` · ${p.g||0} galibiyet`}
+function kmBizeYaz(){const konu=`Kaptan Mecit – Görüş ve öneri (${KM_SURUM}, ${kmPlatform()})`,govde=`Merhaba, oyunla ilgili görüşüm:\n\n\n— Sürüm ${KM_SURUM} · ${kmPlatform()} · ${kmIlerleme()}`;
+  location.href='mailto:emreanduvart@gmail.com?subject='+encodeURIComponent(konu)+'&body='+encodeURIComponent(govde)}
+/* puan: yalnız iOS/Android; 3. ve 10. galibiyette ya da ligi ilk üçte bitirince; en çok iki kez sorulur, yenilgide/beraberlikte asla */
+const PUAN_ANI=[3,10];
+function kmGalibiyet(){const p=kmOku('km.puan',{g:0,n:0,tamam:false});p.g=(p.g||0)+1;kmYaz('km.puan',p);return p.g}
+function kmPuanSor(g,sezon){if(KM_GOMULU||!kmMobil())return false;const p=kmOku('km.puan',{g:0,n:0,tamam:false});if(p.tamam||(p.n||0)>=2)return false;return sezon?p.son!=='s'+S.car.year:PUAN_ANI.includes(g)}
+function kmPuanSoruldu(an){const p=kmOku('km.puan',{g:0,n:0,tamam:false});p.n=(p.n||0)+1;p.son=an;kmYaz('km.puan',p)}
+async function kmPuanVer(){const p=kmOku('km.puan',{g:0,n:0,tamam:false});p.tamam=true;kmYaz('km.puan',p);
+  const R=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.InAppReview;try{if(R&&R.requestReview){await R.requestReview();return}}catch(e){}
+  try{window.open(kmMagaza(),'_blank')}catch(e){location.href=kmMagaza()}}
+function kmPuanKutusu(){return `<div class="rh-ort" id="puanKutu"><div class="card"><h3>KAPTAN MECİT HOŞUNA GİTTİ Mİ?</h3><p>Beğendiysen mağazada birkaç yıldızla destek olur musun? Bir önerin varsa onu da dinleriz.</p>
+  <button class="big" data-act="puanVer">★ PUAN VER</button><div class="row"><button class="alt dark" data-act="puanOneri">ÖNERİM VAR</button><button class="alt ghost" data-act="puanSonra">SONRA</button></div></div></div>`}
+/* verilerimi sil: kariyer, ayarlar, rehber ve puan bilgisi bu cihazdan silinir (oyunda satın alma yok) */
+function kmVerileriSil(){try{for(const k of Object.keys(localStorage))if(k===SAVE_KEY||/^km\./.test(k))localStorage.removeItem(k)}catch(e){}try{sessionStorage.clear()}catch(e){}location.reload()}
+function kmTost(t){let el=$('#kmTost');if(!el){el=document.createElement('div');el.id='kmTost';el.className='km-tost';document.body.appendChild(el)}el.textContent=t;el.hidden=false;clearTimeout(kmTost.to);kmTost.to=setTimeout(()=>el.hidden=true,2600)}
+
 /* ===================== KARİYER ===================== */
 function fixturesFor(ids){
   const n=ids.length,arr=ids.slice(),rounds=[];
@@ -375,7 +440,7 @@ function homeScreen(){
    <div class="stack">${meta}
     <button class="big" data-act="quick">HIZLI MAÇ<small>İki takım seç, sahaya çık</small></button>
     <div class="row"><button class="alt" data-act="career">LİG<br><small style="font-family:var(--f);font-size:12px;font-weight:800">${carSub}</small></button><button class="alt dark" data-act="settings">AYARLAR<br><small style="font-family:var(--f);font-size:12px;font-weight:800">${['Kolay','Orta','Zor'][S.set.diff]} · ${S.set.dur} dk</small></button></div>
-    <button class="alt ghost" data-act="howto">NASIL OYNANIR?</button>
+    <div class="row"><button class="alt ghost" data-act="howto">NASIL OYNANIR?</button><button class="alt ghost" data-act="paylas">ARKADAŞINA ÖNER</button></div>
     <p class="credit">Bir Mr. Anduv! yapımıdır.</p>
    </div></section>`;
 }
@@ -406,7 +471,7 @@ function careerScreen(){
   const c=S.car;if(!c)return careerNewScreen();
   const me=team(c.lg,c.id),t=table(c),pos=t.findIndex(r=>r.id===c.id)+1,row=t[pos-1];
   let next;
-  if(c.done){const h=c.history[c.history.length-1];next=`<div class="card"><h3>SEZON BİTTİ</h3><p><b>${esc(me.name)}</b> ligi <b>${pos}.</b> sırada bitirdi. Şampiyon: <b>${esc(h.champ)}</b>.</p><button class="big" data-act="newseason">YENİ SEZON</button></div>`}
+  if(c.done){const h=c.history[c.history.length-1];next=`<div class="card"><h3>SEZON BİTTİ</h3><p><b>${esc(me.name)}</b> ligi <b>${pos}.</b> sırada bitirdi. Şampiyon: <b>${esc(h.champ)}</b>.</p><button class="big" data-act="newseason">YENİ SEZON</button>${pos<=3?`<button class="alt dark" data-act="paylasSezon">${pos===1?'🏆 ŞAMPİYONLUĞU PAYLAŞ':'📣 SEZONU PAYLAŞ'}</button>`:''}</div>`}
   else{const m=myMatch(c),H=team(c.lg,m.h),A=team(c.lg,m.a),isH=m.h===c.id;
     next=`<div class="card"><h3>${c.week}. HAFTA · ${isH?'İÇ SAHA':'DEPLASMAN'}</h3><div class="vs"><div class="side">${KIT(H)}${esc(H.name)}</div><div class="mid">VS</div><div class="side">${KIT(A)}${esc(A.name)}</div></div>
      <button class="big" data-act="cplay">MAÇA ÇIK</button><button class="alt dark" data-act="csim">SİMÜLE ET</button></div>`}
@@ -427,23 +492,48 @@ function resultScreen(){
    <div class="card"><div class="vs"><div class="side">${KIT(r.H)}${esc(r.H.name)}</div><div class="mid sc">${r.hs}-${r.as}</div><div class="side">${KIT(r.A)}${esc(r.A.name)}</div></div>
    <span class="verdict ${won?'w':draw?'':'l'}">${won?'GALİBİYET':draw?'BERABERLİK':'MAĞLUBİYET'}</span>
    ${r.events.length?`<div class="res">${r.events.map(e=>`<div><span>${e.side==='h'?`${e.min}' ${esc(e.n)}`:''}</span><b>⚽</b><span>${e.side==='a'?`${esc(e.n)} ${e.min}'`:''}</span></div>`).join('')}</div>`:'<p class="dim" style="text-align:center">Gol yok.</p>'}</div>
-   <div class="stack"><button class="big" data-act="${r.career?'career':'quick'}">DEVAM</button>${r.career?'':'<button class="alt dark" data-act="qplay">RÖVANŞ</button>'}</div></section>`;
+   <div class="stack"><button class="big" data-act="${r.career?'career':'quick'}">DEVAM</button>${r.career?'':'<button class="alt dark" data-act="qplay">RÖVANŞ</button>'}${won?'<button class="alt ghost" data-act="paylasMac">📣 GALİBİYETİ PAYLAŞ</button>':''}</div></section>`;
 }
-function howtoScreen(){return `<section class="screen">${topbar('NASIL OYNANIR?')}<div class="card howto">${ctrlHtml()}<p class="dim">Taç, korner ve aut kendiliğinden kullanılır. Ofsayt ve faul yok, eski usul futbol. Sol üstteki küçük harita bütün sahayı gösterir.</p></div></section>`}
+function howtoScreen(){return `<section class="screen">${topbar('NASIL OYNANIR?','Altın çerçeveliler henüz görmediğin ipuçları',UI.howBack||'home')}<div class="card howto"><h3>KONTROLLER</h3>${ctrlHtml()}<p class="dim">${KURALLAR}</p></div>
+   <div class="card"><h3>REHBER</h3>${rhListe()}<button class="alt dark" data-act="rhBastan">↺ REHBERİ BAŞTAN GÖSTER</button></div>
+   <div class="row" style="width:100%;max-width:440px"><button class="alt ghost" data-act="paylas">ARKADAŞINA ÖNER</button><button class="alt ghost" data-act="bizeYaz">BİZE YAZ</button></div>
+   <p class="credit">Bir Mr. Anduv! yapımıdır.</p></section>`}
 function settingsScreen(){
   const seg=(k,opts)=>`<div class="chips">${opts.map(([v,l])=>`<button class="chip ${S.set[k]===v?'on':''}" data-act="set" data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div>`;
   return `<section class="screen">${topbar('AYARLAR')}<div class="card"><h3>MAÇ SÜRESİ</h3>${seg('dur',[[2,'2 dk'],[4,'4 dk'],[6,'6 dk'],[8,'8 dk']])}<h3>ZORLUK</h3>${seg('diff',[[0,'Kolay'],[1,'Orta'],[2,'Zor']])}<h3>KAMERA</h3>${seg('cam',[[0,'Klasik'],[1,'Dinamik'],[2,'Tele'],[3,'Stadyum'],[4,'TV']])}<h3>SES</h3>${seg('snd',[[1,'Açık'],[0,'Kapalı']])}<h3>OYUNCU DEĞİŞİKLİĞİ</h3>${seg('asist',[[1,'🤖 Asistan yapsın'],[0,'Ben yaparım']])}<p class="dim" style="margin:0;font-size:13px">5 değişiklik hakkı, en fazla 3 arada (devre arası sayılmaz). Asistan yorgunluğa, sakatlığa ve skora bakarak değiştirir; maçta II menüsünden sen de değiştirebilirsin.</p></div>
-   <p class="credit">Bir Mr. Anduv! yapımıdır. · Sürüm 1.3.0 · Tüm kulüp ve oyuncu adları kurmacadır.</p></section>`;
+   <div class="card"><h3>OYUN</h3><button class="alt dark" data-act="howtoS">❓ NASIL OYNANIR?</button>${kmMobil()?'<button class="alt dark" data-act="puanVer">★ PUAN VER</button>':''}<button class="alt dark" data-act="paylas">📣 ARKADAŞINA ÖNER</button></div>
+   <div class="card"><h3>GÖRÜŞ VE ÖNERİ</h3><p class="dim" style="font-size:13px">Bir hata gördün ya da aklına bir fikir geldi mi? Sürüm bilgisiyle hazır bir e-posta açılır.</p><button class="alt dark" data-act="bizeYaz">✉️ BİZE YAZ</button></div>
+   <div class="card"><h3>VERİLER</h3><p class="dim" style="font-size:13px">Oyun hiçbir veri toplamaz. Kariyerin, ayarların ve rehber ilerlemen yalnız bu cihazda durur.</p>${UI.silOnay?'<p style="font-weight:800;color:var(--red)">Kariyerin ve ayarların bu cihazdan silinecek. Emin misin?</p><div class="row"><button class="alt" data-act="veriSilEvet">EVET, SİL</button><button class="alt ghost" data-act="veriSilVazgec">VAZGEÇ</button></div>':'<button class="alt" data-act="veriSil">🗑 VERİLERİMİ SİL</button>'}</div>
+   <p class="credit">Bir Mr. Anduv! yapımıdır. · Sürüm ${KM_SURUM} · Tüm kulüp ve oyuncu adları kurmacadır.</p></section>`;
 }
 function render(){
   const map={home:homeScreen,quick:quickScreen,'career-new':careerNewScreen,career:careerScreen,result:resultScreen,howto:howtoScreen,settings:settingsScreen};
-  $('#app').innerHTML=(map[UI.screen]||homeScreen)();
+  const ek=UI.screen==='career'&&!S.car?'career-new':UI.screen,kart=rhKart(ek);
+  let h=(map[UI.screen]||homeScreen)();
+  if(kart)h=h.replace(/^(<section[^>]*>(?:<div class="topbar">.*?<\/h2><\/div>)?)/s,'$1'+kart);
+  if(UI.puanAc&&UI.screen==='result')h+=kmPuanKutusu();
+  $('#app').innerHTML=h;
 }
 function go(s){UI.screen=s;render();window.scrollTo(0,0)}
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b||b.closest('#game'))return;const a=b.dataset.act,v=b.dataset.v;SND.click();
   switch(a){
-    case'home':case'quick':case'howto':case'settings':go(a);break;
+    case'home':case'quick':case'settings':UI.silOnay=false;go(a);break;
+    case'howto':UI.howBack='home';go('howto');break;
+    case'howtoS':UI.howBack='settings';go('howto');break;
+    case'rhTamam':rhGoruldu(v);render();break;
+    case'rhKapat':{const d=rhDurum();d.kapali=true;kmYaz('km.rehber',d);render();kmTost('Rehber kapandı. Nasıl Oynanır ekranından yeniden açabilirsin.');break}
+    case'rhBastan':kmYaz('km.rehber',{gor:{},kapali:false});go('home');break;
+    case'paylas':kmPaylas();break;
+    case'paylasMac':{const r=UI.result;kmPaylas(`Kaptan Mecit'te ${r.H.name} ${r.hs}-${r.as} ${r.A.name}! Sıra sende, bir maç yapalım mı?`);break}
+    case'paylasSezon':{const c=S.car,h=c&&c.history[c.history.length-1];if(h)kmPaylas(h.pos===1?`Kaptan Mecit'te ${team(c.lg,c.id).name} ile ${LEAGUES[c.lg].kurgu} şampiyonu oldum! 🏆`:`Kaptan Mecit'te ${team(c.lg,c.id).name} ile ${LEAGUES[c.lg].kurgu}'ni ${h.pos}. bitirdim!`);break}
+    case'bizeYaz':kmBizeYaz();break;
+    case'puanVer':UI.puanAc=false;kmPuanVer();render();break;
+    case'puanOneri':UI.puanAc=false;render();kmBizeYaz();break;
+    case'puanSonra':UI.puanAc=false;render();break;
+    case'veriSil':UI.silOnay=true;render();break;
+    case'veriSilVazgec':UI.silOnay=false;render();break;
+    case'veriSilEvet':kmVerileriSil();break;
     case'career':go(S.car?'career':'career-new');break;
     case'career-new':UI.cteam=null;UI.clg=S.car?S.car.lg:UI.clg;go('career-new');break;
     case'set':S.set[b.dataset.k]=+v;if(b.dataset.k==='snd')SND.on=!!S.set.snd;persist();render();break;
@@ -656,17 +746,21 @@ const ctrlHtml=()=>`<ul>
  <li><b>Şut:</b> kırmızı ŞUT tuşu · klavyede <span class="kbd">Z</span> ya da <span class="kbd">Boşluk</span>. Ceza sahası yakınından vur.</li>
  <li><b>Top rakipteyken</b> tuşların adı değişir: <b>SEÇ</b> (X) topa en yakın oyuncunu seçer, <b>KAY</b> (Z) rakibin ayağına kayar.</li>
  <li><b>Duraklat:</b> sağ üstteki II · klavyede <span class="kbd">P</span></li></ul>`;
-function showIntro(){const pm=$('#pmenu');pm.hidden=false;pm.innerHTML=`<div class="box intro"><h3>${M.mac?esc(M.T[0].t.name)+' – '+esc(M.T[1].t.name):'KONTROLLER'}</h3>${ctrlHtml()}${M.mac?`<div class="chips" style="justify-content:center">${['Kolay','Orta','Zor'].map((l,i)=>`<button class="chip ${M.diff===i?'on':''}" data-g="diff" data-v="${i}">${l}</button>`).join('')}</div>`:''}${dzChips()}${camChips()}<button class="big" data-g="go">BAŞLA</button></div>`}
+function showIntro(){const pm=$('#pmenu');pm.hidden=false;pm.innerHTML=`<div class="box intro"><h3>${M.mac?esc(M.T[0].t.name)+' – '+esc(M.T[1].t.name):'KONTROLLER'}</h3>${rhKart('mac',1)}${ctrlHtml()}${M.mac?`<div class="chips" style="justify-content:center">${['Kolay','Orta','Zor'].map((l,i)=>`<button class="chip ${M.diff===i?'on':''}" data-g="diff" data-v="${i}">${l}</button>`).join('')}</div>`:''}${dzChips()}${camChips()}<button class="big" data-g="go">BAŞLA</button></div>`}
 /* diziliş seçimi (maç öncesi): Otomatik = asistan kadroya en uygun dizilişi seçer */
 function dzChips(){if(M.mac||M.demo)return '';const v=S.set.dz&&DIZILIS[S.set.dz]?S.set.dz:'oto',ad=v==='oto'?`OTOMATİK · ${M.T[0].t.dzAd||''}`:v;
   return `<div class="chips dz" style="justify-content:center;align-items:center"><button class="chip" data-g="dz" data-v="-1">◀</button><button class="chip on" data-g="dz" data-v="0" style="min-width:170px">📋 ${esc(ad)}</button><button class="chip" data-g="dz" data-v="1">▶</button></div>${dzSema(M.T[0].t.dz,M.T[0].kit.c1)}`}
 /* diziliş şeması: hücum yukarı */
 function dzSema(dz,c){if(!dz)return '';return `<svg viewBox="0 0 68 60" width="120" height="106" style="display:block;margin:4px auto 6px" aria-hidden="true"><rect x="1" y="1" width="66" height="58" rx="3" fill="#3e8d38" stroke="#f2f2ea" stroke-width=".8"/><line x1="1" y1="4" x2="67" y2="4" stroke="#f2f2ea" stroke-width=".6"/><rect x="22" y="50" width="24" height="9" fill="none" stroke="#f2f2ea" stroke-width=".6"/>${dz.map(([fx,fy])=>`<circle cx="${(1-fx)*60+4}" cy="${58-fy*110}" r="2.6" fill="${c}" stroke="#fff" stroke-width=".7"/>`).join('')}</svg>`}
 function togglePause(){if(!M||M.state==='over')return;M.paused=!M.paused;const pm=$('#pmenu');
-  if(M.paused){pm.hidden=false;pm.innerHTML=`<div class="box"><h3>DURAKLATILDI</h3><button class="big" data-g="resume">DEVAM</button>${M.demo?'':`<button class="alt dark" data-g="subs">🔁 DEĞİŞİKLİK · ${M.hak.n-M.sub[0].n} HAK</button><button class="alt ghost" data-g="asist">🤖 ASİSTAN DEĞİŞİKLİĞİ: ${M.asist[0]?'AÇIK':'KAPALI'}</button>`}${M.career?`<button class="alt dark" data-g="simrest">KALANINI SİMÜLE ET</button>`:`<button class="alt dark" data-g="quit">${M.mac?'MAÇTAN ÇEKİL (0-3)':'MAÇTAN ÇIK'}</button>`}${camChips()}<button class="alt ghost" data-g="snd">${S.set.snd?'🔊 Ses açık':'🔇 Ses kapalı'}</button><details class="intro"><summary style="font-weight:800;cursor:pointer">🎮 Kontroller</summary>${ctrlHtml()}</details></div>`}
+  if(M.paused){pm.hidden=false;pm.innerHTML=`<div class="box"><h3>DURAKLATILDI</h3>${M.demo?'':rhKart('mola',1)}<button class="big" data-g="resume">DEVAM</button>${M.demo?'':`<button class="alt dark" data-g="subs">🔁 DEĞİŞİKLİK · ${M.hak.n-M.sub[0].n} HAK</button><button class="alt ghost" data-g="asist">🤖 ASİSTAN DEĞİŞİKLİĞİ: ${M.asist[0]?'AÇIK':'KAPALI'}</button>`}${M.career?`<button class="alt dark" data-g="simrest">KALANINI SİMÜLE ET</button>`:`<button class="alt dark" data-g="quit">${M.mac?'MAÇTAN ÇEKİL (0-3)':'MAÇTAN ÇIK'}</button>`}${camChips()}<button class="alt ghost" data-g="snd">${S.set.snd?'🔊 Ses açık':'🔇 Ses kapalı'}</button>${KM_GOMULU?'':'<button class="alt ghost" data-g="howto">❓ NASIL OYNANIR?</button>'}<details class="intro"><summary style="font-weight:800;cursor:pointer">🎮 Kontroller</summary>${ctrlHtml()}</details></div>`}
   else{pm.hidden=true;M.lastT=performance.now()}}
 $('#pmenu').addEventListener('click',e=>{const b=e.target.closest('[data-g]');if(!b)return;const g=b.dataset.g;
   if(g==='go'){$('#pmenu').hidden=true;M.paused=false;M.lastT=performance.now();banner(`${esc(M.T[0].t.short)} - ${esc(M.T[1].t.short)}`,'BAŞLAMA VURUŞU',null,true);SND.init();SND.ambStart();setTimeout(()=>SND.whistle(1),300);return}
+  if(g==='rhTamam'||g==='rhKapat'){if(g==='rhTamam')rhGoruldu(b.dataset.v);else{const d=rhDurum();d.kapali=true;kmYaz('km.rehber',d)}
+    if($('#pmenu .box.subs'))showSubs();else if($('#pmenu .box.intro'))showIntro();else{M.paused=false;togglePause()}return}
+  if(g==='howto'){$('#pmenu').innerHTML=`<div class="box subs howto"><h3>❓ NASIL OYNANIR?</h3>${ctrlHtml()}<p class="not" style="text-align:left">${KURALLAR}</p>${rhListe()}<button class="alt dark" data-g="pback">‹ GERİ</button></div>`;return}
+  if(g==='pback'){M.paused=false;togglePause();return}
   if(g==='resume')togglePause();
   else if(g==='subs'){M.sel={};showSubs()}
   else if(g==='asist'){M.asist[0]=!M.asist[0];S.set.asist=M.asist[0]?1:0;persist();if(M.mac)try{localStorage.setItem('cbm4.otoDeg',M.asist[0]?'1':'0')}catch(e){}if($('#pmenu .box.subs'))showSubs();else{M.paused=false;togglePause()}}
@@ -728,7 +822,7 @@ function kmSakat(p){if(p.inj||M.demo)return;p.inj=true;p.st=Math.min(p.st,.4);M.
 function showSubs(){const pm=$('#pmenu');pm.hidden=false;const on=M.P.filter(p=>p.team===0),B=M.B[0],k=kmKalan(0),ok=kmDegisebilir(0),s=M.sel||{};
   const bar=v=>`<em style="--k:${Math.round(v*100)}%;--c:${v>.75?'#4fb15c':v>.55?'#e9b949':'#d33a2e'}"></em>`;
   const inj=on.filter(p=>p.inj);
-  pm.innerHTML=`<div class="box subs"><h3>🔁 DEĞİŞİKLİK · ${k.hak}/${M.hak.n} HAK · ${Math.max(0,k.ara)}/${M.hak.w} ARA</h3>
+  pm.innerHTML=`<div class="box subs"><h3>🔁 DEĞİŞİKLİK · ${k.hak}/${M.hak.n} HAK · ${Math.max(0,k.ara)}/${M.hak.w} ARA</h3>${rhKart('degisiklik',1)}
    ${inj.length?`<p class="not" style="color:#a3261c;font-weight:800">🩹 ${inj.map(p=>esc(p.n)).join(', ')} sakatlandı${ok?' — değiştirmen iyi olur':''}.</p>`:''}
    <div class="sbx"><div><b>SAHADA · ÇIKACAK</b>${on.map((p,i)=>`<button class="sr ${s.out===i?'on':''} ${p.inj?'inj':''}" data-g="sout" data-v="${i}"><i>${p.role==='G'?'K':p.role}</i><span>${p.inj?'🩹 ':''}${p.no} ${esc(p.n)}</span>${bar(p.st)}</button>`).join('')}</div>
    <div><b>YEDEK · GİRECEK</b>${B.length?B.map((b,i)=>`<button class="sr ${s.in===i?'on':''}" data-g="sin" data-v="${i}"><i>${b.pos}</i><span>${b.no} ${esc(b.n)}</span>${bar(b.st)}</button>`).join(''):'<p class="not">Yedek kalmadı</p>'}</div></div>
@@ -1341,6 +1435,10 @@ function endMatch(quit){
   UI.result={H,A,hs,as,events,career:!!m.career,week:m.career?m.career.week:0,mine:{me:myScore,op:opScore}};
   /* galibiyet/mağlubiyet çipi benim açımdan */
   UI.result.hs=hs;UI.result.as=as;
+  UI.puanAc=false;
+  if(myScore>opScore){const g=kmGalibiyet(),c=S.car,h=m.career&&c&&c.done&&c.history[c.history.length-1];
+    if(h&&h.pos<=3&&kmPuanSor(g,true)){kmPuanSoruldu('s'+c.year);UI.puanAc=true}
+    else if(kmPuanSor(g)){kmPuanSoruldu('g'+g);UI.puanAc=true}}
   go('result');
   if(myScore>opScore)SND.jingle();
 }
