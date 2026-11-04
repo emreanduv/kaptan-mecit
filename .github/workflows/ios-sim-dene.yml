@@ -1,0 +1,47 @@
+name: iOS simülatör denemesi
+# Uygulamayı iOS simülatöründe derleyip açar; konsol çıktısını (Capacitor JS hataları dahil) ve ekran görüntüsünü "ios-sim-dene" dalına yazar.
+on:
+  workflow_dispatch:
+    inputs:
+      ref: { description: "Denenecek commit/dal", default: "main" }
+permissions:
+  contents: write
+jobs:
+  dene:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.ref }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Xcode 26 seç
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$X" ]; then sudo xcode-select -s "$X"; fi
+          xcodebuild -version
+      - run: npm ci
+      - run: npx cap sync ios
+      - name: Simülatör için derle
+        working-directory: ios/App
+        run: |
+          xcodebuild -project App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator \
+            -derivedDataPath $RUNNER_TEMP/dd CODE_SIGNING_ALLOWED=NO build 2>&1 | tail -20
+      - name: Aç ve izle
+        run: |
+          mkdir -p sonuc
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print([x['udid'] for k,v in d.items() if 'iOS' in k for x in v if 'iPhone' in x['name']][-1])")
+          xcrun simctl boot $UDID; sleep 25
+          APP=$(ls -d $RUNNER_TEMP/dd/Build/Products/Debug-iphonesimulator/*.app | head -1)
+          xcrun simctl install $UDID "$APP"
+          ( xcrun simctl launch --console-pty $UDID com.anduv.kaptanmecit > sonuc/konsol.txt 2>&1 & )
+          sleep 20
+          xcrun simctl io $UDID screenshot sonuc/ekran.png
+          xcrun simctl spawn $UDID log show --last 1m --predicate 'process == "App"' --style compact > sonuc/log.txt 2>&1 || true
+          grep -i "⚡️\|error\|exception\|crash" sonuc/log.txt | head -80 > sonuc/log-ozet.txt || true
+          cat sonuc/konsol.txt | head -100; echo ----; cat sonuc/log-ozet.txt
+      - name: Dala yaz
+        if: always()
+        run: |
+          git init -q d && cp -r sonuc/* d/ 2>/dev/null; cd d; git add -A
+          git -c user.name=gha -c user.email=gha@x commit -qm dene
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:ios-sim-dene
