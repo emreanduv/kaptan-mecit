@@ -6,6 +6,7 @@
 - Klasik İngilizcesi: `www/klasik/en.js` (çalışma anında çeviri: DOM, tuval, paylaşım; kulüp adları renk/şehir çevirisiyle). Modern İngilizcesi: `km3/arayuz/dil.gd`.
 - Modern bu cihazda açılamazsa (WebGL 2 yok ya da kayboldu) seçim ekranına "Modern bu cihazda açılamadı" uyarısıyla döner. iOS simülatöründe (Intel ve Apple Silicon) Godot web WebGL bağlamını kaybediyor — Safari'de de aynı; gerçek iPhone'da denenmeli.
 - 6 Kas gece: **1.5.0 (16)** Android imzalı (`imza-anahtari/kaptan-mecit-1.5.0-16-imzali.aab`) → Play dahili test yayında. **iOS 1.5.0 (15)** TestFlight'a yüklendi, dış gruba (Mr. Anduv! Testçiler) eklendi, beta incelemesi bekliyor.
+- 6 Kas gece: Emre iPhone'da Modern'i açtı (çalışıyor) ama yazılar okunmuyordu ve zorlanıyordu → **1.5.1**: Modern yatay kilitli (`@capacitor/screen-orientation`), KM3 0.7.1 telefonda büyük arayüz + safe-area + hafif çizim. Android 1.5.1 (17) Play dahili test yayında; iOS 1.5.1 (16) TestFlight dış grup, beta incelemesi bekliyor.
 - Steam/Champion kopyası artık `www/klasik/index.html` (+ `*.js`).
 
 ## 1.4.0 (hazırlanıyor, 4 Kas)
