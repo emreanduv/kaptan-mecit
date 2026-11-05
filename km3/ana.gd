@@ -74,6 +74,8 @@ func _ready() -> void:
 		var kv := a.trim_prefix("--").split("=", true, 1)
 		_arg[kv[0]] = kv[1] if kv.size() > 1 else "1"
 	if _arg.has("hafif"): hafif = true
+	if _arg.has("dil"): Dil.ayarla(_arg.dil == "en", false)
+	else: Dil.kur()
 	veri = JSON.parse_string(FileAccess.get_file_as_string("res://veri/takimlar.json"))
 	lig = Lig.new(veri)
 	_ortam()
@@ -500,7 +502,21 @@ func _arayuz() -> void:
 	yd.add_theme_stylebox_override("normal", _kutu(Color("#1f3b3c"), 10)); yd.add_theme_stylebox_override("hover", _kutu(Color("#2a4e50"), 10))
 	yd.add_theme_color_override("font_color", Color.WHITE)
 	yd.pressed.connect(func(): yardim_goster(not yardim_acik))
-	mv.add_child(yd)
+	var alt := HBoxContainer.new(); alt.add_theme_constant_override("separation", 10)
+	yd.size_flags_horizontal = Control.SIZE_EXPAND_FILL; alt.add_child(yd)
+	dil_dugme = Button.new(); dil_dugme.add_theme_font_size_override("font_size", 18); dil_dugme.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	dil_dugme.add_theme_stylebox_override("normal", _kutu(Color("#1f3b3c"), 10)); dil_dugme.add_theme_stylebox_override("hover", _kutu(Color("#2a4e50"), 10))
+	dil_dugme.add_theme_color_override("font_color", Color.WHITE); dil_dugme.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	dil_dugme.pressed.connect(dil_degistir); alt.add_child(dil_dugme)
+	# mobil uygulamanın içindeyken (Klasik / Modern seçimli kabuk): oyun seçimine dön
+	if OS.has_feature("web") and str(JavaScriptBridge.eval("new URLSearchParams(location.search).get('kabuk') || ''", true)) == "1":
+		var ks := Button.new(); ks.text = "Oyun seçimi"; ks.add_theme_font_size_override("font_size", 18); ks.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		ks.add_theme_stylebox_override("normal", _kutu(Color("#1f3b3c"), 10)); ks.add_theme_stylebox_override("hover", _kutu(Color("#2a4e50"), 10))
+		ks.add_theme_color_override("font_color", Color.WHITE)
+		ks.pressed.connect(func(): JavaScriptBridge.eval("location.href='../index.html?sec=1'"))
+		alt.add_child(ks)
+	mv.add_child(alt)
+	_dil_yaz()
 	menu.add_child(mv)
 	var mk := CenterContainer.new(); mk.set_anchors_preset(Control.PRESET_FULL_RECT); mk.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mk.add_child(menu); ui.add_child(mk)
@@ -546,6 +562,18 @@ func _mola_ciz() -> void:
 	mola_baslik.text = "MOLA   ·   %s %d-%d %s   ·   %s'" % [M.T[0].t.kisa, M.T[0].score, M.T[1].score, M.T[1].t.kisa, M.min_label()]
 	for i in mola_dugmeler.size():
 		mola_dugmeler[i].text = mola.satir_metni(i, i == mola_satir)
+
+var dil_dugme: Button
+func _dil_yaz() -> void:
+	if dil_dugme: dil_dugme.text = "Dil / Language: " + Dil.ad()
+
+func dil_degistir() -> void:
+	Dil.ayarla(not Dil.en)
+	_dil_yaz()
+	# seçicilerdeki yazılar ve tabela yeniden çevrilsin
+	for s in [sec_lig, sec_ev, sec_dep, sec_dz, sec_sure, sec_zor, sec_kam]:
+		if s: s.select(s.selected)
+	if M: _tabela()
 
 func mola_mi() -> bool: return M != null and not M.demo and menu_acik
 

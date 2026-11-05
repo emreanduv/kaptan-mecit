@@ -163,6 +163,7 @@ func _sag_bas(ad: String) -> void:
 			elif ana.mola_mi(): ana.mola.bas(_satir)
 			elif _satir == 7: ana.yardim_goster(true)
 			elif _satir == 9: ana.lig_goster(true)
+			elif _satir == 10: ana.dil_degistir()
 			else: ana.basla()     # menüde A / tetik: seçili takımlarla maça başla
 		elif ad == "by_button" and ana.yardim_acik: ana.yardim_goster(false)
 		return
@@ -205,8 +206,8 @@ func _process(dt: float) -> void:
 		afis3d.text = ana.afis_ust.text + ("\n" + ana.afis_alt.text if ana.afis_alt.text != "" else "")
 
 # ---------- 3B menü ----------
-const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG MODU"]
-const SURUM := "0.6.0"
+const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG MODU", "Dil / Language"]
+const SURUM := "0.7.0"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -258,6 +259,7 @@ func _satir_sayisi() -> int:
 func _deger(d: int) -> void:
 	if ana.lig_acik: ana.lig_kay(_satir, d); return
 	if ana.mola_mi(): ana.mola.kay(_satir, d); return
+	if _satir == 10: ana.dil_degistir(); return
 	var s := _secici(_satir)
 	if s: s.kay(d)
 
@@ -288,7 +290,7 @@ func _menu_ciz() -> void:
 		l.visible = i < n and not yd
 		if not l.visible: continue
 		var sec := i == _satir
-		l.position.y = (.27 - i * .075) if mol else (.27 - i * .071)
+		l.position.y = (.27 - i * .075) if mol else (.27 - i * .066)
 		if mol:
 			l.text = ana.mola.satir_metni(i, sec)
 			l.font_size = 44
@@ -297,7 +299,7 @@ func _menu_ciz() -> void:
 		l.font_size = 48
 		var s := _secici(i)
 		if s: l.text = ("‹  " if sec else "") + SATIRLAR[i] + ":  " + s.metin() + ("  ›" if sec else "")
-		else: l.text = ("▶  " if sec else "") + SATIRLAR[i]
+		else: l.text = ("▶  " if sec else "") + SATIRLAR[i] + (("  ·  " + Dil.ad()) if i == 10 else "")
 		l.modulate = Color("#f3d35a") if sec else (Color("#e5722f") if s == null else Color.WHITE)
 
 func menu3d_yerlestir() -> void:
