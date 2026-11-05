@@ -1,0 +1,1 @@
+4686	0	UIKitApplication:com.anduv.kaptanmecit[90a4][rb-legacy]

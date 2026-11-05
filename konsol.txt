@@ -1,0 +1,4 @@
+2026-11-05 17:09:12.196 App[4686:19267] DiskCookieStorage changing policy from 2 to 0, cookie file: file:///Users/runner/Library/Developer/CoreSimulator/Devices/B220EC43-535F-472F-935A-5B2D0E9F2975/data/Containers/Data/Application/C54172E2-7223-431F-90C4-3F0DB3D51A88/Library/Cookies/com.anduv.kaptanmecit.binarycookies
+⚡️  Loading app at capacitor://localhost...
+⚡️  WebView loaded
+com.anduv.kaptanmecit: 4686
