@@ -58,6 +58,13 @@ var yardim_panel: PanelContainer
 var dok: Dokunmatik
 var dokunmatik := false
 
+# lig modu
+var lig: Lig
+var lig_ekran: LigEkran
+var lig_acik := false
+var lig_maci := false
+var _lig_bitis := 0.0
+
 # test / ekran görüntüsü (komut satırı)
 var _arg := {}
 var _donuk := false
@@ -68,6 +75,7 @@ func _ready() -> void:
 		_arg[kv[0]] = kv[1] if kv.size() > 1 else "1"
 	if _arg.has("hafif"): hafif = true
 	veri = JSON.parse_string(FileAccess.get_file_as_string("res://veri/takimlar.json"))
+	lig = Lig.new(veri)
 	_ortam()
 	dunya = Node3D.new(); add_child(dunya)
 	kam = Camera3D.new(); kam.current = true; kam.near = .3; kam.far = 900
@@ -97,6 +105,12 @@ func _ready() -> void:
 	if vr:
 		kam.current = false
 		ses.baslat()
+	if _arg.has("ligsezon"):
+		# deneme: bir ligde bir kulüple sezon kur, n haftayı hızlı simüle et
+		lig.sil(); lig.yeni_sezon(int(_arg.get("liglig", "0")), int(_arg.get("ligtakim", "0")))
+		for i in int(_arg.ligsezon): lig.haftayi_simule()
+	if _arg.has("lig"): lig_goster(true)
+	if _arg.has("ligmac"): lig_mac_basla()
 	if _arg.has("mac"):
 		menu_goster(false); _mac_kur(Taktik.kadro_kur(_takim(0, 0), veri.ligler[0].id, _arg.get("dz", "")), Taktik.kadro_kur(_takim(0, 1), veri.ligler[0].id), 4, 1, _arg.has("gosterim"))
 	if _arg.has("gol"):
@@ -117,6 +131,9 @@ func _ready() -> void:
 				if o[0] == "banner" and o[1] in ["PENALTI", "OFSAYT", "VAR", "SAKATLIK"] or o[0] == "kart": print("  ", M.min_label(), "' ", o[1], " · ", o[2])
 			M.olaylar.clear(); n += 1
 		print("TEST bitti: ", M.T[0].t.kisa, " ", M.T[0].score, "-", M.T[1].score, " ", M.T[1].t.kisa, " adım=", n, " dk=", M.min_label(), " goller=", M.events, " süre(ms)=", Time.get_ticks_msec() - t0, " faul=", M.faul, " ofsayt=", M.ofsayt, " kart=", M.kartlar, " korner=", M.korner, " değişiklik=", M.degisiklikler.map(func(d): return str(d.min) + "' " + d.in + "↔" + d.out))
+		if lig_maci:
+			_lig_bitir()
+			print("LİG: hafta ", int(lig.d.hafta), " sıra ", lig.sira_biz(), " · son hafta ", lig.son_hafta.map(func(m): return lig.takim(int(m[0])).kisa + " " + str(int(m[2])) + "-" + str(int(m[3])) + " " + lig.takim(int(m[1])).kisa))
 		get_tree().quit(); return
 	if _arg.has("plonjon"):
 		# deneme: misafir kalecisini uçuşun t. saniyesinde dondur
@@ -128,7 +145,7 @@ func _ready() -> void:
 		_donuk = true
 	if _arg.has("ekran"):
 		if vr and _arg.has("bak"): vr.kafa.rotation_degrees = Vector3(float(_arg.bak), float(_arg.get("don", "0")), 0)
-		menu_goster(_arg.has("menu"))
+		if not _arg.has("lig"): menu_goster(_arg.has("menu"))
 		if _arg.has("yardim"): yardim_goster(true)
 		await get_tree().create_timer(float(_arg.get("bekle", "1.5"))).timeout
 		await RenderingServer.frame_post_draw
@@ -234,6 +251,10 @@ func _process(dt: float) -> void:
 	_ciz(dt)
 	if not _arg.has("temiz"): mola.rehber(dt, 1 if vr != null else (2 if dokunmatik else 0))
 	if mola_panel.visible: _mola_ciz()
+	if lig_maci and M and M.state == "over":
+		# lig maçı bitti: düdükten birkaç saniye sonra sonuç işlenir, lig ekranına dönülür
+		_lig_bitis += dt
+		if _lig_bitis > 4.5: _lig_bitir()
 	if _afis_t > 0:
 		_afis_t -= dt
 		if _afis_t <= 0: afis.visible = false
@@ -294,6 +315,15 @@ func _girdi() -> void:
 	M.giris.x = w.x; M.giris.y = w.z
 
 func _unhandled_input(e: InputEvent) -> void:
+	if e is InputEventKey and e.pressed and lig_ekran.visible:
+		var n := lig.satirlar().size()
+		match e.keycode:
+			KEY_UP, KEY_W: lig_ekran.satir = posmod(lig_ekran.satir - 1, n); lig_ekran.ciz(); return
+			KEY_DOWN, KEY_S: lig_ekran.satir = posmod(lig_ekran.satir + 1, n); lig_ekran.ciz(); return
+			KEY_LEFT, KEY_A: lig_kay(lig_ekran.satir, -1); return
+			KEY_RIGHT, KEY_D: lig_kay(lig_ekran.satir, 1); return
+			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE: lig_bas(lig_ekran.satir); return
+			KEY_ESCAPE, KEY_M: lig_goster(false); return
 	if e is InputEventKey and e.pressed and mola_panel.visible:
 		match e.keycode:
 			KEY_UP, KEY_W: mola_satir = posmod(mola_satir - 1, Mola.SATIRLAR.size()); return
@@ -460,6 +490,12 @@ func _arayuz() -> void:
 	dug.custom_minimum_size = Vector2(0, 58)
 	dug.pressed.connect(basla)
 	mv.add_child(dug)
+	var lgd := Button.new(); lgd.text = "Lig"; lgd.add_theme_font_size_override("font_size", 22)
+	lgd.add_theme_stylebox_override("normal", _kutu(Color("#2f5d8c"), 12)); lgd.add_theme_stylebox_override("hover", _kutu(Color("#3a6fa3"), 12))
+	lgd.add_theme_stylebox_override("pressed", _kutu(Color("#24486d"), 12)); lgd.add_theme_color_override("font_color", Color.WHITE)
+	lgd.custom_minimum_size = Vector2(0, 50)
+	lgd.pressed.connect(func(): lig_goster(true))
+	mv.add_child(lgd)
 	var yd := Button.new(); yd.text = "Nasıl oynanır"; yd.add_theme_font_size_override("font_size", 18)
 	yd.add_theme_stylebox_override("normal", _kutu(Color("#1f3b3c"), 10)); yd.add_theme_stylebox_override("hover", _kutu(Color("#2a4e50"), 10))
 	yd.add_theme_color_override("font_color", Color.WHITE)
@@ -468,6 +504,9 @@ func _arayuz() -> void:
 	menu.add_child(mv)
 	var mk := CenterContainer.new(); mk.set_anchors_preset(Control.PRESET_FULL_RECT); mk.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mk.add_child(menu); ui.add_child(mk)
+	# lig ekranı (tam ekran)
+	lig_ekran = LigEkran.new(lig); ui.add_child(lig_ekran)
+	lig_ekran.eylem.connect(func(_a): lig_bas(lig_ekran.satir))
 	# mola: yedek kulübesi
 	mola_panel = PanelContainer.new(); mola_panel.visible = false
 	mola_panel.add_theme_stylebox_override("panel", _kutu(Color("#f5ecd8"), 16))
@@ -524,6 +563,12 @@ func yardim_goster(v: bool) -> void:
 
 func maci_birak() -> void:
 	yardim_goster(false)
+	if lig_maci:
+		# lig maçı yarıda bırakıldı: hafta oynanmamış sayılır, lig ekranına dönülür
+		lig_maci = false
+		_gosterim_kur()
+		lig.mesaj = "Maç yarıda kaldı; hafta oynanmadı."
+		lig_goster(true); return
 	var lg: Dictionary = veri.ligler[sec_lig.selected]
 	_mac_kur(Taktik.kadro_kur(lg.takimlar[sec_ev.selected], lg.id), Taktik.kadro_kur(lg.takimlar[sec_dep.selected], lg.id), 4, 1, true)
 	menu_goster(true)
@@ -559,7 +604,9 @@ func basla() -> void:
 func menu_goster(v: bool) -> void:
 	menu_acik = v
 	var mol := v and M != null and not M.demo
-	menu.visible = v and not mol
+	if mol or not v: lig_acik = false
+	menu.visible = v and not mol and not lig_acik
+	lig_ekran.visible = v and lig_acik and vr == null
 	mola_panel.visible = mol and vr == null
 	if mol: mola_satir = 0; mola.cikan = 0; mola.giren = 0; mola_mesaj.text = "Oklar: satır ve değer  ·  Enter: seç  ·  M / Esc: maça dön"
 	yardim_goster(false)
@@ -596,3 +643,53 @@ void fragment(){
 	ALBEDO = c; ROUGHNESS = 0.45;
 }
 """
+
+# ---------- lig modu ----------
+func lig_goster(v: bool) -> void:
+	if v and not lig.var_mi(): lig.kur_lig = sec_lig.selected; lig.kur_takim = sec_ev.selected
+	if v: lig_ekran.satir = 0; lig_ekran.yenile()
+	else: lig.mesaj = ""
+	lig_acik = v
+	menu_goster(true)
+	if vr: vr.lig_acildi(v)
+
+func lig_kay(i: int, yon: int) -> void:
+	lig.kay(i, yon); lig_ekran.yenile()
+
+func lig_bas(i: int) -> void:
+	var r := lig.bas(i)
+	if r == "mac": lig_mac_basla()
+	elif r == "menu": lig_goster(false)
+	else:
+		lig_ekran.satir = mini(lig_ekran.satir, lig.satirlar().size() - 1)
+		lig_ekran.yenile()
+
+func lig_mac_basla() -> void:
+	var mc := lig.sonraki_mac()
+	if mc.is_empty(): return
+	var lg := lig.lig_veri()
+	var biz := lig.biz()
+	var rk: int = int(mc[1]) if int(mc[0]) == biz else int(mc[0])
+	var dz: String = "" if sec_dz.selected <= 0 else sec_dz.metin()
+	# maç motorunda kullanıcı her zaman T[0]; sonuç Lig'de doğru ev/deplasman tarafına yazılır
+	var ev := Taktik.kadro_kur(lg.takimlar[biz], lg.id, dz)
+	var dep := Taktik.kadro_kur(lg.takimlar[rk], lg.id, "")
+	lig_acik = false; lig_maci = true; _lig_bitis = 0.0
+	menu_goster(false)
+	_mac_kur(ev, dep, SURELER[sec_sure.selected], sec_zor.selected, false)
+	afis_goster("HAFTA %d  ·  %s" % [int(lig.d.hafta) + 1, "İÇ SAHA" if int(mc[0]) == biz else "DEPLASMAN"], ev.kisa + " - " + dep.kisa, 2.4)
+	kam_mod = sec_kam.selected
+	ses.baslat()
+
+func _lig_bitir() -> void:
+	if not lig_maci: return
+	lig_maci = false
+	lig.kullanici_sonuc(M.T[0].score, M.T[1].score)
+	_gosterim_kur()
+	lig_goster(true)
+
+func _gosterim_kur() -> void:
+	var lg: Dictionary = lig.lig_veri() if lig.var_mi() else veri.ligler[sec_lig.selected]
+	var L: Array = lg.takimlar
+	var a := randi() % L.size(); var b := (a + 1 + randi() % (L.size() - 1)) % L.size()
+	_mac_kur(Taktik.kadro_kur(L[a], lg.id), Taktik.kadro_kur(L[b], lg.id), 4, 1, true)

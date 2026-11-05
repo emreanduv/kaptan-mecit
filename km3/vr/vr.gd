@@ -41,12 +41,12 @@ func _kur() -> void:
 	vp.use_xr = xr != null and xr.is_initialized()
 	vp.msaa_3d = Viewport.MSAA_2X
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
-	if xr is OpenXRInterface:
-		var ox := xr as OpenXRInterface
-		ox.foveation_level = 3
-		ox.foveation_dynamic = true
-		var hz := ox.get_available_display_refresh_rates()
-		if hz.has(72.0): ox.display_refresh_rate = 72.0
+	# OpenXRInterface türüne adıyla bağlanmıyoruz: web derlemesinde OpenXR modülü yok, tür adı ana.gd'yi derletmezdi
+	if xr != null and xr.get_class() == "OpenXRInterface":
+		xr.set("foveation_level", 3)
+		xr.set("foveation_dynamic", true)
+		var hz: Array = Array(xr.call("get_available_display_refresh_rates"))
+		if hz.has(72.0): xr.set("display_refresh_rate", 72.0)
 	koken = XROrigin3D.new(); add_child(koken)
 	kafa = XRCamera3D.new(); kafa.near = .05; kafa.far = 900; koken.add_child(kafa)
 	kafa.current = true
@@ -154,10 +154,15 @@ func girdi(M) -> void:
 func _sag_bas(ad: String) -> void:
 	var M = ana.M
 	if ana.menu_acik:
+		if ana.lig_acik:
+			if ad == "ax_button" or ad == "trigger_click": ana.lig_bas(_satir)
+			elif ad == "by_button": ana.lig_goster(false)
+			return
 		if ad == "ax_button" or ad == "trigger_click":
 			if ana.yardim_acik: ana.yardim_goster(false)
 			elif ana.mola_mi(): ana.mola.bas(_satir)
 			elif _satir == 7: ana.yardim_goster(true)
+			elif _satir == 9: ana.lig_goster(true)
 			else: ana.basla()     # menüde A / tetik: seçili takımlarla maça başla
 		elif ad == "by_button" and ana.yardim_acik: ana.yardim_goster(false)
 		return
@@ -200,8 +205,8 @@ func _process(dt: float) -> void:
 		afis3d.text = ana.afis_ust.text + ("\n" + ana.afis_alt.text if ana.afis_alt.text != "" else "")
 
 # ---------- 3B menü ----------
-const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA"]
-const SURUM := "0.5.1"
+const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG MODU"]
+const SURUM := "0.6.0"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -234,20 +239,24 @@ func _menu3d_kur() -> void:
 		_menu_satirlar.append(l)
 	var ipucu := _yazi(32, Color(1, 1, 1, .75))
 	ipucu.text = "Çubuk yukarı/aşağı: satır  ·  sola/sağa: değiştir  ·  A ya da tetik: MAÇA BAŞLA"
-	ipucu.position = Vector3(0, -.47, .001); menu3d.add_child(ipucu); _ipucu = ipucu
-	_mesaj = _yazi(40, Color("#f3d35a")); _mesaj.position = Vector3(0, -.40, .001); menu3d.add_child(_mesaj)
+	ipucu.position = Vector3(0, -.51, .001); menu3d.add_child(ipucu); _ipucu = ipucu
+	_mesaj = _yazi(40, Color("#f3d35a")); _mesaj.position = Vector3(0, -.455, .001); menu3d.add_child(_mesaj)
 	_yardim = _yazi(30, Color.WHITE); _yardim.text = Mola.YARDIM + "\n\nA / tetik ya da B: kapat   ·   sol X: Verilerimi sil"; _yardim.position = Vector3(0, -.02, .001)
 	_yardim.visible = false; menu3d.add_child(_yardim)
 	_yardim_alt = _yazi(36, Color("#f3d35a")); _yardim_alt.position = Vector3(0, -.5, .001); _yardim_alt.visible = false; menu3d.add_child(_yardim_alt)
+	_lig3d_kur()
 	afis3d = _yazi(72, Color("#f3d35a")); afis3d.visible = false
 	koken.add_child(afis3d)
 
 func _secici(i: int) -> Secici:
 	return [ana.sec_lig, ana.sec_ev, ana.sec_dep, ana.sec_dz, ana.sec_sure, ana.sec_zor, ana.sec_kam][i] if i < 7 else null
 
-func _satir_sayisi() -> int: return Mola.SATIRLAR.size() if ana.mola_mi() else SATIRLAR.size()
+func _satir_sayisi() -> int:
+	if ana.lig_acik: return ana.lig.satirlar().size()
+	return Mola.SATIRLAR.size() if ana.mola_mi() else SATIRLAR.size()
 
 func _deger(d: int) -> void:
+	if ana.lig_acik: ana.lig_kay(_satir, d); return
 	if ana.mola_mi(): ana.mola.kay(_satir, d); return
 	var s := _secici(_satir)
 	if s: s.kay(d)
@@ -255,6 +264,10 @@ func _deger(d: int) -> void:
 func mola_bilgi(t: String) -> void: _mesaj.text = t
 
 func _menu_ciz() -> void:
+	_lig3d.visible = ana.lig_acik
+	if ana.lig_acik: _lig_ciz(); return
+	for l in _menu_satirlar: l.position.x = 0
+	_imza.visible = true
 	var mol: bool = ana.mola_mi()
 	if mol and not _onceki_mol: _satir = 0
 	_onceki_mol = mol
@@ -275,13 +288,13 @@ func _menu_ciz() -> void:
 		l.visible = i < n and not yd
 		if not l.visible: continue
 		var sec := i == _satir
-		l.position.y = (.27 - i * .075) if mol else (.25 - i * .075)
+		l.position.y = (.27 - i * .075) if mol else (.27 - i * .071)
 		if mol:
 			l.text = ana.mola.satir_metni(i, sec)
 			l.font_size = 44
 			l.modulate = Color("#f3d35a") if sec else (Color.WHITE if i in [1, 2, 4, 5] else Color("#e5722f"))
 			continue
-		l.font_size = 52
+		l.font_size = 48
 		var s := _secici(i)
 		if s: l.text = ("‹  " if sec else "") + SATIRLAR[i] + ":  " + s.metin() + ("  ›" if sec else "")
 		else: l.text = ("▶  " if sec else "") + SATIRLAR[i]
@@ -301,3 +314,86 @@ func _menu_takip() -> void:
 	var yon := menu3d.transform.origin - kafa.transform.origin; yon.y = 0
 	if yon.length() < .1 or ileri.normalized().angle_to(yon.normalized()) > deg_to_rad(50) or yon.length() > 3.0:
 		menu3d_yerlestir()
+
+# ---------- lig ekranı (3B): solda puan durumu sütunları, sağda eylemler ----------
+const LIG_SUTUN := [["#", -.70, 2], ["Takım", -.66, 0], ["O", -.22, 1], ["G", -.15, 1], ["B", -.08, 1], ["M", -.01, 1], ["Av", .07, 1], ["P", .15, 1]]
+var _lig3d: Node3D
+var _lig_sutun: Array = []
+var _lig_biz: MeshInstance3D
+var _lig_alt: Label3D
+
+func _lig3d_kur() -> void:
+	_lig3d = Node3D.new(); _lig3d.visible = false; menu3d.add_child(_lig3d)
+	_lig_biz = MeshInstance3D.new(); var q := QuadMesh.new(); q.size = Vector2(.92, .034); _lig_biz.mesh = q
+	var m := StandardMaterial3D.new(); m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED; m.albedo_color = Color("#2f5d8c")
+	m.no_depth_test = true; m.render_priority = 58; _lig_biz.material_override = m; _lig3d.add_child(_lig_biz)
+	for c in LIG_SUTUN:
+		var l := _yazi(23, Color.WHITE); l.render_priority = 62
+		l.horizontal_alignment = [HORIZONTAL_ALIGNMENT_LEFT, HORIZONTAL_ALIGNMENT_CENTER, HORIZONTAL_ALIGNMENT_RIGHT][c[2]]
+		l.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		l.position = Vector3(c[1], .30, .002); _lig3d.add_child(l); _lig_sutun.append(l)
+	_lig_alt = _yazi(30, Color("#cfe3d6")); _lig_alt.position = Vector3(.45, .25, .002); _lig_alt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_lig_alt.width = 520; _lig_alt.vertical_alignment = VERTICAL_ALIGNMENT_TOP; _lig3d.add_child(_lig_alt)
+
+func _lig_ciz() -> void:
+	var L: Lig = ana.lig
+	_yardim.visible = false; _yardim_alt.visible = false
+	_bas.visible = true; _imza.visible = false; _ipucu.visible = true; _mesaj.visible = true
+	var lg: Dictionary = L.lig_veri()
+	_bas.font_size = 60
+	_bas.text = "LİG  ·  " + lg.ad + ("  ·  " + L.sezon_adi() + ("  ·  Sezon bitti" if L.bitti() else "  ·  Hafta %d/%d" % [int(L.d.hafta) + 1, L.hafta_sayisi()]) if L.var_mi() else "  ·  Yeni sezon")
+	_ipucu.text = "Çubuk yukarı/aşağı: satır  ·  sola/sağa: değiştir  ·  A ya da tetik: seç  ·  B: ana menü"
+	_mesaj.text = L.mesaj
+	# tablo
+	var sutun: Array = []
+	for c in LIG_SUTUN: sutun.append(c[0])
+	var biz_sira := -1
+	if L.var_mi():
+		for r in L.tablo_satirlari():
+			var v := [str(r[0]), r[2], str(r[3]), str(r[4]), str(r[5]), str(r[6]), ("+" if int(r[9]) > 0 else "") + str(r[9]), str(r[10])]
+			for k in v.size(): sutun[k] += "\n" + v[k]
+			if r[11]: biz_sira = int(r[0])
+	else:
+		var T: Array = lg.takimlar.duplicate()
+		var bt: Dictionary = T[L.kur_takim]
+		T.sort_custom(func(a, b): return int(a.str) > int(b.str))
+		sutun[7] = "Güç"
+		for k in T.size():
+			var v := [str(k + 1), T[k].ad, "", "", "", "", "", str(int(T[k].str))]
+			for j in v.size(): sutun[j] += "\n" + v[j]
+			if T[k] == bt: biz_sira = k + 1
+	var satir_boy := 23 * .0011 * 1.39     # Label3D satır yüksekliği (ölçüldü)
+	for k in _lig_sutun.size():
+		_lig_sutun[k].text = sutun[k]
+	_lig_biz.visible = biz_sira > 0
+	_lig_biz.position = Vector3(-.27, .30 - satir_boy * (biz_sira + .5), .001)
+	# sonraki maç / sezon sonu
+	var alt := ""
+	if L.var_mi():
+		if L.bitti(): alt = "ŞAMPİYON: " + L.takim(int(L.d.sampiyon)).ad + "\nSenin takımın %d. bitirdi." % L.sira_biz()
+		else:
+			var mc := L.sonraki_mac()
+			alt = "SONRAKİ MAÇ\n" + L.takim(int(mc[0])).ad + "\n– " + L.takim(int(mc[1])).ad + "\n" + ("İç saha" if int(mc[0]) == L.biz() else "Deplasman") + "  ·  sen %d. sıradasın" % L.sira_biz()
+		if not L.son_hafta.is_empty():
+			for mc in L.son_hafta:
+				if int(mc[0]) == L.biz() or int(mc[1]) == L.biz():
+					alt += "\n\nGeçen hafta: %s %d-%d %s" % [L.takim(int(mc[0])).kisa, int(mc[2]), int(mc[3]), L.takim(int(mc[1])).kisa]
+	else:
+		alt = "Ligini ve kulübünü seç. Her hafta kendi maçını oynarsın; diğer maçlar aynı anda sonuçlanır."
+	_lig_alt.text = alt
+	# eylemler (sağ alt)
+	var n := _satir_sayisi()
+	_satir = mini(_satir, n - 1)
+	for i in _menu_satirlar.size():
+		var l: Label3D = _menu_satirlar[i]
+		l.visible = i < n
+		if not l.visible: continue
+		var sec := i == _satir
+		l.text = L.satir_metni(i, sec)
+		l.font_size = 38
+		l.position = Vector3(.45, -.08 - i * .07, .001)
+		l.modulate = Color("#f3d35a") if sec else (Color("#e5722f") if L.satirlar()[i] in ["MAÇA ÇIK", "SEZONA BAŞLA", "YENİ SEZON"] else Color.WHITE)
+
+func lig_acildi(v: bool) -> void:
+	_satir = 0 if v else 9
+	menu3d_yerlestir()

@@ -28,3 +28,11 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Dokunmatik kontrol (`arayuz/dokunmatik.gd`): ekranın solunda parmağın altında beliren çubuk, sağ altta PAS / ŞUT, üstte II mola. Dokunmatik ekran varsa kendiliğinden açılır; `--dokun` ile masaüstünde denenir. Rehber ve Nasıl oynanır dokunmatiğe göre yazar.
 - Kaleci uçuşu: kurtarış denemesinde kaleci topun kale çizgisine geleceği yere yana uçar (yük al → uç, kollar topa → yere düş → kalk); yakın ve alçak topta göğüste tutar. Motor konumu iniş yerine geçer, görüntü oraya süzülür. Deneme: `dene/kaleci_dene.tscn -- cikti.png [tur=0|1] [yan=±1] [z=yükseklik]`.
 - Molaya Kamera (VR'da Koltuk) satırı.
+
+## 0.6.0 — Lig modu
+- Ana menüde **Lig** (VR menüsünde **LİG MODU**): `veri/takimlar.json`'daki 6 ligden birini ve kulübünü seç, sezona başla. Çift devreli tam fikstür (18 takımda 34, 20 takımda 38 hafta; ev/deplasman dengeli, art arda en çok 2-3 iç saha/deplasman).
+- Her hafta kendi maçını oynarsın (süre, zorluk, diziliş ve kamera ana menüden), ligin diğer maçları `Taktik` kadrolarının güç değeriyle (asistanın kurduğu ilk 11'in mevkiye uyumlu ortalama yeteneği) hızlı simüle edilir (Poisson, ev avantajı). "Maçı simüle et" ile kendi maçını da simüle edebilirsin. Maç yarıda bırakılırsa hafta oynanmamış sayılır.
+- Puan durumu: O G B M A Y Av P + son beş maç formu; sıra şeridi (şampiyonluk altın, ilk dört yeşil, son üç kırmızı). Sağda sonraki maç, haftanın sonuçları ve eylemler. Sezon sonunda şampiyon, "Yeni sezon".
+- Kayıt `user://km3-lig.json`; "Verilerimi sil" bunu da siler. "Ligi bırak" iki kez basınca sezonu siler.
+- Kod: `motor/lig.gd` (fikstür, tablo, simülasyon, kayıt, menü satırları), `arayuz/lig_ekran.gd` (düz ekran), `vr/vr.gd` (3B lig paneli).
+- Deneme: `godot --headless --path km3 -s dene/lig_dene.gd` (6 ligin hepsinde tam sezon, fikstür/kayıt/silme denetimi); `--ligsezon=12 [--liglig=1 --ligtakim=3] --lig --ekran=x.png` (lig ekranı), `--ligsezon=3 --ligmac --dene` (lig maçını oynat, sonucu işle), `--vrsahte` ile VR paneli.

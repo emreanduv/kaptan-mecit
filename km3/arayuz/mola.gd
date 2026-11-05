@@ -116,6 +116,7 @@ func veri_sil() -> String:
 	_sil_onay = 0.0
 	if FileAccess.file_exists(AYAR): DirAccess.remove_absolute(ProjectSettings.globalize_path(AYAR))
 	_gorulen = {}; _sira.clear()
+	ana.lig.sil()     # lig sezonu kaydı da
 	return "Cihazdaki verilerin silindi"
 
 func rehber_sifirla() -> void:

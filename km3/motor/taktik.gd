@@ -116,4 +116,5 @@ static func kadro_kur(takim: Dictionary, lig: String, dz := "") -> Dictionary:
 	for o in en.yedek: yed.append({"no": o.no, "n": o.n, "mevki": DZ_HARF.get(o.m, "O"), "ten": _renk(o.n, 0), "sac": _renk(o.n, 1)})
 	var t := takim.duplicate()
 	t.oy = oy; t.yedek = yed; t.dzAd = ed
+	t.guc = snappedf(float(en.puan) / 11.0, .01)     # lig modunun hızlı simülasyonu için
 	return t
