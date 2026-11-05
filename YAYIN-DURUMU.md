@@ -1,4 +1,11 @@
-# Kaptan Mecit — Yayın durumu (23 Ekim 2026)
+# Kaptan Mecit — Yayın durumu (6 Kasım 2026)
+
+## 1.5.0 — Klasik + Modern (5–6 Kas)
+- Uygulama açılınca önce dil (Türkçe / English), sonra oyun: **Klasik** (önceki Kaptan Mecit, `www/klasik/`) ya da **Modern** (Kaptan Mecit 3'ün en güncel web derlemesi, `www/modern/`). Seçilen dil hatırlanır; oyunlardan "Oyun seçimi" ile açılışa dönülür.
+- `www/modern/` depoya girmez: `ios.yml` / `android.yml` derlerken `araclar/modern-al.sh` ile emreanduv.github.io'daki `kaptan-mecit-3/` alınır. Yani KM3 web'e her gönderimde bir sonraki mağaza derlemesi otomatik güncel Modern'i taşır.
+- Klasik İngilizcesi: `www/klasik/en.js` (çalışma anında çeviri: DOM, tuval, paylaşım; kulüp adları renk/şehir çevirisiyle). Modern İngilizcesi: `km3/arayuz/dil.gd`.
+- Modern bu cihazda açılamazsa (WebGL 2 yok ya da kayboldu) seçim ekranına "Modern bu cihazda açılamadı" uyarısıyla döner. iOS simülatöründe (Intel ve Apple Silicon) Godot web WebGL bağlamını kaybediyor — Safari'de de aynı; gerçek iPhone'da denenmeli.
+- Steam/Champion kopyası artık `www/klasik/index.html` (+ `*.js`).
 
 ## 1.4.0 (hazırlanıyor, 4 Kas)
 - Test önerileri paketi (Malazgirt 1.6 / CBM 4.4 ile aynı): Rehber ipucu kartları (ana menü, Hızlı Maç, lig, ilk maç, mola, değişiklik, maç sonu, Ayarlar; eski oyunculara temel ipuçları gösterilmez), Nasıl Oynanır (ana menü, mola menüsü, Ayarlar), ★ Puan ver (`@capacitor-community/in-app-review` 8.0.0; 3. ve 10. galibiyette ya da ligi ilk üçte bitirince, en çok 2 kez), paylaş (`@capacitor/share` 8.0.3), Bize yaz, Verilerimi sil
