@@ -7,6 +7,7 @@
 - Modern bu cihazda açılamazsa (WebGL 2 yok ya da kayboldu) seçim ekranına "Modern bu cihazda açılamadı" uyarısıyla döner. iOS simülatöründe (Intel ve Apple Silicon) Godot web WebGL bağlamını kaybediyor — Safari'de de aynı; gerçek iPhone'da denenmeli.
 - 6 Kas gece: **1.5.0 (16)** Android imzalı (`imza-anahtari/kaptan-mecit-1.5.0-16-imzali.aab`) → Play dahili test yayında. **iOS 1.5.0 (15)** TestFlight'a yüklendi, dış gruba (Mr. Anduv! Testçiler) eklendi, beta incelemesi bekliyor.
 - 6 Kas gece: Emre iPhone'da Modern'i açtı (çalışıyor) ama yazılar okunmuyordu ve zorlanıyordu → **1.5.1**: Modern yatay kilitli (`@capacitor/screen-orientation`), KM3 0.7.1 telefonda büyük arayüz + safe-area + hafif çizim. Android 1.5.1 (17) Play dahili test yayında; iOS 1.5.1 (16) TestFlight dış grup, beta incelemesi bekliyor.
+- 6 Kas gece: **1.5.2** — Modern'de gol tekrarı (KM3 0.7.2, `km3/arayuz/tekrar.gd`); Emre'nin Facebook hesabı yok → `FACEBOOK / MR. ANDUV!` panosu her yerden kaldırıldı (Klasik, KM2, KM3, Pardus, champion-4, champion-battle, Kaptan Mecit VR web, KM2 web). Quest APK'larında bir sonraki derlemede gider. Android 1.5.2 (18) Play dahili test yayında; iOS 1.5.2 (17) TestFlight beta incelemesi bekliyor.
 - Steam/Champion kopyası artık `www/klasik/index.html` (+ `*.js`).
 
 ## 1.4.0 (hazırlanıyor, 4 Kas)
