@@ -42,15 +42,15 @@ func yenile() -> void:
 	var ic := MarginContainer.new(); ic.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	for k in ["left", "right", "top", "bottom"]: ic.add_theme_constant_override("margin_" + k, 14)
 	var hb := BoxContainer.new(); hb.vertical = dikey; hb.add_theme_constant_override("separation", 14)
-	if dikey:
-		var sc := ScrollContainer.new(); sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-		mv.add_child(sc); sc.add_child(ic); ic.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	else:
-		mv.add_child(ic)
+	# küçük ekranda (telefon) tablo ekrana sığmaz: gövde her zaman parmakla kaydırılır
+	var sc := ScrollContainer.new(); sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	mv.add_child(sc); sc.add_child(ic); ic.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	ic.add_child(hb)
-	hb.add_child(_tablo_panel())
-	hb.add_child(_sag_panel())
+	if dikey:
+		hb.add_child(_sag_panel()); hb.add_child(_tablo_panel())
+	else:
+		hb.add_child(_tablo_panel()); hb.add_child(_sag_panel())
 	satir = mini(satir, lig.satirlar().size() - 1)
 	ciz()
 
@@ -150,6 +150,16 @@ func _tablo_satir(vals: Array, sira: int, baslik: bool, biz: bool, form: String,
 
 func _sag_panel() -> Control:
 	var v := VBoxContainer.new(); v.custom_minimum_size = Vector2(400, 0); v.add_theme_constant_override("separation", 8)
+	# eylem düğmeleri en üstte: küçük ekranda kaydırmadan görünsün
+	var S := lig.satirlar()
+	for i in S.size():
+		var b := Button.new(); b.alignment = HORIZONTAL_ALIGNMENT_LEFT; b.add_theme_font_size_override("font_size", 17)
+		b.custom_minimum_size = Vector2(0, 40); b.clip_text = true
+		b.add_theme_stylebox_override("hover", _kutu(Color("#4a5566"), 6, 7)); b.add_theme_stylebox_override("pressed", _kutu(ALTIN, 6, 7))
+		b.add_theme_color_override("font_hover_color", Color.WHITE)
+		b.pressed.connect(func(): satir = i; eylem.emit("bas"))
+		v.add_child(b); dugmeler.append(b)
+	_mesaj = _etiket("", 14, SOLUK); _mesaj.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; v.add_child(_mesaj)
 	if lig.var_mi():
 		var mp := PanelContainer.new(); mp.add_theme_stylebox_override("panel", _kutu(PANEL, 6, 0))
 		var mv := VBoxContainer.new(); mv.add_theme_constant_override("separation", 6); mp.add_child(mv)
@@ -194,16 +204,6 @@ func _sag_panel() -> Control:
 		var l := _etiket("Ligini ve kulübünü seç. Her hafta kendi maçını oynarsın; ligin diğer maçları aynı anda sonuçlanır. Sezon sonunda en çok puanı toplayan şampiyon olur.", 15, YAZI)
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; iv.add_child(_ic(l))
 		v.add_child(ip)
-	var bos := Control.new(); bos.size_flags_vertical = Control.SIZE_EXPAND_FILL; v.add_child(bos)
-	var S := lig.satirlar()
-	for i in S.size():
-		var b := Button.new(); b.alignment = HORIZONTAL_ALIGNMENT_LEFT; b.add_theme_font_size_override("font_size", 17)
-		b.custom_minimum_size = Vector2(0, 36); b.clip_text = true
-		b.add_theme_stylebox_override("hover", _kutu(Color("#4a5566"), 6, 7)); b.add_theme_stylebox_override("pressed", _kutu(ALTIN, 6, 7))
-		b.add_theme_color_override("font_hover_color", Color.WHITE)
-		b.pressed.connect(func(): satir = i; eylem.emit("bas"))
-		v.add_child(b); dugmeler.append(b)
-	_mesaj = _etiket("", 14, SOLUK); _mesaj.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; v.add_child(_mesaj)
 	return v
 
 func _serit(t: String) -> Control:
