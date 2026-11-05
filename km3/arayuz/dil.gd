@@ -11,6 +11,7 @@ static var _ornek: Dil = null
 
 # uzun ifadeler önce denenir (sıralama kurulumda yapılır)
 const SOZLUK := {
+	"TEKRAR": "REPLAY", "Geçmek için dokun": "Tap to skip",
 	# ana menü, seçiciler
 	"Bir Mr. Anduv! yapımıdır.": "Made by Mr. Anduv!",
 	"sürüm": "version",

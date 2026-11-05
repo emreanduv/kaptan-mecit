@@ -68,7 +68,7 @@ func _draw() -> void:
 		var basili := _dugme_parmak.values().has(ad)
 		draw_circle(c, r, Color(0.04, 0.07, 0.09, .55 if not basili else .8))
 		draw_arc(c, r, 0, TAU, 48, Color("#f3d35a") if ad == "sut" else Color.WHITE, 3.0, true)
-		var t := "ŞUT" if ad == "sut" else "PAS"
+		var t := Dil.cevir("ŞUT" if ad == "sut" else "PAS")
 		var fs := int(r * .42)
 		var w := yazi.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 		draw_string(yazi, c + Vector2(-w / 2, fs * .35), t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color.WHITE)

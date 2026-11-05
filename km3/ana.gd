@@ -70,6 +70,8 @@ var _lig_bitis := 0.0
 # test / ekran görüntüsü (komut satırı)
 var _arg := {}
 var _donuk := false
+var tekrar := Tekrar.new()
+var _tekrar_kutu: Control
 
 func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
@@ -127,6 +129,9 @@ func _ready() -> void:
 		var n := 0
 		while M.state != "goal" and n < 60 * 600: _adim(); n += 1
 		for i in int(float(_arg.gol) * 60): _adim()
+	if _arg.has("tekrar"):
+		# deneme: golden sonra tekrarın t. saniyesine git
+		tekrar.kare(Tekrar.BEKLE + .01); tekrar.kare(float(_arg.tekrar))
 	if _arg.has("ileri"):
 		var n := int(float(_arg.ileri) * 60)
 		for i in n: _adim()
@@ -254,10 +259,13 @@ func _mac_kur(ev: Dictionary, dep: Dictionary, sure: int, zor: int, gosterim: bo
 # ---------- döngü ----------
 func _process(dt: float) -> void:
 	_girdi()
+	var tekrarda := tekrar.kare(dt) if (M != null and vr == null) else false
+	if _tekrar_kutu: _tekrar_kutu.visible = tekrarda
+	if tekrarda: _birikim = 0.0; afis.visible = false; _afis_t = 0.0
 	# en çok 2 motor adımı / kare: yavaş bir karenin ardından "yetişmeye çalışıp" kareleri daha da yavaşlatma sarmalı olmasın
 	_birikim = minf(_birikim + dt, ADIM * 2)
 	var adim := 0
-	while _birikim >= ADIM and adim < 2 and not _donuk:
+	while _birikim >= ADIM and adim < 2 and not _donuk and not tekrarda:
 		_birikim -= ADIM; adim += 1
 		_adim()
 	_ciz(dt)
@@ -273,7 +281,9 @@ func _process(dt: float) -> void:
 
 func _adim() -> void:
 	if M == null: return
-	if not menu_acik or M.demo: M.step(ADIM)
+	if not menu_acik or M.demo:
+		M.step(ADIM)
+		tekrar.adim(M)
 	for o in M.olaylar: _olay(o)
 	M.olaylar.clear()
 	if M.state == "over" and M.demo:
@@ -292,6 +302,7 @@ func _olay(o: Array) -> void:
 		"ooo": ses.ooo()
 		"gol":
 			ses.gol()
+			if vr == null and not _arg.has("tekrarsiz"): tekrar.gol()
 			ses.taraftar(int(o[1]), "tezahurat", 2.4); ses.taraf_sustur(1 - int(o[1]), 25.0)
 			_tabela()
 		"taraftar": ses.taraftar(int(o[1]), o[2])
@@ -305,8 +316,15 @@ func _olay(o: Array) -> void:
 			for f in oyuncular:
 				if f.get_meta("oy") == o[1]: f.visible = false
 
+# tekrar oynarken herhangi bir tuş / dokunuş tekrarı geçer
+func _input(e: InputEvent) -> void:
+	if not tekrar.aktif: return
+	if (e is InputEventKey or e is InputEventScreenTouch or e is InputEventMouseButton or e is InputEventJoypadButton) and e.pressed:
+		tekrar.bitir(); if _tekrar_kutu: _tekrar_kutu.visible = false
+		get_viewport().set_input_as_handled()
+
 func _girdi() -> void:
-	if dok: dok.visible = dokunmatik and M != null and not M.demo and not menu_acik and vr == null
+	if dok: dok.visible = dokunmatik and M != null and not M.demo and not menu_acik and vr == null and not tekrar.aktif
 	if M == null or M.demo or menu_acik: return
 	if vr: vr.girdi(M); return
 	var v := Vector2(Input.get_axis("ui_left", "ui_right"), Input.get_axis("ui_up", "ui_down"))
@@ -361,7 +379,7 @@ static func W(x: float, y: float, z := 0.0) -> Vector3: return Vector3(x - PW / 
 func _ciz(dt: float) -> void:
 	if M == null: return
 	var now := Time.get_ticks_msec() / 1000.0
-	var gol := M.son_gol_takimi()
+	var gol := -1 if tekrar.aktif else M.son_gol_takimi()
 	for f: Futbolcu in oyuncular:
 		if not f.visible: continue
 		var p = f.get_meta("oy")
@@ -398,7 +416,8 @@ func _kamera_guncelle(dt: float) -> void:
 	var bw := W(b.x, b.y, b.z)
 	var ileri_y := 1.0 if M.goal_y_of(0) == 0.0 else -1.0     # ev sahibinin hücum yönü (dünya Z'de ters)
 	var poz: Vector3; var bak: Vector3; var fov: float
-	match kam_mod:
+	var mod := 4 if tekrar.aktif else kam_mod     # tekrar: yakın yayın kamerası
+	match mod:
 		0:  # yayın: yan tribün üstü, topu yatayda izler
 			poz = Vector3(53, 20, clampf(bw.z * .8, -32, 32)); bak = Vector3(bw.x * .6, 0, bw.z); fov = 30
 		1:  # tele: köşe, yüksek
@@ -454,6 +473,16 @@ func _arayuz() -> void:
 	var ak := CenterContainer.new(); ak.set_anchors_preset(Control.PRESET_TOP_WIDE); ak.offset_top = 110; ak.offset_bottom = 260
 	ak.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ak.add_child(afis); ui.add_child(ak); _ak = ak
+	# tekrar şeridi
+	var tk := PanelContainer.new(); tk.add_theme_stylebox_override("panel", _kutu(Color(0.62, 0.08, 0.1, .88), 10))
+	var tkh := HBoxContainer.new(); tkh.add_theme_constant_override("separation", 14); tk.add_child(tkh)
+	var tl := Label.new(); tl.text = "TEKRAR"; tl.add_theme_font_size_override("font_size", 26); tl.add_theme_color_override("font_color", Color.WHITE)
+	var tl2 := Label.new(); tl2.text = "Geçmek için dokun"; tl2.add_theme_font_size_override("font_size", 16); tl2.add_theme_color_override("font_color", Color(1, 1, 1, .8))
+	tl2.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	tkh.add_child(tl); tkh.add_child(tl2)
+	var tkc := CenterContainer.new(); tkc.set_anchors_preset(Control.PRESET_TOP_WIDE); tkc.offset_top = 70; tkc.offset_bottom = 120
+	tkc.mouse_filter = Control.MOUSE_FILTER_IGNORE; tkc.add_child(tk); ui.add_child(tkc)
+	tkc.visible = false; _tekrar_kutu = tkc
 	# kısayollar (sol alt)
 	bilgi = Label.new()
 	bilgi.text = "WASD / oklar: koş · X: pas / oyuncu seç · Z / boşluk: şut · kay · C: kamera · M: menü   ·   Kol: sol çubuk koş · A pas · B şut · Y kamera"
@@ -624,6 +653,7 @@ func _yerlesim() -> void:
 		_imza.offset_right = -14 - sag; _imza.offset_left = _imza.offset_right - _imza.get_combined_minimum_size().x
 		_imza.offset_top = 16 + ust; _imza.offset_bottom = _imza.offset_top + _imza.get_combined_minimum_size().y
 	if _ak: _ak.offset_top = 110 + ust; _ak.offset_bottom = 260 + ust
+	if _tekrar_kutu: _tekrar_kutu.offset_top = 70 + ust; _tekrar_kutu.offset_bottom = 120 + ust
 	if menu: menu.custom_minimum_size.x = minf(800, mantik.x - 24)
 	if mola_panel: mola_panel.custom_minimum_size.x = minf(760, mantik.x - 24)
 	if afis: afis.custom_minimum_size.x = minf(520, mantik.x - 24)
