@@ -5,6 +5,7 @@
 - `www/modern/` depoya girmez: `ios.yml` / `android.yml` derlerken `araclar/modern-al.sh` ile emreanduv.github.io'daki `kaptan-mecit-3/` alınır. Yani KM3 web'e her gönderimde bir sonraki mağaza derlemesi otomatik güncel Modern'i taşır.
 - Klasik İngilizcesi: `www/klasik/en.js` (çalışma anında çeviri: DOM, tuval, paylaşım; kulüp adları renk/şehir çevirisiyle). Modern İngilizcesi: `km3/arayuz/dil.gd`.
 - Modern bu cihazda açılamazsa (WebGL 2 yok ya da kayboldu) seçim ekranına "Modern bu cihazda açılamadı" uyarısıyla döner. iOS simülatöründe (Intel ve Apple Silicon) Godot web WebGL bağlamını kaybediyor — Safari'de de aynı; gerçek iPhone'da denenmeli.
+- 6 Kas gece: **1.5.0 (16)** Android imzalı (`imza-anahtari/kaptan-mecit-1.5.0-16-imzali.aab`) → Play dahili test yayında. **iOS 1.5.0 (15)** TestFlight'a yüklendi, dış gruba (Mr. Anduv! Testçiler) eklendi, beta incelemesi bekliyor.
 - Steam/Champion kopyası artık `www/klasik/index.html` (+ `*.js`).
 
 ## 1.4.0 (hazırlanıyor, 4 Kas)
