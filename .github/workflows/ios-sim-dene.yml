@@ -5,6 +5,7 @@ on:
     inputs:
       ref: { description: "Denenecek commit/dal", default: "main" }
       runner: { description: "Makine", default: "macos-15-intel" }
+      safari: { description: "Sonunda Safari'de açılacak adres (boşsa açılmaz)", default: "" }
       git: { description: "Açılışta otomatik gidilecek sayfa (ör. modern/index.html?dil=en&kabuk=1)", default: "" }
 permissions:
   contents: write
@@ -64,6 +65,10 @@ jobs:
           xcrun simctl io $UDID screenshot sonuc/ekran.png
           xcrun simctl spawn $UDID launchctl list 2>/dev/null | grep -i kaptan > sonuc/calisiyor.txt || echo "uygulama çalışmıyor" > sonuc/calisiyor.txt
           kill $LP 2>/dev/null || true
+          if [ -n "${{ inputs.safari }}" ]; then
+            xcrun simctl openurl $UDID "${{ inputs.safari }}"; sleep 20; xcrun simctl io $UDID screenshot sonuc/safari-20sn.png
+            sleep 30; xcrun simctl io $UDID screenshot sonuc/safari-50sn.png
+          fi
           xcrun simctl spawn $UDID log show --last 3m --predicate 'processImagePath CONTAINS "App.app" OR eventMessage CONTAINS "⚡️"' --style compact > sonuc/log.txt 2>&1 || true
           grep -i "⚡️\|error\|exception\|crash\|fault" sonuc/log.txt | head -120 > sonuc/log-ozet.txt || true
           ls -t ~/Library/Logs/DiagnosticReports/ 2>/dev/null | head -5 > sonuc/cokme.txt || true
