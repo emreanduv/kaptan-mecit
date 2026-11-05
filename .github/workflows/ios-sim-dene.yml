@@ -4,7 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       ref: { description: "Denenecek commit/dal", default: "main" }
-      runner: { description: "Makine", default: "macos-latest" }
+      runner: { description: "Makine", default: "macos-15-intel" }
+      git: { description: "Açılışta otomatik gidilecek sayfa (ör. modern/index.html?dil=en&kabuk=1)", default: "" }
 permissions:
   contents: write
 jobs:
@@ -21,18 +22,25 @@ jobs:
           if [ -n "$X" ]; then sudo xcode-select -s "$X"; fi
           xcodebuild -version
       - run: npm ci
+      - name: Kaptan Mecit Modern (KM3 web)
+        run: bash araclar/modern-al.sh
       - name: Hata yakalayıcı ekle (yalnız deneme derlemesi)
         run: |
           python3 - <<'PY'
-          p='www/index.html'; s=open(p,encoding='utf-8').read()
+          p='www/klasik/index.html'; s=open(p,encoding='utf-8').read()
           js="""<script>(function(){function g(t){try{var d=document.getElementById('__hata');if(!d){d=document.createElement('pre');d.id='__hata';d.style.cssText='position:fixed;z-index:999999;left:0;right:0;top:0;bottom:0;margin:0;padding:60px 10px;background:#200;color:#fff;font:12px monospace;white-space:pre-wrap;overflow:auto';(document.body||document.documentElement).appendChild(d)}d.textContent+=t+'\\n\\n'}catch(e){}}
           window.addEventListener('error',function(e){g('HATA: '+e.message+' @'+e.lineno+':'+e.colno+'\\n'+(e.error&&e.error.stack||''))});
           window.addEventListener('unhandledrejection',function(e){g('PROMISE: '+(e.reason&&(e.reason.stack||e.reason.message)||e.reason))});
           setTimeout(function(){g('5sn: app='+((document.getElementById('app')||{}).innerHTML||'').length+' body='+document.body.innerHTML.length)},5000)})();</script>"""
           i=s.index('<head>')+6; s=s[:i]+js+s[i:]
           open(p,'w',encoding='utf-8').write(s)
+          for p in ['www/modern/index.html','www/index.html']:
+            t=open(p,encoding='utf-8').read(); i=t.index('<head>')+6; t=t[:i]+js.replace("getElementById('app')","getElementById('canvas')")+t[i:]
+            git="${{ inputs.git }}"
+            if p=='www/index.html' and git: t=t.replace('</body>',"<script>setTimeout(function(){location.href='"+git+"'},1500)</script></body>")
+            open(p,'w',encoding='utf-8').write(t)
           PY
-          head -c 1500 www/index.html
+          head -c 1500 www/klasik/index.html
       - run: npx cap sync ios
       - name: Simülatör için derle
         working-directory: ios/App
@@ -51,6 +59,8 @@ jobs:
           sleep 12
           xcrun simctl io $UDID screenshot sonuc/ekran-12sn.png
           sleep 15
+          xcrun simctl io $UDID screenshot sonuc/ekran-27sn.png
+          sleep 30
           xcrun simctl io $UDID screenshot sonuc/ekran.png
           xcrun simctl spawn $UDID launchctl list 2>/dev/null | grep -i kaptan > sonuc/calisiyor.txt || echo "uygulama çalışmıyor" > sonuc/calisiyor.txt
           kill $LP 2>/dev/null || true

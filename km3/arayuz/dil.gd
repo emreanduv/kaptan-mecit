@@ -107,17 +107,43 @@ static func _harf(c: String) -> bool:
 	return c != "" and (c.to_lower() != c.to_upper() or c.is_valid_int())
 
 # ifade ifade çeviri; kelime sınırına dikkat eder (kısa kelimeler başka kelimelerin içinde değişmez)
+# kulüp adları: renk ve şehir kelimeleri yalnız kulüp adının içinde çevrilir (oyuncu soyadı "Sarı" bozulmasın)
+const KULUP_KELIME := {"Kırmızı": "Red", "Beyaz": "White", "Siyah": "Black", "Mavi": "Blue", "Lacivert": "Navy", "Sarı": "Yellow", "Yeşil": "Green",
+	"Turuncu": "Orange", "Mor": "Purple", "Bordo": "Maroon", "Gök": "Sky", "Kara": "Black", "Şerit": "Stripe", "Londra": "London", "Münih": "Munich",
+	"Cenova": "Genoa", "Floransa": "Florence", "Venedik": "Venice", "Marsilya": "Marseille", "Barselona": "Barcelona", "Valensiya": "Valencia",
+	"Strazburg": "Strasbourg", "Sardinya": "Sardinia", "Monako": "Monaco", "Köln": "Cologne", "Torino": "Turin", "Milano": "Milan", "Roma": "Rome",
+	"Napoli": "Naples", "Arıları": "Bees", "Keçileri": "Goats", "Demircileri": "Ironworkers", "Orman": "Forest", "Boğaziçi": "Bosphorus",
+	"Haliç": "Golden Horn", "Karadeniz": "Black Sea"}
+static var _tum := {}
+static func _kulupler() -> void:
+	var f := FileAccess.open("res://veri/takimlar.json", FileAccess.READ)
+	if f == null: return
+	var j = JSON.parse_string(f.get_as_text())
+	if not (j is Dictionary): return
+	for lg in j.get("ligler", []):
+		for t in lg.get("takimlar", []):
+			var ad: String = t.get("ad", "")
+			var parca := ""; var cikti := ""
+			for ch in ad + " ":
+				if ch == " " or ch == "-":
+					cikti += KULUP_KELIME.get(parca, parca) + (ch if ch == "-" else " "); parca = ""
+				else: parca += ch
+			cikti = cikti.strip_edges()
+			if cikti != ad and not _tum.has(ad): _tum[ad] = cikti
+
 static func cevir(s: String) -> String:
 	if not en or s == "": return s
 	if _onbellek.has(s): return _onbellek[s]
 	if s == Mola.YARDIM: return YARDIM_EN
 	if _sirali.is_empty():
-		_sirali = SOZLUK.keys()
+		_tum = SOZLUK.duplicate()
+		_kulupler()
+		_sirali = _tum.keys()
 		_sirali.sort_custom(func(a, b): return a.length() > b.length())
 	var out := s
 	for k: String in _sirali:
 		if out.find(k) < 0: continue
-		var v: String = SOZLUK[k]
+		var v: String = _tum[k]
 		var i := 0
 		while true:
 			i = out.find(k, i)

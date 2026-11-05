@@ -22,6 +22,8 @@ jobs:
           if [ -n "$X" ]; then sudo xcode-select -s "$X"; fi
           xcodebuild -version
       - run: npm ci
+      - name: Kaptan Mecit Modern (KM3 web)
+        run: bash araclar/modern-al.sh
       - run: npx cap sync ios
       - name: App Store Connect anahtarı
         env: { P8: "${{ secrets.ASC_KEY_P8 }}" }

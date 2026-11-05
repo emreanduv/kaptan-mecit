@@ -3,7 +3,7 @@
 Nostaljik, üstten görünümlü, internetsiz futbol oyunu. iOS, Android (Capacitor) ve Pardus (.deb).
 
 ## Klasörler
-- `www/index.html` — oyunun tamamı (tek dosya). Tarayıcıda denemek için `start.command`'a çift tıkla.
+- `www/klasik/index.html` — oyunun tamamı (tek dosya). Tarayıcıda denemek için `start.command`'a çift tıkla.
 - `android/`, `ios/` — Capacitor yerel projeleri (`npx cap sync` ile `www` kopyalanır)
 - `assets/` — ikon, açılış ekranı, Play öne çıkan görsel (`npm run ikonlar` ile tüm boyutlar üretilir)
 - `store/` — mağaza metinleri, form cevapları, gizlilik politikası, ekran görüntüleri
