@@ -26,7 +26,9 @@ var gunes: DirectionalLight3D
 var golgeler: MultiMeshInstance3D = null
 var vr: VR = null
 var vr_koltuk := 2
-var hafif := OS.has_feature("android")
+# telefon / tablet tarayıcısı (mobil uygulamadaki Modern de budur): hafif çizim, düşük 3B çözünürlük
+var mobil_web := OS.has_feature("web") and (OS.has_feature("web_ios") or OS.has_feature("web_android") or DisplayServer.is_touchscreen_available())
+var hafif := OS.has_feature("android") or mobil_web
 
 # arayüz
 var ui: CanvasLayer
@@ -98,6 +100,12 @@ func _ready() -> void:
 	ses = Ses.new(); add_child(ses)
 	mola = Mola.new(self); mola.rehber_yukle()
 	_arayuz()
+	if mobil_web or _arg.has("mobil"):
+		# telefon ekranı 3 kat yoğun: 3B sahneyi düşük çözünürlükte çiz, arayüz keskin kalsın
+		get_viewport().scaling_3d_scale = .65
+		get_viewport().msaa_3d = Viewport.MSAA_DISABLED
+	get_tree().root.size_changed.connect(_yerlesim)
+	_yerlesim()
 	kam_mod = int(_arg.get("kamera", "0"))
 	sec_kam.select(kam_mod)
 	# açılışta arkada gösterim maçı döner (Kaptan Mecit'teki gibi)
@@ -209,6 +217,8 @@ func _ortam() -> void:
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC; env.tonemap_exposure = 1.05
 	env.glow_enabled = true; env.glow_intensity = .55; env.glow_bloom = .05; env.glow_hdr_threshold = 1.2
 	env.adjustment_enabled = true; env.adjustment_contrast = 1.06; env.adjustment_saturation = 1.08
+	if hafif or _arg.has("mobil"):
+		env.glow_enabled = false; env.adjustment_enabled = false
 	we.environment = env
 	add_child(we)
 	# projektörlerin birleşik ışığı: hafif sıcak beyaz, gölgeli
@@ -424,7 +434,7 @@ func _arayuz() -> void:
 	# tabela (sol üst)
 	var tp := PanelContainer.new()
 	tp.add_theme_stylebox_override("panel", _kutu(Color(0.04, 0.07, 0.09, .82), 10))
-	tp.position = Vector2(18, 16)
+	tp.position = Vector2(18, 16); _tp = tp
 	var th := HBoxContainer.new(); th.add_theme_constant_override("separation", 14)
 	tp.add_child(th)
 	tabela = Label.new(); tabela.add_theme_font_size_override("font_size", 24)
@@ -443,7 +453,7 @@ func _arayuz() -> void:
 	afis.visible = false
 	var ak := CenterContainer.new(); ak.set_anchors_preset(Control.PRESET_TOP_WIDE); ak.offset_top = 110; ak.offset_bottom = 260
 	ak.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ak.add_child(afis); ui.add_child(ak)
+	ak.add_child(afis); ui.add_child(ak); _ak = ak
 	# kısayollar (sol alt)
 	bilgi = Label.new()
 	bilgi.text = "WASD / oklar: koş · X: pas / oyuncu seç · Z / boşluk: şut · kay · C: kamera · M: menü   ·   Kol: sol çubuk koş · A pas · B şut · Y kamera"
@@ -453,7 +463,7 @@ func _arayuz() -> void:
 	var imza := Label.new(); imza.text = "Bir Mr. Anduv! yapımıdır."
 	imza.add_theme_stylebox_override("normal", _kutu(Color(0.04, 0.07, 0.09, .7), 8))
 	imza.add_theme_font_size_override("font_size", 15); imza.add_theme_color_override("font_color", Color(1, 1, 1, .8))
-	imza.set_anchors_preset(Control.PRESET_TOP_RIGHT); imza.position = Vector2(-250, 16)
+	imza.set_anchors_preset(Control.PRESET_TOP_RIGHT); imza.position = Vector2(-250, 16); _imza = imza
 	ui.add_child(imza)
 	# dokunmatik (telefon / tablet)
 	dokunmatik = DisplayServer.is_touchscreen_available() or _arg.has("dokun")
@@ -518,8 +528,7 @@ func _arayuz() -> void:
 	mv.add_child(alt)
 	_dil_yaz()
 	menu.add_child(mv)
-	var mk := CenterContainer.new(); mk.set_anchors_preset(Control.PRESET_FULL_RECT); mk.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	mk.add_child(menu); ui.add_child(mk)
+	ui.add_child(_kaydirmali(menu))
 	# lig ekranı (tam ekran)
 	lig_ekran = LigEkran.new(lig); ui.add_child(lig_ekran)
 	lig_ekran.eylem.connect(func(_a): lig_bas(lig_ekran.satir))
@@ -542,21 +551,31 @@ func _arayuz() -> void:
 	mola_mesaj.text = "Oklar: satır ve değer  ·  Enter: seç  ·  M / Esc: maça dön"
 	ov.add_child(mola_mesaj)
 	mola_panel.add_child(ov)
-	var omk := CenterContainer.new(); omk.set_anchors_preset(Control.PRESET_FULL_RECT); omk.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	omk.add_child(mola_panel); ui.add_child(omk)
+	ui.add_child(_kaydirmali(mola_panel))
 	# Nasıl oynanır
 	yardim_panel = PanelContainer.new(); yardim_panel.visible = false
 	yardim_panel.add_theme_stylebox_override("panel", _kutu(Color(0.04, 0.07, 0.09, .95), 16))
 	var yv := VBoxContainer.new()
-	var yl := Label.new(); yl.text = Mola.YARDIM; yl.add_theme_font_size_override("font_size", 17); yl.add_theme_color_override("font_color", Color.WHITE)
+	var yl := Label.new(); _yardim_yazi = yl; yl.text = Mola.YARDIM; yl.add_theme_font_size_override("font_size", 17); yl.add_theme_color_override("font_color", Color.WHITE)
 	var yk := Button.new(); yk.text = "Kapat"; yk.pressed.connect(func(): yardim_goster(false))
 	var ys := Button.new(); ys.text = "Rehberi baştan göster"; ys.pressed.connect(func(): mola.rehber_sifirla(); yardim_goster(false))
 	var yvs := Button.new(); yvs.text = "Verilerimi sil"
 	yvs.pressed.connect(func(): yvs.text = mola.veri_sil())
 	var yh := HBoxContainer.new(); yh.add_theme_constant_override("separation", 10); yh.add_child(ys); yh.add_child(yvs); yh.add_child(yk)
 	yv.add_child(yl); yv.add_child(yh); yardim_panel.add_child(yv)
-	var ymk := CenterContainer.new(); ymk.set_anchors_preset(Control.PRESET_FULL_RECT); ymk.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ymk.add_child(yardim_panel); ui.add_child(ymk)
+	ui.add_child(_kaydirmali(yardim_panel))
+
+# küçük ekranda sığmayan panel parmakla kaydırılır; panel gizliyken dokunuşları yutmasın diye kap da gizlenir
+func _kaydirmali(p: Control) -> Control:
+	var sc := ScrollContainer.new(); sc.set_anchors_preset(Control.PRESET_FULL_RECT)
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	var cc := CenterContainer.new(); cc.size_flags_horizontal = Control.SIZE_EXPAND_FILL; cc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	cc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cc.add_child(p); sc.add_child(cc)
+	sc.visible = p.visible
+	p.visibility_changed.connect(func(): sc.visible = p.visible)
+	return sc
 
 func _mola_ciz() -> void:
 	mola_baslik.text = "MOLA   ·   %s %d-%d %s   ·   %s'" % [M.T[0].t.kisa, M.T[0].score, M.T[1].score, M.T[1].t.kisa, M.min_label()]
@@ -564,6 +583,55 @@ func _mola_ciz() -> void:
 		mola_dugmeler[i].text = mola.satir_metni(i, i == mola_satir)
 
 var dil_dugme: Button
+
+# ---------- yerleşim: dik telefon ekranında arayüz büyür, çentik / ana çubuk payı bırakılır ----------
+var _tp: Control
+var _imza: Control
+var _ak: Control
+var _yardim_yazi: Label
+var dikey := false
+
+func _css() -> Dictionary:
+	if _arg.has("css"):   # deneme: --css=430x932x59x34 (genişlik x yükseklik x üst pay x alt pay)
+		var a: PackedStringArray = _arg.css.split("x")
+		var d := {"w": float(a[0]), "h": float(a[1])}
+		for i in range(2, a.size()): d[["t", "b", "l", "r"][i - 2]] = float(a[i])
+		return d
+	if not OS.has_feature("web"): return {}
+	var j = JavaScriptBridge.eval("(function(){var d=document.getElementById('__gv');if(!d){d=document.createElement('div');d.id='__gv';d.style.cssText='position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';document.body.appendChild(d)}var s=getComputedStyle(d);return JSON.stringify({w:innerWidth,h:innerHeight,t:parseFloat(s.paddingTop)||0,b:parseFloat(s.paddingBottom)||0,l:parseFloat(s.paddingLeft)||0,r:parseFloat(s.paddingRight)||0})})()", true)
+	var r = JSON.parse_string(j) if j is String else null
+	return r if r is Dictionary else {}
+
+func _yerlesim() -> void:
+	var w := get_tree().root
+	var ps := Vector2(w.size)
+	if ps.x < 2 or ps.y < 2: return
+	var c := _css()
+	var cw: float = c.get("w", ps.x)
+	var ch: float = c.get("h", ps.y)
+	dikey = ch > cw
+	# dikeyde mantıksal genişlik ≈ CSS genişliğinin 1,45 katı: 18'lik yazı telefonda ~12 nokta okunur
+	var f := 1280.0 / clampf(cw * 1.45, 600.0, 1280.0) if dikey else 720.0 / clampf(ch * 1.6, 600.0, 720.0)
+	w.content_scale_factor = f
+	var s0 := minf(ps.x / 1280.0, ps.y / 720.0) * f
+	var mantik := ps / s0
+	var ust: float = float(c.get("t", 0.0)) * mantik.y / ch
+	var alt: float = float(c.get("b", 0.0)) * mantik.y / ch
+	var sol: float = float(c.get("l", 0.0)) * mantik.x / cw
+	var sag: float = float(c.get("r", 0.0)) * mantik.x / cw
+	if _tp: _tp.position = Vector2(18 + sol, 16 + ust)
+	if _imza:
+		_imza.offset_right = -14 - sag; _imza.offset_left = _imza.offset_right - _imza.get_combined_minimum_size().x
+		_imza.offset_top = 16 + ust; _imza.offset_bottom = _imza.offset_top + _imza.get_combined_minimum_size().y
+	if _ak: _ak.offset_top = 110 + ust; _ak.offset_bottom = 260 + ust
+	if menu: menu.custom_minimum_size.x = minf(800, mantik.x - 24)
+	if mola_panel: mola_panel.custom_minimum_size.x = minf(760, mantik.x - 24)
+	if afis: afis.custom_minimum_size.x = minf(520, mantik.x - 24)
+	if _yardim_yazi:
+		_yardim_yazi.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if dikey else TextServer.AUTOWRAP_OFF
+		_yardim_yazi.custom_minimum_size.x = mantik.x - 60 if dikey else 0.0
+	if dok: dok.ust = ust; dok.alt = alt; dok.sag = sag; dok.queue_redraw()
+	if lig_ekran: lig_ekran.dikey = dikey; lig_ekran.ust = ust; if lig_ekran.visible: lig_ekran.yenile()
 func _dil_yaz() -> void:
 	if dil_dugme: dil_dugme.text = "Dil / Language: " + Dil.ad()
 

@@ -14,6 +14,9 @@ var _cubuk_merkez := Vector2.ZERO
 var _cubuk_uc := Vector2.ZERO
 var _dugme_parmak := {}          # parmak -> "pas" / "sut"
 const YARICAP := 90.0
+var ust := 0.0                   # çentik / durum çubuğu payı
+var alt := 0.0                   # ana çubuk payı
+var sag := 0.0                   # yatayda çentik payı
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -23,8 +26,8 @@ func _ready() -> void:
 func _dugmeler() -> Dictionary:
 	var s := size
 	var r := minf(s.y * .11, 78.0)
-	return {"sut": [Vector2(s.x - r * 1.5, s.y - r * 1.6), r], "pas": [Vector2(s.x - r * 3.9, s.y - r * 1.1), r * .9],
-		"mola": [Vector2(s.x * .5, r * .55), r * .42]}
+	return {"sut": [Vector2(s.x - sag - r * 1.5, s.y - alt - r * 1.6), r], "pas": [Vector2(s.x - sag - r * 3.9, s.y - alt - r * 1.1), r * .9],
+		"mola": [Vector2(s.x * .5, ust + r * .55), r * .42]}
 
 func _input(e: InputEvent) -> void:
 	if not visible: return
@@ -79,6 +82,6 @@ func _draw() -> void:
 		draw_circle(_cubuk_uc, YARICAP * .42, Color(1, 1, 1, .55))
 	else:
 		# boşken sol altta soluk bir çubuk ipucu
-		var c0 := Vector2(YARICAP * 1.5, size.y - YARICAP * 1.4)
+		var c0 := Vector2(YARICAP * 1.5, size.y - alt - YARICAP * 1.4)
 		draw_arc(c0, YARICAP * .8, 0, TAU, 40, Color(1, 1, 1, .25), 2.0, true)
 		draw_circle(c0, YARICAP * .3, Color(1, 1, 1, .2))

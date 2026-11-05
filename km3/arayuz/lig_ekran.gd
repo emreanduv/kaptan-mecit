@@ -21,6 +21,8 @@ var lig: Lig
 var satir := 0
 var dugmeler: Array = []
 var _govde: Control
+var dikey := false   # dik telefon: tablo üstte, sağ panel altta, kaydırılır
+var ust := 0.0
 signal eylem(ad: String)
 
 func _init(l: Lig) -> void:
@@ -34,11 +36,18 @@ func yenile() -> void:
 	dugmeler.clear()
 	var mv := VBoxContainer.new(); mv.add_theme_constant_override("separation", 0)
 	_govde = mv; add_child(mv)
+	if ust > 0:
+		var bos := ColorRect.new(); bos.color = SERIT; bos.custom_minimum_size = Vector2(0, ust); mv.add_child(bos)
 	mv.add_child(_baslik())
 	var ic := MarginContainer.new(); ic.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	for k in ["left", "right", "top", "bottom"]: ic.add_theme_constant_override("margin_" + k, 14)
-	mv.add_child(ic)
-	var hb := HBoxContainer.new(); hb.add_theme_constant_override("separation", 14)
+	var hb := BoxContainer.new(); hb.vertical = dikey; hb.add_theme_constant_override("separation", 14)
+	if dikey:
+		var sc := ScrollContainer.new(); sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		mv.add_child(sc); sc.add_child(ic); ic.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	else:
+		mv.add_child(ic)
 	ic.add_child(hb)
 	hb.add_child(_tablo_panel())
 	hb.add_child(_sag_panel())
@@ -75,6 +84,7 @@ func _baslik() -> Control:
 	else:
 		alt += "  ·  Yeni sezon: kulübünü seç"
 	var al := _etiket(alt, 17, yazi_renk); al.size_flags_horizontal = Control.SIZE_EXPAND_FILL; al.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	if dikey: al.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; al.custom_minimum_size.x = 120
 	hb.add_child(al)
 	if var_mi:
 		var sr := _etiket("%d." % lig.sira_biz(), 26, yazi_renk); hb.add_child(sr)
@@ -119,12 +129,13 @@ func _tablo_satir(vals: Array, sira: int, baslik: bool, biz: bool, form: String,
 	var boy := 14 if baslik else 15
 	var renk := SOLUK if baslik else YAZI
 	for k in vals.size():
+		if dikey and k == vals.size() - 1 and vals.size() > 10: continue   # dik ekranda form sütunu yok
 		var l := _etiket(str(vals[k]), boy, renk)
 		if k == 1:
 			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL; l.clip_text = true
 			l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		else:
-			l.custom_minimum_size = Vector2(40 if k == 0 else (96 if k == vals.size() - 1 else 44), 0)
+			l.custom_minimum_size = Vector2((28 if dikey else 40) if k == 0 else (96 if k == vals.size() - 1 else (30 if dikey else 44)), 0)
 			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		if k == vals.size() - 1 and not baslik and form != "":
 			var rt := RichTextLabel.new(); rt.bbcode_enabled = true; rt.fit_content = true; rt.scroll_active = false
