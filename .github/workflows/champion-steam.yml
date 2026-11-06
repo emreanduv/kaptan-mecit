@@ -23,7 +23,9 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: npm ci --no-audit --no-fund
-      - run: mkdir -p oyun && cp ../www/klasik/index.html oyun/index.html && cp ../www/klasik/*.js oyun/
+      - run: |
+          mkdir -p oyun
+          if [ -f ../www/klasik/index.html ]; then cp ../www/klasik/index.html oyun/index.html && cp ../www/klasik/*.js oyun/ 2>/dev/null || true; else cp ../www/index.html oyun/index.html; fi
       - run: npm pkg set version=${{ inputs.surum }}
       - name: Paketle
         env: { CSC_IDENTITY_AUTO_DISCOVERY: "false" }
