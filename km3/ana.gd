@@ -244,7 +244,7 @@ func _ortam() -> void:
 
 # ---------- maç kurulumu ----------
 func _mac_kur(ev: Dictionary, dep: Dictionary, sure: int, zor: int, gosterim: bool, deplasman := false) -> void:
-	M = Mac.new(ev, dep, sure, zor, gosterim, deplasman)
+	M = Mac.new(ev, dep, sure, zor, gosterim, deplasman); _lig_bitis = 0.0
 	if stad: stad.queue_free()
 	stad = Stadyum.new(); stad.hafif = hafif; dunya.add_child(stad)
 	# tribünler ve taraftar sesi gerçek ev sahibine göre: kullanıcı deplasmandaysa stat rakibin rengindedir
@@ -276,6 +276,10 @@ func _process(dt: float) -> void:
 		# lig maçı bitti: düdükten birkaç saniye sonra sonuç işlenir, lig ekranına dönülür
 		_lig_bitis += dt
 		if _lig_bitis > 4.5: _lig_bitir()
+	elif M and M.state == "over" and not M.demo and not lig_maci:
+		# hızlı maç bitti: düdükten birkaç saniye sonra ana menüye dönülür, skor afişte kalır (aynı eşleşme MAÇA BAŞLA ile yeniden oynanır)
+		_lig_bitis += dt
+		if _lig_bitis > 4.5: _hizli_bitir()
 	if _afis_t > 0:
 		_afis_t -= dt
 		if _afis_t <= 0: afis.visible = false
@@ -818,6 +822,14 @@ func lig_mac_basla() -> void:
 	afis_goster("HAFTA %d  ·  %s" % [int(lig.d.hafta) + 1, "İÇ SAHA" if int(mc[0]) == biz else "DEPLASMAN"], (ev.kisa + " - " + dep.kisa) if int(mc[0]) == biz else (dep.kisa + " - " + ev.kisa), 2.4)
 	kam_mod = sec_kam.selected
 	ses.baslat()
+
+func _hizli_bitir() -> void:
+	_lig_bitis = 0.0
+	var e: int = 1 if M.kul_dep else 0
+	var skor: String = M.T[e].t.kisa + " " + str(M.T[e].score) + " - " + str(M.T[1 - e].score) + " " + M.T[1 - e].t.kisa
+	maci_birak()
+	if vr: vr.mola_bilgi("MAÇ SONU  ·  " + skor)
+	afis_goster("MAÇ SONU", skor, 5.0)
 
 func _lig_bitir() -> void:
 	if not lig_maci: return

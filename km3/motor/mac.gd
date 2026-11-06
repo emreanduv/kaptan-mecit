@@ -263,6 +263,7 @@ func uzatma_kontrol(sinir: float) -> bool:
 	var b := ball
 	var u := minf(b.y, PL - b.y)
 	var temiz := not b.shot and not b.cross
+	if clock >= bitis + dur * .07: return true    # kesin sınır: top kale önünde dönüp dursa da maç biter
 	if u < 20: return false
 	return (olu == 1 and u > 30) or (olu == 0 and not tehlike()) or (clock >= bitis + dur * .045 and temiz and u > 24) or (clock >= bitis + dur * .08 and temiz)
 
