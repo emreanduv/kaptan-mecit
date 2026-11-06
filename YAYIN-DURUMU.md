@@ -9,6 +9,8 @@
 - 6 Kas gece: Emre iPhone'da Modern'i açtı (çalışıyor) ama yazılar okunmuyordu ve zorlanıyordu → **1.5.1**: Modern yatay kilitli (`@capacitor/screen-orientation`), KM3 0.7.1 telefonda büyük arayüz + safe-area + hafif çizim. Android 1.5.1 (17) Play dahili test yayında; iOS 1.5.1 (16) TestFlight dış grup, beta incelemesi bekliyor.
 - 6 Kas gece: **1.5.2** — Modern'de gol tekrarı (KM3 0.7.2, `km3/arayuz/tekrar.gd`); Emre'nin Facebook hesabı yok → `FACEBOOK / MR. ANDUV!` panosu her yerden kaldırıldı (Klasik, KM2, KM3, Pardus, champion-4, champion-battle, Kaptan Mecit VR web, KM2 web). Quest APK'larında bir sonraki derlemede gider. Android 1.5.2 (18) Play dahili test yayında; iOS 1.5.2 (17) TestFlight beta incelemesi bekliyor.
 - 6 Kas gece: **1.5.3** — Modern lig ekranında telefonda takılma (düğmeler ekran dışında, kaydırma yok) düzeltildi (KM3 0.7.3). Android 1.5.3 (19) Play dahili test; iOS 1.5.3 (18) TestFlight beta incelemesinde.
+- 7 Kas: **1.5.4** — hızlı maç bitince oyun donup kalıyordu (menü gelmiyordu) → menüye dönüş + uzatmaya kesin sınır (KM3 0.7.5). Android 1.5.4 (21) Play dahili test; iOS 1.5.4 (20) TestFlight beta incelemesinde.
+- 7 Kas: **Meta KM3**: 0.7.4 başvurusu iptal edildi; aynı hata VR'da da vardı (VRC.Quest.Functional.1'in muhtemel sebebi). 0.7.5 (kod 8) yüklendi, yaş grubu 13+ Emre'nin onayıyla onaylandı, v1 yeniden değerlendirmeye gönderildi (Emre tam yetki verdi).
 - Steam/Champion kopyası artık `www/klasik/index.html` (+ `*.js`).
 
 ## 1.4.0 (hazırlanıyor, 4 Kas)
