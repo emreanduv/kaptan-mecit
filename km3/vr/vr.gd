@@ -47,6 +47,12 @@ func _kur() -> void:
 		xr.set("foveation_dynamic", true)
 		var hz: Array = Array(xr.call("get_available_display_refresh_rates"))
 		if hz.has(72.0): xr.set("display_refresh_rate", 72.0)
+		# yaşam döngüsü: sistem menüsü açılınca / gözlük çıkarılınca oyun durur, sistem kapatınca temiz çıkılır
+		xr.connect("session_visible", _odak_kayip)
+		xr.connect("session_focussed", _odak_geldi)
+		for sinyal in ["session_stopping", "session_loss_pending", "instance_exiting"]:
+			if xr.has_signal(sinyal): xr.connect(sinyal, _cik)
+		if xr.has_signal("pose_recentered"): xr.connect("pose_recentered", _ortala)
 	koken = XROrigin3D.new(); add_child(koken)
 	kafa = XRCamera3D.new(); kafa.near = .05; kafa.far = 900; koken.add_child(kafa)
 	kafa.current = true
@@ -56,6 +62,7 @@ func _kur() -> void:
 	for c in [sol, sag]:
 		var el := MeshInstance3D.new(); var bm := BoxMesh.new(); bm.size = Vector3(.04, .03, .12)
 		el.mesh = bm; el.material_override = _duz(Color("#1f3b3c")); c.add_child(el)
+	_lazer_kur()
 	sag.button_pressed.connect(_sag_bas)
 	sol.button_pressed.connect(_sol_bas)
 	# kararma perdesi (kafaya bağlı)
@@ -153,6 +160,10 @@ func girdi(M) -> void:
 
 func _sag_bas(ad: String) -> void:
 	var M = ana.M
+	# lazer bir satırın üstündeyse tetik o satırda çalışır; değerli satırda sağ yarı ileri, sol yarı geri
+	if ana.menu_acik and ad == "trigger_click" and _lazer_satir >= 0 and not ana.yardim_acik:
+		_satir = _lazer_satir
+		if _lazer_deger_mi(_satir): _deger(1 if _lazer_yan >= 0 else -1); return
 	if ana.menu_acik:
 		if ana.lig_acik:
 			if ad == "ax_button" or ad == "trigger_click": ana.lig_bas(_satir)
@@ -201,13 +212,89 @@ func _process(dt: float) -> void:
 	if koltuk == 3 and ana.M and ana.M.goal_y_of(0) != _dinamik_yon: koltuga_gec(3)
 	menu3d.visible = ana.menu_acik
 	if menu3d.visible: _menu_ciz()
+	_lazer_guncelle()
 	afis3d.visible = ana.afis_gorunur() and not ana.menu_acik
 	if afis3d.visible:
 		afis3d.text = ana.afis_ust.text + ("\n" + ana.afis_alt.text if ana.afis_alt.text != "" else "")
 
+# ---------- yaşam döngüsü ----------
+var odakta := true
+func _odak_kayip() -> void:
+	odakta = false
+	ana._donuk = true
+	AudioServer.set_bus_mute(0, true)
+
+func _odak_geldi() -> void:
+	odakta = true
+	ana._donuk = false
+	AudioServer.set_bus_mute(0, false)
+
+func _cik() -> void:
+	get_tree().quit()
+
+func _ortala() -> void:
+	XRServer.center_on_hmd(XRServer.RESET_BUT_KEEP_TILT, true)
+	menu3d_yerlestir()
+
+# ---------- lazer: sağ kolun ucundan ışın, menü satırını gösterir, tetik seçer ----------
+var _lazer: MeshInstance3D
+var _lazer_uc: MeshInstance3D
+var _lazer_satir := -1
+var _lazer_yan := 0.0
+
+func _lazer_kur() -> void:
+	var m := StandardMaterial3D.new(); m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = Color(0.95, 0.83, 0.35, .8); m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.no_depth_test = true; m.render_priority = 70
+	_lazer = MeshInstance3D.new(); var bm := BoxMesh.new(); bm.size = Vector3(.004, .004, 1.0); _lazer.mesh = bm
+	_lazer.material_override = m; _lazer.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF; add_child(_lazer)
+	_lazer_uc = MeshInstance3D.new(); var sp := SphereMesh.new(); sp.radius = .012; sp.height = .024; _lazer_uc.mesh = sp
+	_lazer_uc.material_override = m; add_child(_lazer_uc)
+	_lazer.visible = false; _lazer_uc.visible = false
+
+func _lazer_deger_mi(i: int) -> bool:
+	if ana.lig_acik: return false
+	if ana.mola_mi(): return i in [1, 2, 4, 5]
+	return i < 7 or i == 10
+
+func _lazer_guncelle() -> void:
+	_lazer_satir = -1
+	var deneme: bool = ana._arg.has("lazer")
+	if deneme:   # masaüstü denemesi: sağ kol göğüs hizasından menünün --lazer=y noktasına bakar
+		var hedef := menu3d.to_global(Vector3(float(ana._arg.get("lazerx", ".3")), float(ana._arg.lazer), 0))
+		sag.global_position = kafa.global_position + Vector3(.2, -.35, -.2)
+		sag.look_at(hedef)
+	var acik: bool = ana.menu_acik and (sag.get_has_tracking_data() or deneme)
+	_lazer.visible = acik; _lazer_uc.visible = false
+	if not acik: return
+	var o := sag.global_position
+	var d := -sag.global_basis.z.normalized()
+	var boy := 3.0
+	# menü düzlemiyle kesişim
+	var n := menu3d.global_basis.z.normalized()
+	var pay := d.dot(n)
+	if absf(pay) > .01:
+		var t := (menu3d.global_position - o).dot(n) / pay
+		if t > 0 and t < 4:
+			var yerel := menu3d.to_local(o + d * t)
+			if absf(yerel.x) < .8 and absf(yerel.y) < .6:
+				boy = t
+				_lazer_uc.visible = true; _lazer_uc.global_position = o + d * t
+				var en_iyi := .045
+				for i in _menu_satirlar.size():
+					var l: Label3D = _menu_satirlar[i]
+					if not l.visible: continue
+					var dy := absf(yerel.y - l.position.y)
+					var genis := .32 if ana.lig_acik else .72
+					if dy < en_iyi and absf(yerel.x - l.position.x) < genis:
+						en_iyi = dy; _lazer_satir = i; _lazer_yan = yerel.x - l.position.x
+				if _lazer_satir >= 0 and not ana.yardim_acik: _satir = _lazer_satir
+	_lazer.global_transform = Transform3D(Basis.looking_at(d, Vector3.UP if absf(d.y) < .99 else Vector3.FORWARD), o + d * boy * .5)
+	_lazer.scale = Vector3(1, 1, boy)
+
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG MODU", "Dil / Language"]
-const SURUM := "0.7.3"
+const SURUM := "0.7.4"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -239,7 +326,7 @@ func _menu3d_kur() -> void:
 		var l := _yazi(52, Color.WHITE); l.position = Vector3(0, .25 - i * .085, .001); menu3d.add_child(l)
 		_menu_satirlar.append(l)
 	var ipucu := _yazi(32, Color(1, 1, 1, .75))
-	ipucu.text = "Çubuk yukarı/aşağı: satır  ·  sola/sağa: değiştir  ·  A ya da tetik: MAÇA BAŞLA"
+	ipucu.text = "Lazerle göster, tetikle seç  ·  çubukla da gezinebilirsin  ·  A: MAÇA BAŞLA"
 	ipucu.position = Vector3(0, -.51, .001); menu3d.add_child(ipucu); _ipucu = ipucu
 	_mesaj = _yazi(40, Color("#f3d35a")); _mesaj.position = Vector3(0, -.455, .001); menu3d.add_child(_mesaj)
 	_yardim = _yazi(30, Color.WHITE); _yardim.text = Mola.YARDIM + "\n\nA / tetik ya da B: kapat   ·   sol X: Verilerimi sil"; _yardim.position = Vector3(0, -.02, .001)
@@ -282,7 +369,7 @@ func _menu_ciz() -> void:
 	_bas.text = ("MOLA  ·  %s %d-%d %s  ·  %s'" % [M.T[0].t.kisa, M.T[0].score, M.T[1].score, M.T[1].t.kisa, M.min_label()]) if mol else "Kaptan Mecit 3"
 	_bas.font_size = 64 if mol else 96
 	_ipucu.text = "Çubuk yukarı/aşağı: satır  ·  sola/sağa: değiştir  ·  A ya da tetik: seç  ·  menü: maça dön" if mol \
-		else "Çubuk yukarı/aşağı: satır  ·  sola/sağa: değiştir  ·  A ya da tetik: MAÇA BAŞLA"
+		else "Lazerle göster, tetikle seç  ·  çubukla da gezinebilirsin  ·  A: MAÇA BAŞLA"
 	var n := _satir_sayisi()
 	_satir = mini(_satir, n - 1)
 	for i in _menu_satirlar.size():
