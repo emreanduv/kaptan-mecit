@@ -95,6 +95,7 @@ var T: Array = []          # [{t, kit:{c1,c2}, score, human, str, spd, skill}]
 var P: Array = []          # Oy
 var ball := Top.new()
 var demo := false
+var kul_dep := false      # lig: kullanıcı (T[0]) deplasmanda — ev sahibi T[1]; forma önceliği ve tabela sırası ona göre
 var diff := 1
 var clock := 0.0
 var dur := 240.0
@@ -153,11 +154,13 @@ static func forma_sec(A: Dictionary, B: Dictionary) -> Array:
 		if renk_farki(a.c1, b.c1) < 120: b = {"c1": "#222222", "c2": "#f4f4f4"}
 	return [a, b]
 
-func _init(ev: Dictionary, dep: Dictionary, sure_dk: float, zorluk: int, gosterim: bool) -> void:
+func _init(ev: Dictionary, dep: Dictionary, sure_dk: float, zorluk: int, gosterim: bool, deplasman := false) -> void:
 	demo = gosterim
+	kul_dep = deplasman
 	diff = zorluk
 	dur = sure_dk * 60.0
 	var k := forma_sec(ev, dep)
+	if kul_dep: k = forma_sec(dep, ev); k = [k[1], k[0]]   # gerçek ev sahibi kendi formasını giyer
 	T = [{"t": ev, "kit": k[0], "score": 0, "human": not demo}, {"t": dep, "kit": k[1], "score": 0, "human": false}]
 	for ti in 2:
 		var td: Dictionary = T[ti].t
@@ -175,7 +178,8 @@ func _init(ev: Dictionary, dep: Dictionary, sure_dk: float, zorluk: int, gosteri
 			P.append(p)
 	for ti in 2: B[ti] = (T[ti].t.get("yedek", []) as Array).duplicate()
 	kickoff(0)
-	olay("banner", T[0].t.kisa + " - " + T[1].t.kisa, "BAŞLAMA VURUŞU")
+	var e: int = 1 if kul_dep else 0
+	olay("banner", T[e].t.kisa + " - " + T[1 - e].t.kisa, "BAŞLAMA VURUŞU")
 	olay("duduk", 1)
 
 func olay(ad: String, a = null, b = null) -> void:
@@ -334,7 +338,8 @@ func step(dt: float) -> void:
 func bitir() -> void:
 	state = "over"
 	olay("duduk", 3)
-	olay("banner", "MAÇ SONU", T[0].t.kisa + " " + str(T[0].score) + " - " + str(T[1].score) + " " + T[1].t.kisa)
+	var e: int = 1 if kul_dep else 0
+	olay("banner", "MAÇ SONU", T[e].t.kisa + " " + str(T[e].score) + " - " + str(T[1 - e].score) + " " + T[1 - e].t.kisa)
 
 func update_ctrl() -> void:
 	if demo: ctrl = null; return

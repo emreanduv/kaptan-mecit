@@ -294,7 +294,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG MODU", "Dil / Language"]
-const SURUM := "0.7.4"
+const SURUM := "0.7.5"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -366,7 +366,7 @@ func _menu_ciz() -> void:
 	if not yd: _yardim_alt.text = ""
 	_ipucu.visible = not yd; _mesaj.visible = not yd; _bas.visible = not yd; _imza.visible = not yd
 	var M = ana.M
-	_bas.text = ("MOLA  ·  %s %d-%d %s  ·  %s'" % [M.T[0].t.kisa, M.T[0].score, M.T[1].score, M.T[1].t.kisa, M.min_label()]) if mol else "Kaptan Mecit 3"
+	_bas.text = ("MOLA  ·  %s  ·  %s'" % [ana.skor_yazi("-"), M.min_label()]) if mol else "Kaptan Mecit 3"
 	_bas.font_size = 64 if mol else 96
 	_ipucu.text = "Çubuk yukarı/aşağı: satır  ·  sola/sağa: değiştir  ·  A ya da tetik: seç  ·  menü: maça dön" if mol \
 		else "Lazerle göster, tetikle seç  ·  çubukla da gezinebilirsin  ·  A: MAÇA BAŞLA"

@@ -243,11 +243,12 @@ func _ortam() -> void:
 	add_child(dl)
 
 # ---------- maç kurulumu ----------
-func _mac_kur(ev: Dictionary, dep: Dictionary, sure: int, zor: int, gosterim: bool) -> void:
-	M = Mac.new(ev, dep, sure, zor, gosterim)
+func _mac_kur(ev: Dictionary, dep: Dictionary, sure: int, zor: int, gosterim: bool, deplasman := false) -> void:
+	M = Mac.new(ev, dep, sure, zor, gosterim, deplasman)
 	if stad: stad.queue_free()
 	stad = Stadyum.new(); stad.hafif = hafif; dunya.add_child(stad)
-	stad.kur(M.T[0].kit, M.T[1].kit, veri.panolar)
+	# tribünler ve taraftar sesi gerçek ev sahibine göre: kullanıcı deplasmandaysa stat rakibin rengindedir
+	stad.kur(M.T[_y(0)].kit, M.T[_y(1)].kit, veri.panolar)
 	Futbolcu.hafif = hafif
 	for f in oyuncular: f.queue_free()
 	oyuncular.clear()
@@ -303,15 +304,15 @@ func _olay(o: Array) -> void:
 		"gol":
 			ses.gol()
 			if vr == null and not _arg.has("tekrarsiz"): tekrar.gol()
-			ses.taraftar(int(o[1]), "tezahurat", 2.4); ses.taraf_sustur(1 - int(o[1]), 25.0)
+			ses.taraftar(_y(int(o[1])), "tezahurat", 2.4); ses.taraf_sustur(_y(1 - int(o[1])), 25.0)
 			_tabela()
-		"taraftar": ses.taraftar(int(o[1]), o[2])
+		"taraftar": ses.taraftar(_y(int(o[1])), o[2])
 		"tik": ses.tik()
 		"kart":
 			afis_goster({"S": "SARI KART", "K": "KIRMIZI KART", "K2": "İKİNCİ SARI · KIRMIZI"}[o[1]], o[2], 2.6)
 		"degisiklik", "kaleci_degisti": _yeniden_kur(o[1])
 		"gol_iptal":
-			_tabela(); ses.taraftar(int(o[1]), "yuh"); ses.taraftar(1 - int(o[1]), "alkis", 1.2)
+			_tabela(); ses.taraftar(_y(int(o[1])), "yuh"); ses.taraftar(_y(1 - int(o[1])), "alkis", 1.2)
 		"atildi":
 			for f in oyuncular:
 				if f.get_meta("oy") == o[1]: f.visible = false
@@ -402,11 +403,13 @@ func _ciz(dt: float) -> void:
 	# hücumda top rakip kaleye yaklaştıkça hücum edenin taraftarı kıpırdanır
 	var hucum: int = b.owner.team if b.owner != null else b.last_team
 	var yakin := 1.0 - clampf(absf(b.y - M.goal_y_of(hucum)) / 30.0, 0, 1)
-	if gol >= 0: stad.heyecan(1.0 if gol == 0 else 0.0, 1.0 if gol == 1 else 0.0, 1.0 if gol == 1 else 0.0, 1.0 if gol == 0 else 0.0)
-	else: stad.heyecan(yakin * .3 if hucum == 0 else 0.0, yakin * .3 if hucum == 1 else 0.0)
+	# tribün tarafları gerçek ev/deplasman: _y(takım) → taraf (0 ev sahibi tribünleri, 1 misafir)
+	var gy := _y(gol) if gol >= 0 else -1; var hy := _y(hucum)
+	if gy >= 0: stad.heyecan(1.0 if gy == 0 else 0.0, 1.0 if gy == 1 else 0.0, 1.0 if gy == 1 else 0.0, 1.0 if gy == 0 else 0.0)
+	else: stad.heyecan(yakin * .3 if hy == 0 else 0.0, yakin * .3 if hy == 1 else 0.0)
 	ses.heyecan(1.0 if gol >= 0 else yakin)
-	var fark: int = M.T[0].score - M.T[1].score
-	ses.taraf_heyecan(clampf((yakin if hucum == 0 else 0.0) + .15 * fark, 0, 1), clampf((yakin if hucum == 1 else 0.0) - .15 * fark, 0, 1))
+	var fark: int = M.T[_y(0)].score - M.T[_y(1)].score
+	ses.taraf_heyecan(clampf((yakin if hy == 0 else 0.0) + .15 * fark, 0, 1), clampf((yakin if hy == 1 else 0.0) - .15 * fark, 0, 1))
 	dakika.text = M.min_label() + "'"
 	_kamera_guncelle(dt)
 
@@ -607,7 +610,7 @@ func _kaydirmali(p: Control) -> Control:
 	return sc
 
 func _mola_ciz() -> void:
-	mola_baslik.text = "MOLA   ·   %s %d-%d %s   ·   %s'" % [M.T[0].t.kisa, M.T[0].score, M.T[1].score, M.T[1].t.kisa, M.min_label()]
+	mola_baslik.text = "MOLA   ·   %s   ·   %s'" % [skor_yazi("-"), M.min_label()]
 	for i in mola_dugmeler.size():
 		mola_dugmeler[i].text = mola.satir_metni(i, i == mola_satir)
 
@@ -737,9 +740,18 @@ func menu_goster(v: bool) -> void:
 	if mol: mola_satir = 0; mola.cikan = 0; mola.giren = 0; mola_mesaj.text = "Oklar: satır ve değer  ·  Enter: seç  ·  M / Esc: maça dön"
 	yardim_goster(false)
 
+# takım → tribün tarafı / tabela sırası: lig maçında kullanıcı deplasmandaysa ev sahibi T[1]
+func _y(t: int) -> int: return 1 - t if (M != null and M.kul_dep) else t
+
+# tabela her zaman ev sahibi önce ("EV 1-0 DEP"), sıra ile kullanıcının T[0] olmasından bağımsız
+func skor_yazi(ara := " - ") -> String:
+	var a: Dictionary = M.T[_y(0)]; var b: Dictionary = M.T[_y(1)]
+	return "%s %d%s%d %s" % [a.t.kisa, a.score, ara, b.score, b.t.kisa]
+
 func _tabela() -> void:
-	tabela.text = "%s  %d - %d  %s" % [M.T[0].t.kisa, M.T[0].score, M.T[1].score, M.T[1].t.kisa]
-	stad.skor("%s %d-%d %s" % [M.T[0].t.kisa, M.T[0].score, M.T[1].score, M.T[1].t.kisa])
+	var a: Dictionary = M.T[_y(0)]; var b: Dictionary = M.T[_y(1)]
+	tabela.text = "%s  %d - %d  %s" % [a.t.kisa, a.score, b.score, b.t.kisa]
+	stad.skor(skor_yazi("-"))
 
 func afis_gorunur() -> bool: return afis.visible
 
@@ -802,8 +814,8 @@ func lig_mac_basla() -> void:
 	var dep := Taktik.kadro_kur(lg.takimlar[rk], lg.id, "")
 	lig_acik = false; lig_maci = true; _lig_bitis = 0.0
 	menu_goster(false)
-	_mac_kur(ev, dep, SURELER[sec_sure.selected], sec_zor.selected, false)
-	afis_goster("HAFTA %d  ·  %s" % [int(lig.d.hafta) + 1, "İÇ SAHA" if int(mc[0]) == biz else "DEPLASMAN"], ev.kisa + " - " + dep.kisa, 2.4)
+	_mac_kur(ev, dep, SURELER[sec_sure.selected], sec_zor.selected, false, int(mc[0]) != biz)
+	afis_goster("HAFTA %d  ·  %s" % [int(lig.d.hafta) + 1, "İÇ SAHA" if int(mc[0]) == biz else "DEPLASMAN"], (ev.kisa + " - " + dep.kisa) if int(mc[0]) == biz else (dep.kisa + " - " + ev.kisa), 2.4)
 	kam_mod = sec_kam.selected
 	ses.baslat()
 

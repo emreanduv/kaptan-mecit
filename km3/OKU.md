@@ -36,3 +36,6 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Kayıt `user://km3-lig.json`; "Verilerimi sil" bunu da siler. "Ligi bırak" iki kez basınca sezonu siler.
 - Kod: `motor/lig.gd` (fikstür, tablo, simülasyon, kayıt, menü satırları), `arayuz/lig_ekran.gd` (düz ekran), `vr/vr.gd` (3B lig paneli).
 - Deneme: `godot --headless --path km3 -s dene/lig_dene.gd` (6 ligin hepsinde tam sezon, fikstür/kayıt/silme denetimi); `--ligsezon=12 [--liglig=1 --ligtakim=3] --lig --ekran=x.png` (lig ekranı), `--ligsezon=3 --ligmac --dene` (lig maçını oynat, sonucu işle), `--vrsahte` ile VR paneli.
+
+## 0.7.5 — Deplasmanda gerçek ev sahibi
+- Lig maçında kullanıcı deplasmandaysa (`Mac.kul_dep`): tabela, stadyum skor ekranları, başlama/maç sonu afişleri ve mola başlığı ev sahibini önce yazar ("EV 1-0 DEP"); ev sahibi kendi formasını giyer (forma çakışmasında misafir değişir); tribünler ev sahibinin renginde, kuzey kale arkası misafir (kullanıcının) taraftarı; taraftar sesleri ve tribün coşkusu doğru tarafa (`ana._y()`). Motorda kullanıcı yine T[0]; sonuç Lig'e doğru ev/deplasman sırasıyla yazılır.
