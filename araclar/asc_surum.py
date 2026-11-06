@@ -17,6 +17,8 @@ vs=api('GET',f'v1/apps/{AID}/appStoreVersions?limit=10')['data']
 for v in vs: out['surumler'].append([v['attributes']['versionString'],v['attributes']['appStoreState'],v['attributes'].get('platform')])
 duzenlenebilir={'PREPARE_FOR_SUBMISSION','DEVELOPER_REJECTED','REJECTED','METADATA_REJECTED','INVALID_BINARY','WAITING_FOR_REVIEW'}
 v=next((x for x in vs if x['attributes']['platform']=='IOS' and x['attributes']['appStoreState'] in duzenlenebilir),None)
+if v and v['attributes']['appStoreState']=='WAITING_FOR_REVIEW' and v['attributes']['versionString']!=VER:
+    out['hatalar']=[f"{v['attributes']['versionString']} incelemede bekliyor; {VER} onun onayından sonra hazırlanır"]; json.dump(out,open('durum.json','w'),ensure_ascii=False,indent=1); print(json.dumps(out,ensure_ascii=False)); raise SystemExit(0)
 if v and v['attributes']['versionString']!=VER:
     api('PATCH',f'v1/appStoreVersions/{v["id"]}',{'data':{'type':'appStoreVersions','id':v['id'],'attributes':{'versionString':VER}}})
 if not v:

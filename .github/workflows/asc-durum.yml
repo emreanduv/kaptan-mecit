@@ -1,0 +1,24 @@
+name: App Store durumu / incelemeye gönder
+on:
+  workflow_dispatch:
+    inputs:
+      bundle: { description: "Paket kimliği", default: "com.championchess.manager" }
+      kip: { description: "durum ya da gonder", default: "durum" }
+      version: { description: "Gönderilecek sürüm (gonder için)", required: false, default: "" }
+permissions:
+  contents: write
+env:
+  ASC_KEY_ID: DJSHKK6T3P
+  ASC_ISSUER_ID: f4943ef8-df6f-42c8-a561-58554097ea35
+jobs:
+  durum:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Anahtar
+        env: { P8: "${{ secrets.ASC_KEY_P8 }}" }
+        run: mkdir -p ~/private_keys && printf '%s' "$P8" > ~/private_keys/AuthKey_${ASC_KEY_ID}.p8
+      - run: pip3 install --quiet pyjwt cryptography
+      - name: Çalıştır
+        env: { BUNDLE: "${{ inputs.bundle }}", KIP: "${{ inputs.kip }}", VERSION: "${{ inputs.version }}" }
+        run: python3 araclar/asc_durum.py
