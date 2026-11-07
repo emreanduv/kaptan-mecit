@@ -60,10 +60,34 @@ func yeni_sezon(lig: int, tk: int, sezon := 1) -> void:
 		var k := Taktik.kadro_kur(t, veri.ligler[lig].id)
 		guc.append(snappedf(float(k.get("guc", 40.0 + 9.0 * float(t.str))), .01))
 	d = {"surum": SURUM, "lig": lig, "takim": tk, "sezon": sezon, "hafta": 0, "takimlar": range(n),
-		"guc": guc, "fikstur": fikstur_uret(n, randi()), "sampiyon": -1}
+		"guc": guc, "fikstur": gercek_fikstur(lig), "sampiyon": -1}
+	if d.fikstur.is_empty(): d.fikstur = fikstur_uret(n, randi())
 	son_hafta = []
 	mesaj = ""
 	kaydet()
+
+# gerçek fikstür: ligin bu sezonki gerçek maç sırası (veri/fikstur.json; openfootball, yalnız eşleşme sırası —
+# kulüpler ve sonuçlar oyunun kendisidir). Eşleşme eksik/hatalıysa boş döner, çember yöntemine düşülür.
+func gercek_fikstur(lig: int) -> Array:
+	var f := FileAccess.open("res://veri/fikstur.json", FileAccess.READ)
+	if f == null: return []
+	var j = JSON.parse_string(f.get_as_text())
+	if not (j is Dictionary): return []
+	var lg: Dictionary = veri.ligler[lig]
+	var H: Array = j.get("ligler", {}).get(lg.id, [])
+	var sira := {}
+	for i in lg.takimlar.size(): sira[lg.takimlar[i].id] = i
+	var n: int = lg.takimlar.size()
+	if H.size() != 2 * (n - 1): return []
+	var out: Array = []
+	for h in H:
+		var hafta: Array = []
+		for mc in h:
+			if not (sira.has(mc[0]) and sira.has(mc[1])): return []
+			hafta.append([sira[mc[0]], sira[mc[1]], -1, -1])
+		if hafta.size() != n / 2: return []
+		out.append(hafta)
+	return out
 
 # çember yöntemi: n takım (tekse "bay" eklenir), n-1 hafta ilk devre, ikinci devre ev/deplasman ters.
 # maç: [ev, deplasman, ev golü, deplasman golü] (oynanmadıysa gol -1)

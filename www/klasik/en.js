@@ -22,7 +22,7 @@
   ['sezon bitti','season over'],['kulüp','clubs'],['lig','leagues'],['puan','pts'],['hafta','weeks'],
   ['TAKIMINI SEÇ','PICK YOUR TEAM'],['Takımını ve rakibini seç','Pick your team and your opponent'],['Takımım','My team'],['Takımın','Your team'],['Rakip','Opponent'],['RAKİP','OPPONENT'],['RAKİBİ SEÇ','PICK OPPONENT'],
   ['KULÜP SEÇ','PICK A CLUB'],['KULÜP','CLUB'],['Kulüp','Club'],['Ligini ve kulübünü seç','Pick your league and club'],
-  ['Ligini ve kulübünü seç. Kariyerin bu cihazda saklanır; istediğin an kaldığın haftadan devam edersin.','Pick your league and club. Your career is saved on this device; continue from the week you left whenever you like.'],
+  ['Ligini ve kulübünü seç. Kariyerin bu cihazda saklanır; istediğin an kaldığın haftadan devam edersin.','Pick your league and club. Your career is saved on this device; continue from the week you left whenever you like.'],['Ligini ve kulübünü seç. Kariyerin bu cihazda saklanır; istediğin an kaldığın haftadan devam edersin. Maç sırası ligin bu sezonki gerçek fikstürüdür.','Pick your league and club. Your career is saved on this device; continue from the week you left whenever you like. Matches follow this season\'s real league fixture list.'],
   ['MAÇA ÇIK','PLAY THE MATCH'],['SİMÜLE ET','SIMULATE'],['KALANINI SİMÜLE ET','SIMULATE THE REST'],['Puan Durumu','Standings'],['Fikstür','Fixtures'],['Gol Krallığı','Top scorers'],
   ['İÇ SAHA','HOME'],['DEPLASMAN','AWAY'],['SEZON BİTTİ','SEASON OVER'],['YENİ SEZON','NEW SEASON'],['Şampiyon','Champion'],['sırada bitirdi. Şampiyon:','place. Champion:'],
   ['🏆 ŞAMPİYONLUĞU PAYLAŞ','🏆 SHARE THE TITLE'],['📣 SEZONU PAYLAŞ','📣 SHARE THE SEASON'],['📣 GALİBİYETİ PAYLAŞ','📣 SHARE THE WIN'],

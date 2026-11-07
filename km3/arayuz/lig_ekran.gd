@@ -286,6 +286,8 @@ func _sag_panel() -> Control:
 		iv.add_child(_serit("YENİ SEZON"))
 		var l := _etiket("Ligini ve kulübünü seç. Her hafta kendi maçını oynarsın; ligin diğer maçları aynı anda sonuçlanır. Sezon sonunda en çok puanı toplayan şampiyon olur.", 15, YAZI)
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; iv.add_child(_ic(l))
+		var l2 := _etiket("Maç sırası ligin bu sezonki gerçek fikstürüdür.", 15, ALTIN)
+		l2.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; iv.add_child(_ic(l2))
 		v.add_child(ip)
 	return v
 
