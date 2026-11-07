@@ -253,7 +253,9 @@ func _lazer_kur() -> void:
 	_lazer.visible = false; _lazer_uc.visible = false
 
 func _lazer_deger_mi(i: int) -> bool:
-	if ana.lig_acik: return false
+	if ana.lig_acik:
+		var S: Array = ana.lig.satirlar()
+		return i < S.size() and S[i] in ["Lig", "Takımın"]
 	if ana.mola_mi(): return i in [1, 2, 4, 5]
 	return i < 7 or i == 10
 
@@ -294,7 +296,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG MODU", "Dil / Language"]
-const SURUM := "0.7.5"
+const SURUM := "0.7.6"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D

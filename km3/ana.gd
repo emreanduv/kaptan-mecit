@@ -567,7 +567,10 @@ func _arayuz() -> void:
 	ui.add_child(_kaydirmali(menu))
 	# lig ekranı (tam ekran)
 	lig_ekran = LigEkran.new(lig); ui.add_child(lig_ekran)
-	lig_ekran.eylem.connect(func(_a): lig_bas(lig_ekran.satir))
+	lig_ekran.eylem.connect(func(a):
+		if a == "geri": lig_kay(lig_ekran.satir, -1)
+		elif a == "ileri": lig_kay(lig_ekran.satir, 1)
+		else: lig_bas(lig_ekran.satir))
 	# mola: yedek kulübesi
 	mola_panel = PanelContainer.new(); mola_panel.visible = false
 	mola_panel.add_theme_stylebox_override("panel", _kutu(Color("#f5ecd8"), 16))

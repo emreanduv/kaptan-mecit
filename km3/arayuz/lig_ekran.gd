@@ -61,11 +61,12 @@ func ciz() -> void:
 		var b: Button = dugmeler[i]
 		var sec := i == satir
 		b.text = lig.satir_metni(i, sec)
+		if S[i] in ["Lig", "Takımın"]: b.text = b.text.trim_prefix("‹  ").trim_suffix("  ›")   # okları yandaki düğmeler gösterir
 		var ana_eylem: bool = S[i] in ["MAÇA ÇIK", "SEZONA BAŞLA", "YENİ SEZON"]
 		var c := ALTIN if sec else (Color("#e5722f") if ana_eylem else SERIT)
 		b.add_theme_stylebox_override("normal", _kutu(c, 6, 7))
 		b.add_theme_color_override("font_color", Color("#1d2b2c") if sec else (Color.WHITE if ana_eylem else YAZI))
-	if _mesaj: _mesaj.text = lig.mesaj if lig.mesaj != "" else "Oklar: satır ve değer  ·  Enter: seç  ·  Esc: ana menü"
+	if _mesaj: _mesaj.text = lig.mesaj if lig.mesaj != "" else ("Kulübüne listeden dokun ya da ‹ › ile seç" if not lig.var_mi() else "Oklar: satır ve değer  ·  Enter: seç  ·  Esc: ana menü")
 
 var _mesaj: Label
 
@@ -108,8 +109,19 @@ func _tablo_panel() -> Control:
 		var L: Array = lig.veri.ligler[lig.kur_lig].takimlar.duplicate()
 		var biz: Dictionary = L[lig.kur_takim]
 		L.sort_custom(func(a, b): return int(a.str) > int(b.str))
+		var tum: Array = lig.veri.ligler[lig.kur_lig].takimlar
 		for k in L.size():
-			v.add_child(_tablo_satir([str(k + 1), L[k].ad, "", "", "", "", "", "", "", str(int(L[k].str)), ""], 0, false, L[k] == biz, ""))
+			var sat := _tablo_satir([str(k + 1), L[k].ad, "", "", "", "", "", "", "", str(int(L[k].str)), ""], 0, false, L[k] == biz, "")
+			var ti: int = tum.find(L[k])
+			sat.mouse_filter = Control.MOUSE_FILTER_PASS
+			var bas := {"p": Vector2(-999, -999)}
+			sat.gui_input.connect(func(e):
+				# kaydırırken yanlışlıkla seçilmesin: basılan yerde bırakılırsa seç
+				if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
+					if e.pressed: bas.p = e.global_position
+					elif e.global_position.distance_to(bas.p) < 14:
+						lig.kur_takim = ti; lig.mesaj = ""; yenile())
+			v.add_child(sat)
 	return p
 
 func _tablo_satir(vals: Array, sira: int, baslik: bool, biz: bool, form: String, n := 0) -> Control:
@@ -158,7 +170,21 @@ func _sag_panel() -> Control:
 		b.add_theme_stylebox_override("hover", _kutu(Color("#4a5566"), 6, 7)); b.add_theme_stylebox_override("pressed", _kutu(ALTIN, 6, 7))
 		b.add_theme_color_override("font_hover_color", Color.WHITE)
 		b.pressed.connect(func(): satir = i; eylem.emit("bas"))
-		v.add_child(b); dugmeler.append(b)
+		if S[i] in ["Lig", "Takımın"]:
+			# seçici satır: iki yanda ‹ › düğmesi, ortaya basınca ileri
+			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			var hb := HBoxContainer.new(); hb.add_theme_constant_override("separation", 6)
+			for yon in [-1, 1]:
+				var k := Button.new(); k.text = "‹" if yon < 0 else "›"; k.add_theme_font_size_override("font_size", 24)
+				k.custom_minimum_size = Vector2(52, 40); k.add_theme_stylebox_override("normal", _kutu(SERIT, 6, 7))
+				k.add_theme_stylebox_override("hover", _kutu(Color("#4a5566"), 6, 7)); k.add_theme_stylebox_override("pressed", _kutu(ALTIN, 6, 7))
+				k.pressed.connect(func(): satir = i; eylem.emit("geri" if yon < 0 else "ileri"))
+				if yon < 0: hb.add_child(k); hb.add_child(b)
+				else: hb.add_child(k)
+			v.add_child(hb)
+		else:
+			v.add_child(b)
+		dugmeler.append(b)
 	_mesaj = _etiket("", 14, SOLUK); _mesaj.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; v.add_child(_mesaj)
 	if lig.var_mi():
 		var mp := PanelContainer.new(); mp.add_theme_stylebox_override("panel", _kutu(PANEL, 6, 0))
