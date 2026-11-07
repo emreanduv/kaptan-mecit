@@ -305,6 +305,7 @@ func step(dt: float) -> void:
 			after = Callable()
 			if f.is_valid(): f.call()
 			else: state = "play"
+		if state == "pre": mesafe_kurali()
 		giris.pasE = false; giris.sutE = false
 		return
 	clock += dt
@@ -333,6 +334,7 @@ func step(dt: float) -> void:
 	for p: Oy in P.duplicate():
 		if P.has(p): move_player(p, dt)
 	separate()
+	mesafe_kurali()
 	ball_step(dt)
 	giris.pasE = false; giris.sutE = false
 
@@ -965,7 +967,7 @@ func move_player(p: Oy, dt: float) -> void:
 		p.slide -= dt; p.vx *= pow(.15, dt); p.vy *= pow(.15, dt); vx = p.vx; vy = p.vy
 		var b := ball
 		var d := hyp(b.x - p.x, b.y - p.y)
-		if d < 1.45 and b.z < 1 and b.owner != p:
+		if d < 1.45 and b.z < 1 and b.owner != p and not (duran_top_bekliyor() and b.owner.team != p.team):
 			if b.owner != null and b.owner.team != p.team and kayma_faul(p, b.owner):
 				p.slide = 0; return
 			if b.owner != null and b.owner.team != p.team:
@@ -1028,6 +1030,7 @@ func ball_step(dt: float) -> void:
 			if out_of_play(b): return
 		for q: Oy in P:
 			if q.team == p.team or q.stun > 0 or q.slide > 0 or q.cd > 0: continue
+			if duran_top_bekliyor(): continue
 			var d := hyp(q.x - b.x, q.y - b.y)
 			if d < .85:
 				var Tq: Dictionary = T[q.team]; var Tp: Dictionary = T[p.team]
@@ -1122,6 +1125,39 @@ func take(p: Oy) -> void:
 	if b.cross and p.role != "G": p.first_time = true
 	b.cross = false; b.owner = p; p.hold = 0; b.intended = null; b.shot = false; b.vx = 0; b.vy = 0; b.vz = 0; b.z = 0
 	b.last_team = p.team; b.last = p; p.dec = rnd(.15, .35)
+
+# duran top kuralı: santra, taç, korner, aut, serbest vuruş ve penaltıda top oyuna girene (kullanan oyuncu
+# topa vurana) kadar rakip 9,15 m uzakta durur, topa müdahale edemez; santrada rakip kendi yarı sahasında kalır.
+const DURAN_MESAFE := 9.15
+func duran_top_bekliyor() -> bool:
+	return set_piece != null and ball.owner != null and ball.owner == set_piece.p
+
+func mesafe_kurali() -> void:
+	if not duran_top_bekliyor(): return
+	var b := ball
+	var ti: int = set_piece.p.team
+	var ko: bool = set_piece.get("ko", false)
+	for q: Oy in P:
+		if q.team == ti: continue
+		q.slide = 0
+		if ko:
+			# santra: rakip kendi yarısında
+			if fwd_of(q.team) == -1.0: q.y = maxf(q.y, PL / 2 + .3)
+			else: q.y = minf(q.y, PL / 2 - .3)
+		var dx := q.x - b.x; var dy := q.y - b.y; var d := hyp(dx, dy)
+		if d < DURAN_MESAFE:
+			if d < .01:
+				dx = 0.0; dy = -fwd_of(ti); d = 1.0
+			if set_piece.get("pen", false): continue   # penaltıda kaleci çizgide kalır, diğerleri ceza sahası dışına zaten dizilir
+			# çember üzerinde en yakın saha içi nokta (köşe/çizgi kenarında kayar)
+			var a0 := atan2(dy, dx)
+			for k in 24:
+				var a := a0 + (1.0 if k % 2 == 1 else -1.0) * ceili(k / 2.0) * PI / 12.0
+				var nx := b.x + cos(a) * DURAN_MESAFE; var ny := b.y + sin(a) * DURAN_MESAFE
+				if nx < .5 or nx > PW - .5 or ny < .5 or ny > PL - .5: continue
+				if ko and (ny < PL / 2 if fwd_of(q.team) == -1.0 else ny > PL / 2): continue
+				q.x = nx; q.y = ny; break
+			q.vx *= .3; q.vy *= .3
 
 func restart(ti: int, x: float, y: float, pick_role := "") -> void:
 	var b := ball

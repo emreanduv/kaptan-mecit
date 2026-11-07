@@ -343,7 +343,7 @@ let UI={screen:'home',qlg:'tr',qh:'gs',qa:'fb',clg:'tr',cteam:null,tab:'tablo',q
 
 /* ===================== REHBER · PUAN · PAYLAŞ · BİZE YAZ · VERİLERİMİ SİL (test ekibinin önerileri, Malazgirt Akıncıları 1.6 ile aynı paket) =====================
    Hiçbir veri toplanmaz: puan ve paylaşım telefonun/mağazanın kendi ekranlarıyla yapılır; ilerleme yalnız bu cihazda (km.rehber, km.puan). */
-const KM_SURUM='1.5.6',KM_IOS_ID=''; /* App Store'da yayımlanınca uygulama numarası yazılır (ör. '67…'); boşken iOS'ta mağaza araması açılır */
+const KM_SURUM='1.5.7',KM_IOS_ID=''; /* App Store'da yayımlanınca uygulama numarası yazılır (ör. '67…'); boşken iOS'ta mağaza araması açılır */
 const KM_GOMULU=/[?&](mac|vr)=1/.test(window.__KM_Q||location.search); /* Champion Battle maç modu ya da VR motoru: rehber/puan gösterilmez */
 const KM_KABUK=!KM_GOMULU&&/\/klasik\//.test(location.pathname); /* mobil uygulamada Klasik / Modern seçicisinin içinden açıldı */
 const kmOku=(k,v)=>{try{return JSON.parse(localStorage.getItem(k))??v}catch(e){return v}},kmYaz=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
@@ -618,7 +618,7 @@ function kickoff(ti){
   const b=M.ball;Object.assign(b,{x:PW/2,y:PL/2,z:0,vx:0,vy:0,vz:0,owner:null,shot:null,intended:null,gkTried:false,kicker:null});
   for(const p of M.P){const h=home(p);let y=h.y;if(fwdOf(p.team)===-1)y=Math.max(y,PL/2+2);else y=Math.min(y,PL/2-2);p.x=h.x;p.y=y;p.vx=p.vy=0;p.dx=0;p.dy=fwdOf(p.team);p.cd=0;p.slide=0;p.stun=0;p.hold=0}
   const kt=M.P.filter(p=>p.team===ti&&p.role==='F');{const yed=M.P.filter(p=>p.team===ti&&p.role!=='G'&&p.role!=='F');while(kt.length<2&&yed.length)kt.push(yed.pop())}kt[0].x=PW/2-.2;kt[0].y=PL/2-fwdOf(ti)*.6;kt[1].x=PW/2+4;kt[1].y=PL/2-fwdOf(ti)*1.2;
-  b.owner=kt[0];b.lastTeam=ti;M.kickTeam=ti;M.possTeam=ti;M.candT=0;M.TP=null;M.prepT=0;kt[0].hold=0;M.setPiece={p:kt[0],t:0,ko:true};
+  b.owner=kt[0];b.lastTeam=ti;M.kickTeam=ti;M.possTeam=ti;M.candT=0;M.TP=null;M.prepT=0;kt[0].hold=0;M.setPiece={p:kt[0],t:0,ko:true};mesafeKurali();
   M.ctrl=M.P.find(p=>p.team===0&&p.role==='F');if(ti===0)M.ctrl=kt[0];
 }
 const Q2=3; /* Klasik görünüm: alt piksel konumlandırma katsayısı */
@@ -976,6 +976,7 @@ function step(dt){
       if(M.stateT<=0&&dd>.3&&(yol.bekle+=dt)<6)M.stateT=.05;   /* oyuncu topa varmadan vuruş yok (en çok ~6 sn bekler) */
       if(M.stateT<=0){q.x=yol.tx;q.y=yol.ty;q.dx=yol.fx;q.dy=yol.fy;M.setPiece.yol=null}}
     if(M.stateT<=0){const f=M.after;M.after=null;if(f)f();else M.state='play';}
+    if(M.state==='pre')mesafeKurali();
     M.input.pasE=M.input.sutE=false;
     camera(dt);return;
   }
@@ -1003,8 +1004,8 @@ function step(dt){
   tacticalPrep(dt);
   for(const p of M.P)think(p,dt);
   for(const p of M.P)movePlayer(p,dt);
-  separate();
-  ballStep(dt);
+  separate();mesafeKurali();
+  ballStep(dt);mesafeKurali();
   kmKayit();kmTaktik();
   M.input.pasE=M.input.sutE=false;
   camera(dt);
@@ -1326,7 +1327,7 @@ function movePlayer(p,dt){
   const T=M.T[p.team];let vx,vy;
   if(p.slide>0){p.slide-=dt;p.vx*=Math.pow(.15,dt);p.vy*=Math.pow(.15,dt);vx=p.vx;vy=p.vy;
     const b=M.ball;const d=Math.hypot(b.x-p.x,b.y-p.y);
-    if(d<1.45&&b.z<1&&b.owner!==p){if(b.owner&&b.owner.team!==p.team&&kmKaymaFaul(p,b.owner)){p.slide=0;return}if(b.owner&&b.owner.team!==p.team){const o=b.owner;o.stun=.8;o.cd=.9;b.owner=null;if(!M.demo&&o.role!=='G'&&Math.random()<.025)kmSakat(o)}if(!b.owner){const hum=!M.demo&&p===M.ctrl;if(hum){take(p);p.won=1;SND.kick(.5)}else{b.vx=p.dx*7+rand(-3,3);b.vy=p.dy*7+rand(-3,3);b.vz=.8;b.lastTeam=p.team;b.last=p;b.intended=null;b.shot=null;SND.kick(.5)}}}
+    if(d<1.45&&b.z<1&&b.owner!==p&&!(duranBekliyor()&&b.owner.team!==p.team)){if(b.owner&&b.owner.team!==p.team&&kmKaymaFaul(p,b.owner)){p.slide=0;return}if(b.owner&&b.owner.team!==p.team){const o=b.owner;o.stun=.8;o.cd=.9;b.owner=null;if(!M.demo&&o.role!=='G'&&Math.random()<.025)kmSakat(o)}if(!b.owner){const hum=!M.demo&&p===M.ctrl;if(hum){take(p);p.won=1;SND.kick(.5)}else{b.vx=p.dx*7+rand(-3,3);b.vy=p.dy*7+rand(-3,3);b.vz=.8;b.lastTeam=p.team;b.last=p;b.intended=null;b.shot=null;SND.kick(.5)}}}
     if(p.slide<=0){p.stun=M.ball.owner===p?0:.35;p.won=0}
   }else if(p.stun>0){vx=p.vx*.8;vy=p.vy*.8}
   else{
@@ -1343,6 +1344,17 @@ function movePlayer(p,dt){
   if(p.role==='G'){const og=ownGoalY(p.team);if(og===PL)p.y=Math.max(p.y,PL-BOXD-2);else p.y=Math.min(p.y,BOXD+2);}
   p.anim+=Math.hypot(vx,vy)*dt;
 }
+/* duran top kuralı: topu kullanan oyuncu topa dokunmadan rakipler 9,15 m uzakta bekler, topa müdahale edemez; santrada rakip kendi yarısındadır */
+const DURAN_MESAFE=9.15;
+function duranBekliyor(){return !!(M.setPiece&&M.ball.owner&&M.ball.owner===M.setPiece.p)}
+function mesafeKurali(){if(!duranBekliyor()||M.setPiece.pen)return;const b=M.ball,ti=M.setPiece.p.team,ko=!!M.setPiece.ko;
+  for(const q of M.P){if(q.team===ti)continue;q.slide=0;
+    if(ko){if(fwdOf(q.team)===-1)q.y=Math.max(q.y,PL/2+.3);else q.y=Math.min(q.y,PL/2-.3)}
+    let dx=q.x-b.x,dy=q.y-b.y,d=Math.hypot(dx,dy);
+    if(d<DURAN_MESAFE){if(d<.01){dx=0;dy=-fwdOf(ti);d=1}const a0=Math.atan2(dy,dx);
+      for(let k=0;k<24;k++){const a=a0+(k%2?1:-1)*Math.ceil(k/2)*Math.PI/12,nx=b.x+Math.cos(a)*DURAN_MESAFE,ny=b.y+Math.sin(a)*DURAN_MESAFE; /* saha dışına düşerse çember üzerinde kayar */
+        if(nx>=.5&&nx<=PW-.5&&ny>=.5&&ny<=PL-.5&&(!ko||(fwdOf(q.team)===-1?ny>=PL/2:ny<=PL/2))){q.x=nx;q.y=ny;break}}
+      q.vx*=.3;q.vy*=.3}}}
 function separate(){const P=M.P;for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i],b=P[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);if(d>0&&d<.9){const o=(.9-d)/2,ux=dx/d,uy=dy/d;if(a.slide<=0){a.x-=ux*o;a.y-=uy*o}if(b.slide<=0){b.x+=ux*o;b.y+=uy*o}}}}
 
 /* ---------- Top ---------- */
@@ -1351,8 +1363,8 @@ function ballStep(dt){
   if(b.owner){const p=b.owner;const ph=p.anim*1.6;const off=.62+Math.sin(ph)*.12;b.x=p.x+p.dx*off;b.y=p.y+p.dy*off;b.z=0;b.vx=p.vx;b.vy=p.vy;b.vz=0;b.lastTeam=p.team;b.last=p;
     /* topla çizgiyi geçmek: taç / aut / korner, kale ağzından girerse gol */
     if(!M.setPiece&&p.role!=='G'&&(b.x<-.15||b.x>PW+.15||b.y<-.15||b.y>PL+.15)){b.owner=null;b.kicker=p;if(outOfPlay(b))return}
-    /* top kapma */
-    for(const q of M.P){if(q.team===p.team||q.stun>0||q.slide>0||q.cd>0)continue;const d=Math.hypot(q.x-b.x,q.y-b.y);if(d<.85){
+    /* top kapma (duran topta topçu topa dokunmadan kimse alamaz) */
+    if(!duranBekliyor())for(const q of M.P){if(q.team===p.team||q.stun>0||q.slide>0||q.cd>0)continue;const d=Math.hypot(q.x-b.x,q.y-b.y);if(d<.85){
       const Tq=M.T[q.team],Tp=M.T[p.team];
       if(Tp.human&&p===M.ctrl&&p.hold<.6)continue;
       let rate=(1.1+Tq.skill-Tp.skill*.6)*(Tq.human?(q===M.ctrl?2.6:1.25):1)*(Tp.human&&p===M.ctrl?DIFF.steal[M.diff]:1);
@@ -1403,12 +1415,12 @@ function restart(ti,x,y,pickRole){
   let p;if(pickRole==='G')p=M.P.find(q=>q.team===ti&&q.role==='G');else{p=null;let bd=1e9;for(const q of M.P)if(q.team===ti&&q.role!=='G'){const d=Math.hypot(q.x-x,q.y-y);if(d<bd){bd=d;p=q}}}
   /* topu kullanacak oyuncu duran topa ışınlanmaz: koşarak gelir (bkz. step, 'pre') */
   const hx=x+(x<=0?-.4:x>=PW?.4:0),hy=y+(y<=0?-.4:y>=PL?.4:0);p.vx=p.vy=0;
-  /* rakipler 4 m uzaklaşsın */
-  for(const q of M.P){if(q.team===ti)continue;const d=Math.hypot(q.x-x,q.y-y);if(d<5){const ux=(q.x-x)/(d||1),uy=(q.y-y)/(d||1);q.x=clamp(x+ux*5,.5,PW-.5);q.y=clamp(y+uy*5,.5,PL-.5)}}
+  /* rakipler 9,15 m uzaklaşsın */
+  for(const q of M.P){if(q.team===ti)continue;const d=Math.hypot(q.x-x,q.y-y);if(d<DURAN_MESAFE){const ux=(q.x-x)/(d||1),uy=(q.y-y)/(d||1);q.x=clamp(x+ux*DURAN_MESAFE,.5,PW-.5);q.y=clamp(y+uy*DURAN_MESAFE,.5,PL-.5)}}
   const cx=PW/2,cy=y<PL/2?Math.max(y,10):Math.min(y,PL-10);const dx=cx-hx,dy=cy-hy,d=Math.hypot(dx,dy)||1;
   b.owner=p;p.hold=0;p.cd=0;b.lastTeam=ti;M.setPiece={p,t:0,yol:{tx:hx,ty:hy,fx:dx/d,fy:dy/d,bekle:0}};
   if(p.team===0&&!M.demo)M.ctrl=p;
-  M.state='pre';M.stateT=.55;
+  M.state='pre';M.stateT=.55;mesafeKurali();
 }
 function throwIn(ti,x,y){M.durdu=Math.abs(y-goalYOf(ti))<25?2:1;restart(ti,x<=0?0:PW,y);SND.whistle(1)}
 function cornerKick(ti,x){M.durdu=2;if(M.korner)M.korner[ti]++;const y=goalYOf(ti);restart(ti,x<=0?.3:PW-.3,y===0?.3:PL-.3);SND.whistle(1);flash('KORNER')}
