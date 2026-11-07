@@ -80,6 +80,7 @@ const SOZLUK := {
 	"Ligini ve kulübünü seç. Her hafta kendi maçını oynarsın; ligin diğer maçları aynı anda sonuçlanır. Sezon sonunda en çok puanı toplayan şampiyon olur.":
 		"Pick your league and club. Every week you play your own match; the league's other matches are decided at the same time. Whoever has the most points at the end of the season is champion.",
 	"Ligini ve kulübünü seç. Her hafta kendi maçını oynarsın; diğer maçlar aynı anda sonuçlanır.": "Pick your league and club. Every week you play your own match; the other matches are decided at the same time.",
+	"Fikstür": "Fixtures", "FİKSTÜR": "FIXTURES", "Puan durumu": "Table", "1. DEVRE": "FIRST HALF", "2. DEVRE": "SECOND HALF", "SIRADA": "NEXT", "Skor": "Score",
 	"Ana menü": "Main menu", "dk": "min", "Oyun seçimi": "Choose game",
 }
 

@@ -47,10 +47,11 @@ func yenile() -> void:
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	mv.add_child(sc); sc.add_child(ic); ic.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	ic.add_child(hb)
+	var sol: Control = _fikstur_panel() if lig.var_mi() and lig.gorunum == "fikstur" else _tablo_panel()
 	if dikey:
-		hb.add_child(_sag_panel()); hb.add_child(_tablo_panel())
+		hb.add_child(_sag_panel()); hb.add_child(sol)
 	else:
-		hb.add_child(_tablo_panel()); hb.add_child(_sag_panel())
+		hb.add_child(sol); hb.add_child(_sag_panel())
 	satir = mini(satir, lig.satirlar().size() - 1)
 	ciz()
 
@@ -63,6 +64,8 @@ func ciz() -> void:
 		b.text = lig.satir_metni(i, sec)
 		if S[i] in ["Lig", "Takımın"]: b.text = b.text.trim_prefix("‹  ").trim_suffix("  ›")   # okları yandaki düğmeler gösterir
 		var ana_eylem: bool = S[i] in ["MAÇA ÇIK", "SEZONA BAŞLA", "YENİ SEZON"]
+		if S[i] == "Fikstür" and lig.gorunum == "fikstur" and not sec:   # açık görünüm sekmesi
+			b.add_theme_stylebox_override("normal", _kutu(Color("#3d4a5c"), 6, 7)); b.add_theme_color_override("font_color", ALTIN); continue
 		var c := ALTIN if sec else (Color("#e5722f") if ana_eylem else SERIT)
 		b.add_theme_stylebox_override("normal", _kutu(c, 6, 7))
 		b.add_theme_color_override("font_color", Color("#1d2b2c") if sec else (Color.WHITE if ana_eylem else YAZI))
@@ -122,6 +125,60 @@ func _tablo_panel() -> Control:
 					elif e.global_position.distance_to(bas.p) < 14:
 						lig.kur_takim = ti; lig.mesaj = ""; yenile())
 			v.add_child(sat)
+	return p
+
+# kulübün sezon fikstürü: menajer oyunlarındaki gibi iki devre yan yana (dik ekranda alt alta).
+# Satır: hafta · İ/D · rakip (sırası) · skor · sonuç; sıradaki maç vurgulu, oynanan maçlar G/B/M renginde.
+func _fikstur_panel() -> Control:
+	var p := PanelContainer.new(); p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	p.add_theme_stylebox_override("panel", _kutu(PANEL, 6, 0))
+	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 0); p.add_child(v)
+	var F := lig.fikstur_biz()
+	var G := 0; var B := 0; var M := 0
+	for x in F:
+		match Lig.sonuc_harf(x):
+			"G": G += 1
+			"B": B += 1
+			"M": M += 1
+	v.add_child(_serit("FİKSTÜR  ·  %s  ·  %dG %dB %dM" % [lig.takim(lig.biz()).ad, G, B, M]))
+	var sira := {}
+	for r in lig.tablo_satirlari(): sira[r[1]] = int(r[0])
+	var iki := BoxContainer.new(); iki.vertical = dikey; iki.add_theme_constant_override("separation", 0 if dikey else 10)
+	v.add_child(iki)
+	var yari := (F.size() + 1) / 2
+	var simdi := int(lig.d.hafta) + 1
+	for dv in 2:
+		var dvv := VBoxContainer.new(); dvv.add_theme_constant_override("separation", 0); dvv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		iki.add_child(dvv)
+		dvv.add_child(_fik_satir(["%d. DEVRE" % (dv + 1), "", "", "", ""], 0, true, false, ""))
+		for k in range(dv * yari, mini((dv + 1) * yari, F.size())):
+			var x: Array = F[k]
+			var rk: Dictionary = lig.takim(int(x[2]))
+			var rad: String = rk.ad + "  (%d.)" % int(sira.get(rk.kisa, 0))
+			var skor := "%d - %d" % [int(x[3]), int(x[4])] if int(x[3]) >= 0 else ("–" if int(x[0]) != simdi else "SIRADA")
+			dvv.add_child(_fik_satir([str(x[0]), "İ" if x[1] else "D", rad, skor, Lig.sonuc_harf(x)], k, false, int(x[0]) == simdi and not lig.bitti(), Lig.sonuc_harf(x)))
+	return p
+
+func _fik_satir(vals: Array, k: int, baslik: bool, vurgu: bool, harf: String) -> Control:
+	var p := PanelContainer.new()
+	var c := SERIT if baslik else (BIZ_RENK if vurgu else (SATIR_A if k % 2 == 0 else SATIR_B))
+	var st := _kutu(c, 0, 0); st.content_margin_top = 3; st.content_margin_bottom = 3; st.content_margin_left = 8; st.content_margin_right = 8
+	p.add_theme_stylebox_override("panel", st)
+	var hb := HBoxContainer.new(); hb.add_theme_constant_override("separation", 6); p.add_child(hb)
+	var boy := 14 if baslik else 15
+	var genis := [30, 22, 0, 64, 26]
+	for i in vals.size():
+		var renk := ALTIN if baslik else (SOLUK if i == 1 else YAZI)
+		if i == 3 and not baslik: renk = ALTIN if vurgu else (YAZI if harf != "" else SOLUK)
+		if i == 4 and harf != "": renk = YESIL if harf == "G" else (Color("#d9b34f") if harf == "B" else KIRMIZI)
+		var l := _etiket(str(vals[i]), boy, renk)
+		if i == 2 or (baslik and i == 0):
+			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL; l.clip_text = true
+			l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		else:
+			l.custom_minimum_size = Vector2(genis[i], 0); l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		if baslik and i == 0: l.custom_minimum_size.x = 0
+		hb.add_child(l)
 	return p
 
 func _tablo_satir(vals: Array, sira: int, baslik: bool, biz: bool, form: String, n := 0) -> Control:

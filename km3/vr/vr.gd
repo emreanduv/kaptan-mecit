@@ -296,7 +296,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG MODU", "Dil / Language"]
-const SURUM := "0.7.6"
+const SURUM := "0.7.7"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -439,7 +439,20 @@ func _lig_ciz() -> void:
 	var sutun: Array = []
 	for c in LIG_SUTUN: sutun.append(c[0])
 	var biz_sira := -1
-	if L.var_mi():
+	if L.var_mi() and L.gorunum == "fikstur":
+		# kulübün fikstürü: sıradaki maçın bulunduğu devre (sezon bittiyse ikinci devre)
+		var F := L.fikstur_biz()
+		var yari := (F.size() + 1) / 2
+		var simdi := int(L.d.hafta) + 1
+		var dv := 0 if simdi <= yari else 1
+		sutun = ["#", ("1. DEVRE" if dv == 0 else "2. DEVRE"), "", "", "", "", "Skor", ""]
+		for k in range(dv * yari, mini((dv + 1) * yari, F.size())):
+			var x: Array = F[k]
+			var skor := "%d-%d" % [int(x[3]), int(x[4])] if int(x[3]) >= 0 else "–"
+			var v := [str(x[0]), ("İ  " if x[1] else "D  ") + L.takim(int(x[2])).ad, "", "", "", "", skor, Lig.sonuc_harf(x)]
+			for j in v.size(): sutun[j] += "\n" + v[j]
+			if int(x[0]) == simdi and not L.bitti(): biz_sira = k - dv * yari + 1
+	elif L.var_mi():
 		for r in L.tablo_satirlari():
 			var v := [str(r[0]), r[2], str(r[3]), str(r[4]), str(r[5]), str(r[6]), ("+" if int(r[9]) > 0 else "") + str(r[9]), str(r[10])]
 			for k in v.size(): sutun[k] += "\n" + v[k]

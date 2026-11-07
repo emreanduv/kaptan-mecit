@@ -39,3 +39,8 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 
 ## 0.7.5 — Deplasmanda gerçek ev sahibi
 - Lig maçında kullanıcı deplasmandaysa (`Mac.kul_dep`): tabela, stadyum skor ekranları, başlama/maç sonu afişleri ve mola başlığı ev sahibini önce yazar ("EV 1-0 DEP"); ev sahibi kendi formasını giyer (forma çakışmasında misafir değişir); tribünler ev sahibinin renginde, kuzey kale arkası misafir (kullanıcının) taraftarı; taraftar sesleri ve tribün coşkusu doğru tarafa (`ana._y()`). Motorda kullanıcı yine T[0]; sonuç Lig'e doğru ev/deplasman sırasıyla yazılır.
+
+## 0.7.7 — Lig fikstürü
+- Lig ekranında **Fikstür** satırı (VR'da da): sol panel puan durumu ile kulübün sezon fikstürü arasında geçer. Menajer oyunlarındaki gibi iki devre yan yana (dik ekranda alt alta): hafta · İ/D · rakip (şu anki sırası) · skor · sonuç (G/B/M renkli); sıradaki maç vurgulu, başlıkta sezonun G/B/M dökümü. VR panelinde sıradaki maçın devresi gösterilir.
+- Kod: `Lig.gorunum`, `Lig.fikstur_biz()`, `Lig.sonuc_harf()`; `LigEkran._fikstur_panel()`; `vr._lig_ciz()`.
+- Deneme: `--ligsezon=12 --lig --ligfik --ekran=x.png` (`--vrsahte` ile VR paneli).

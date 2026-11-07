@@ -121,6 +121,7 @@ func _ready() -> void:
 		# deneme: bir ligde bir kulüple sezon kur, n haftayı hızlı simüle et
 		lig.sil(); lig.yeni_sezon(int(_arg.get("liglig", "0")), int(_arg.get("ligtakim", "0")))
 		for i in int(_arg.ligsezon): lig.haftayi_simule()
+	if _arg.has("ligfik"): lig.gorunum = "fikstur"
 	if _arg.has("lig"): lig_goster(true)
 	if _arg.has("ligmac"): lig_mac_basla()
 	if _arg.has("mac"):

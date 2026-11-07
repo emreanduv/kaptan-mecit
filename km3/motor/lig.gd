@@ -14,6 +14,7 @@ var kur_takim := 0
 var mesaj := ""
 var _birak_onay := 0.0
 var son_hafta: Array = []       # en son oynanan haftanın maçları (ekranda "Haftanın sonuçları")
+var gorunum := "tablo"          # sol panel: "tablo" (puan durumu) ya da "fikstur" (kulübün sezon fikstürü)
 
 func _init(v: Dictionary) -> void:
 	veri = v
@@ -40,7 +41,7 @@ func kaydet() -> void:
 	if f: f.store_string(JSON.stringify(d)); f.close()
 
 func sil() -> void:
-	d = {}; son_hafta = []; mesaj = ""
+	d = {}; son_hafta = []; mesaj = ""; gorunum = "tablo"
 	if FileAccess.file_exists(KAYIT): DirAccess.remove_absolute(ProjectSettings.globalize_path(KAYIT))
 
 # ---------- sezon ----------
@@ -184,8 +185,8 @@ func sezon_adi() -> String:
 # ---------- menü satırları (ekran ve VR ortak) ----------
 func satirlar() -> Array:
 	if not var_mi(): return ["Lig", "Takımın", "SEZONA BAŞLA", "Ana menü"]
-	if bitti(): return ["YENİ SEZON", "Ana menü", "Ligi bırak"]
-	return ["MAÇA ÇIK", "Maçı simüle et", "Ana menü", "Ligi bırak"]
+	if bitti(): return ["YENİ SEZON", "Fikstür", "Ana menü", "Ligi bırak"]
+	return ["MAÇA ÇIK", "Maçı simüle et", "Fikstür", "Ana menü", "Ligi bırak"]
 
 func satir_metni(i: int, sec := false) -> String:
 	var s: String = satirlar()[i]
@@ -199,6 +200,7 @@ func satir_metni(i: int, sec := false) -> String:
 			var mc := sonraki_mac()
 			return ok + "MAÇA ÇIK  ·  " + takim(int(mc[0])).kisa + " - " + takim(int(mc[1])).kisa
 		"YENİ SEZON": return ok + "YENİ SEZON  ·  " + str(int(d.sezon) + 1) + ". sezon"
+		"Fikstür": return ok + ("Fikstür" if gorunum == "tablo" else "Puan durumu")
 	return ok + s
 
 func kay(i: int, yon: int) -> void:
@@ -214,10 +216,11 @@ func bas(i: int) -> String:
 		"SEZONA BAŞLA": yeni_sezon(kur_lig, kur_takim)
 		"MAÇA ÇIK": return "mac"
 		"Maçı simüle et": haftayi_simule()
+		"Fikstür": gorunum = "fikstur" if gorunum == "tablo" else "tablo"
 		"YENİ SEZON":
 			var lg := int(d.lig); var tk := int(d.takim); var sz := int(d.sezon) + 1
 			yeni_sezon(lg, tk, sz)
-		"Ana menü": return "menu"
+		"Ana menü": gorunum = "tablo"; return "menu"
 		"Ligi bırak":
 			var simdi := Time.get_ticks_msec() / 1000.0
 			if simdi - _birak_onay > 4.0:
@@ -234,3 +237,21 @@ func tablo_satirlari() -> Array:
 		var x: Dictionary = t[k]
 		r.append([k + 1, takim(x.i).kisa, takim(x.i).ad, x.O, x.G, x.B, x.M, x.A, x.Y, x.Av, x.P, x.i == biz(), x.form])
 	return r
+
+# kulübün sezon fikstürü (ekran ve VR): her hafta için [hafta, iç saha mı, rakip, bizim gol, rakip gol] (oynanmadıysa gol -1)
+func fikstur_biz() -> Array:
+	var r: Array = []
+	if not var_mi(): return r
+	var F: Array = d.fikstur
+	for w in F.size():
+		for mc in F[w]:
+			var ev := int(mc[0]) == biz()
+			if not ev and int(mc[1]) != biz(): continue
+			r.append([w + 1, ev, int(mc[1]) if ev else int(mc[0]), int(mc[2]) if ev else int(mc[3]), int(mc[3]) if ev else int(mc[2])])
+			break
+	return r
+
+# fikstür satırının sonucu: "G" / "B" / "M" ya da oynanmadıysa ""
+static func sonuc_harf(x: Array) -> String:
+	if int(x[3]) < 0: return ""
+	return "G" if int(x[3]) > int(x[4]) else ("B" if int(x[3]) == int(x[4]) else "M")
