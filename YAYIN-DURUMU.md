@@ -11,6 +11,7 @@
 - 6 Kas gece: **1.5.3** — Modern lig ekranında telefonda takılma (düğmeler ekran dışında, kaydırma yok) düzeltildi (KM3 0.7.3). Android 1.5.3 (19) Play dahili test; iOS 1.5.3 (18) TestFlight beta incelemesinde.
 - 7 Kas: **1.5.4** — hızlı maç bitince oyun donup kalıyordu (menü gelmiyordu) → menüye dönüş + uzatmaya kesin sınır (KM3 0.7.5). Android 1.5.4 (21) Play dahili test; iOS 1.5.4 (20) TestFlight beta incelemesinde.
 - 7 Kas: **Meta KM3**: 0.7.4 başvurusu iptal edildi; aynı hata VR'da da vardı (VRC.Quest.Functional.1'in muhtemel sebebi). 0.7.5 (kod 8) yüklendi, yaş grubu 13+ Emre'nin onayıyla onaylandı, v1 yeniden değerlendirmeye gönderildi (Emre tam yetki verdi).
+- 7 Kas: **1.5.5** — lig ekranında kulüp seçimi: ‹ › düğmeleri + listeden dokunarak seçim (KM3 0.7.6; Quest'e bir sonraki sürümde). Android (22) Play dahili test; iOS (21) TestFlight beta incelemesinde.
 - Steam/Champion kopyası artık `www/klasik/index.html` (+ `*.js`).
 
 ## 1.4.0 (hazırlanıyor, 4 Kas)
