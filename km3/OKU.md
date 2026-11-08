@@ -50,3 +50,4 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Kendi maçındaki goller maç motorunun gol olaylarından gelir (kendi kalesine gol sayılmaz, VAR iptali düşer); simüle edilen maçların golleri kulübün ilk 11'ine mevkiye göre paylaştırılır (forvet 5, orta saha 1,8, defans 0,55, kaleci 0).
 - Kayıtta `golcu` (kulüp başına [ad, pay]) ve `goller` ("kulüp|ad" → gol). Eski kayıtlar açılınca `golcu` kurulur, krallık o haftadan itibaren sayılır.
 - Kod: `Lig.gol_krallari()`, `Lig.gol_krali_metni()`, `LigEkran._goller_panel()`, `vr._lig_ciz()`. Deneme: `dene/lig_dene.gd` (dağıtılan gol = atılan gol, kayıt aynı liste), `--ligsezon=14 --lig --liggol --ekran=x.png` (`--vrsahte` ile VR).
+- Seçili satır işareti `▶` web fontunda kutu görünüyordu → lig ve mola satırlarında `»` (VR ana menüsü değişmedi).

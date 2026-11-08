@@ -281,7 +281,7 @@ func satirlar() -> Array:
 
 func satir_metni(i: int, sec := false) -> String:
 	var s: String = satirlar()[i]
-	var ok := ("▶  " if sec else "")
+	var ok := ("»  " if sec else "")
 	match s:
 		"Lig": return ("‹  " if sec else "") + "Lig:  " + veri.ligler[kur_lig].ad + " · " + veri.ligler[kur_lig].ulke + ("  ›" if sec else "")
 		"Takımın":

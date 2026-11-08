@@ -61,7 +61,7 @@ func satir_metni(i: int, secili: bool) -> String:
 	var d := deger(i)
 	var ad: String = ("Koltuk" if ana.vr else "Kamera") if i == 5 else SATIRLAR[i]
 	if i in [1, 2, 4, 5]: return ("‹  " if secili else "") + ad + ":  " + d + ("  ›" if secili else "")
-	return ("▶  " if secili else "") + SATIRLAR[i] + (("   ·   " + d) if d != "" else "")
+	return ("»  " if secili else "") + SATIRLAR[i] + (("   ·   " + d) if d != "" else "")
 
 func kay(i: int, d: int) -> void:
 	match i:
