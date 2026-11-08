@@ -88,6 +88,7 @@ class Top:
 	var shot_t := 0.0
 	var gk_tried: Oy = null
 	var cross := false
+	var atis := false          # taçtan atıldı (doğrudan gol olmaz)
 	var ofs = null       # {q, team, yakin}
 
 # --- durum ---
@@ -241,6 +242,7 @@ func kickoff(ti: int) -> void:
 	kt[0].x = PW / 2 - .2; kt[0].y = PL / 2 - fwd_of(ti) * .6; kt[1].x = PW / 2 + 4; kt[1].y = PL / 2 - fwd_of(ti) * 1.2
 	b.owner = kt[0]; b.last_team = ti; kick_team = ti; poss_team = ti; cand_t = 0; TP = null; prep_t = 0; kt[0].hold = 0
 	set_piece = {"p": kt[0], "t": 0.0, "ko": true}
+	mesafe_kurali()
 	ctrl = null
 	for p: Oy in P:
 		if p.team == 0 and p.role == "F": ctrl = p; break
@@ -336,6 +338,7 @@ func step(dt: float) -> void:
 	separate()
 	mesafe_kurali()
 	ball_step(dt)
+	mesafe_kurali()
 	giris.pasE = false; giris.sutE = false
 
 func bitir() -> void:
@@ -768,6 +771,7 @@ func think(p: Oy, dt: float) -> void:
 					else: do_pass(p, ix if ix != 0 else p.dx, iy if iy != 0 else p.dy)
 				elif giris.sutE:
 					if cq != null: do_cross(p, cq)
+					elif set_piece.get("tac", false): do_pass(p, ix if ix != 0 else p.dx, iy if iy != 0 else p.dy)   # taçta şut yok: uzun atış
 					else: do_shoot(p, ix)
 				elif set_piece.t > (6.0 if set_piece.get("ko", false) else 2.5):
 					if cq != null: do_cross(p, cq)
@@ -897,6 +901,7 @@ func release(p: Oy, vx: float, vy: float, vz: float, intended: Oy = null) -> voi
 	ofsayt_bak(p, intended)
 	b.owner = null; b.x = p.x + p.dx * .5; b.y = p.y + p.dy * .5; b.vx = vx; b.vy = vy; b.vz = vz; b.z = maxf(b.z, .05)
 	b.last = p; b.last_team = p.team; b.kicker = p; b.intended = intended; b.gk_tried = null; b.cross = false; b.shot = false
+	b.atis = set_piece != null and set_piece.get("tac", false) and set_piece.p == p
 	p.cd = .35; p.hold = 0; set_piece = null
 
 func do_pass(p: Oy, dx: float, dy: float, target: Oy = null) -> void:
@@ -1019,6 +1024,7 @@ func separate() -> void:
 
 # ---------- top ----------
 func ball_step(dt: float) -> void:
+	if state != "play": return   # aynı adımda duran top verildiyse top yerinde kalır
 	var b := ball
 	if b.owner != null:
 		var p := b.owner
@@ -1105,6 +1111,12 @@ func ball_step(dt: float) -> void:
 func out_of_play(b: Top) -> bool:
 	if b.y < 0 or b.y > PL:
 		var ti := 0 if goal_y_of(0) == (0.0 if b.y < 0 else PL) else 1
+		if b.x > GX0 and b.x < GX1 and b.z < GH and b.atis and b.last == b.kicker:
+			# taçtan doğrudan gol olmaz
+			b.atis = false
+			if b.kicker != null and b.kicker.team == ti: goal_kick(1 - ti)
+			else: corner_kick(ti, 0.0 if b.x < PW / 2 else PW)
+			return true
 		if b.x > GX0 and b.x < GX1 and b.z < GH:
 			var k := b.kicker
 			score_goal(ti, k if (k != null and k.team == ti) else null, k if (k != null and k.team != ti) else null)
@@ -1137,8 +1149,15 @@ func mesafe_kurali() -> void:
 	var b := ball
 	var ti: int = set_piece.p.team
 	var ko: bool = set_piece.get("ko", false)
+	var bj: Array = set_piece.get("baraj", [])
+	var bj_oy := []
+	for e in bj:
+		var q: Oy = e[0]; bj_oy.append(q)
+		q.x = e[1]; q.y = e[2]; q.vx = 0; q.vy = 0; q.dx = e[3]; q.dy = e[4]; q.slide = 0
+		var ex: float = q.x - b.x; var ey: float = q.y - b.y; var ed := maxf(hyp(ex, ey), .001)
+		if ed < DURAN_MESAFE: q.x = b.x + ex / ed * DURAN_MESAFE; q.y = b.y + ey / ed * DURAN_MESAFE
 	for q: Oy in P:
-		if q.team == ti: continue
+		if q.team == ti or bj_oy.has(q): continue
 		q.slide = 0
 		if ko:
 			# santra: rakip kendi yarısında
@@ -1158,6 +1177,25 @@ func mesafe_kurali() -> void:
 				if ko and (ny < PL / 2 if fwd_of(q.team) == -1.0 else ny > PL / 2): continue
 				q.x = nx; q.y = ny; break
 			q.vx *= .3; q.vy *= .3
+
+# baraj: kaleye yakın serbest vuruşta savunma, topla kale ortası arasına 9,15 m'de 2–4 kişilik duvar kurar
+func baraj(ti: int) -> void:
+	var b := ball
+	var dx := PW / 2 - b.x; var dy := goal_y_of(ti) - b.y; var d := hyp(dx, dy)
+	if d > 32 or d < 11: return
+	var n := 4 if d < 20 else (3 if d < 26 else 2)
+	var ux := dx / d; var uy := dy / d
+	var cx := b.x + ux * DURAN_MESAFE; var cy := b.y + uy * DURAN_MESAFE
+	var ad := []
+	for q: Oy in P:
+		if q.team != ti and q.role != "G": ad.append(q)
+	ad.sort_custom(func(a: Oy, c: Oy): return hyp(a.x - cx, a.y - cy) < hyp(c.x - cx, c.y - cy))
+	var liste := []
+	for i in mini(n, ad.size()):
+		var o := (i - (n - 1) / 2.0) * .75
+		liste.append([ad[i], cx - uy * o, cy + ux * o, -ux, -uy])
+	set_piece.baraj = liste
+	mesafe_kurali()
 
 func restart(ti: int, x: float, y: float, pick_role := "") -> void:
 	var b := ball
@@ -1189,10 +1227,11 @@ func restart(ti: int, x: float, y: float, pick_role := "") -> void:
 	set_piece = {"p": p, "t": 0.0, "yol": {"tx": hx, "ty": hy, "fx": dx / d, "fy": dy / d, "bekle": 0.0}}
 	if p.team == 0 and not demo: ctrl = p
 	state = "pre"; state_t = .55
+	mesafe_kurali()
 
 func throw_in(ti: int, x: float, y: float) -> void:
 	durdu = 2 if absf(y - goal_y_of(ti)) < 25 else 1
-	restart(ti, 0.0 if x <= 0 else PW, y); olay("duduk", 1); olay("flash", "TAÇ")
+	restart(ti, 0.0 if x <= 0 else PW, y); set_piece.tac = true; olay("duduk", 1); olay("flash", "TAÇ")
 
 func corner_kick(ti: int, x: float) -> void:
 	durdu = 2; korner[ti] += 1
@@ -1202,7 +1241,7 @@ func corner_kick(ti: int, x: float) -> void:
 func goal_kick(ti: int) -> void:
 	durdu = 1
 	var y := PL - 5.5 if own_goal_y(ti) == PL else 5.5
-	restart(ti, PW / 2 + rnd(-4, 4), y, "G"); olay("duduk", 1); olay("flash", "AUT")
+	restart(ti, PW / 2 + rnd(-4, 4), y, "G"); set_piece.aut = true; olay("duduk", 1); olay("flash", "AUT")
 
 func score_goal(ti: int, scorer: Oy, own: Oy) -> void:
 	var Tt: Dictionary = T[ti]
@@ -1275,6 +1314,7 @@ func faul_yap(o: Oy, p: Oy, arkadan: bool, kayma: bool) -> void:
 	if not atilan.has(p):
 		restart(ti, clampf(p.x, 1, PW - 1), clampf(p.y, 1, PL - 1))
 		set_piece.fk = true; durdu = 2 if dg < 38 else 1
+		baraj(ti)
 		olay("banner", "FAUL", o.n + " · " + T[ti].t.kisa + " serbest vuruş")
 
 func penalti_ver(ti: int, incelendi := false) -> void:
@@ -1350,7 +1390,7 @@ func ofsayt_bak(p: Oy, q: Oy) -> void:
 	var b := ball
 	b.ofs = null
 	if demo or q == null or q.team != p.team: return
-	if set_piece != null and set_piece.p == p and (is_corner(p) or set_piece.get("ko", false)): return
+	if set_piece != null and set_piece.p == p and (is_corner(p) or set_piece.get("ko", false) or set_piece.get("tac", false) or set_piece.get("aut", false)): return   # kornerde, santrada, taçta, autta ofsayt yok
 	var g := ofsayt_mi(p, q)
 	var f := fwd_of(p.team)
 	if g > .3: b.ofs = {"q": q, "team": p.team}
