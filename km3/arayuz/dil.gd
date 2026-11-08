@@ -27,6 +27,13 @@ const SOZLUK := {
 	"güç": "strength", "Güç": "Str",
 	"Anadolu Ligi": "Anatolian League", "Ada Ligi": "Island League", "İber Ligi": "Iberian League", "Çizme Ligi": "Boot League", "Ren Ligi": "Rhine League", "Galya Ligi": "Gallic League",
 	"Türkiye": "Türkiye", "İngiltere": "England", "İspanya": "Spain", "İtalya": "Italy", "Almanya": "Germany", "Fransa": "France",
+	"Pampa Ligi": "Pampas League", "Alp Ligi": "Alpine League", "Güney Haç Ligi": "Southern Cross League", "Brabant Ligi": "Brabant League", "Amazon Ligi": "Amazon League", "Yangtze Ligi": "Yangtze League",
+	"And Ligi": "Andes League", "Sahra Ligi": "Sahara League", "Nil Ligi": "Nile League", "Olimpos Ligi": "Olympus League", "Fuji Ligi": "Fuji League", "Han Ligi": "Han League", "Atlas Ligi": "Atlas League",
+	"Aztek Ligi": "Aztec League", "Lale Ligi": "Tulip League", "Lusitanya Ligi": "Lusitania League", "İnci Ligi": "Pearl League", "Necd Ligi": "Najd League", "Kaledonya Ligi": "Caledonia League",
+	"Kartaca Ligi": "Carthage League", "Yeni Dünya Ligi": "New World League", "Kap Ligi": "Cape League",
+	"Arjantin": "Argentina", "Avusturya": "Austria", "Avustralya": "Australia", "Belçika": "Belgium", "Brezilya": "Brazil", "Çin": "China", "Kolombiya": "Colombia", "Cezayir": "Algeria", "Mısır": "Egypt",
+	"Yunanistan": "Greece", "Japonya": "Japan", "Güney Kore": "South Korea", "Fas": "Morocco", "Meksika": "Mexico", "Hollanda": "Netherlands", "Portekiz": "Portugal", "Katar": "Qatar", "Suudi Arabistan": "Saudi Arabia",
+	"İskoçya": "Scotland", "Tunus": "Tunisia", "ABD": "USA", "Güney Afrika": "South Africa",
 	"WASD / oklar: koş · X: pas / oyuncu seç · Z / boşluk: şut · kay · C: kamera · M: menü   ·   Kol: sol çubuk koş · A pas · B şut · Y kamera":
 		"WASD / arrows: run · X: pass / switch player · Z / space: shoot · slide · C: camera · M: menu   ·   Pad: left stick run · A pass · B shoot · Y camera",
 	"Menü: lazerle seç, tetikle bas · A: maça başla   ·   Maçta: sol çubuk koş (baktığın yöne) · Sağ tetik / A: pas · B / sağ kavrama: şut · kay · Sağ çubuk sola/sağa ya da sol X: koltuk · Sol menü / Y: menü":
@@ -121,7 +128,7 @@ static func _harf(c: String) -> bool:
 
 # ifade ifade çeviri; kelime sınırına dikkat eder (kısa kelimeler başka kelimelerin içinde değişmez)
 # kulüp adları: renk ve şehir kelimeleri yalnız kulüp adının içinde çevrilir (oyuncu soyadı "Sarı" bozulmasın)
-const KULUP_KELIME := {"Kırmızı": "Red", "Beyaz": "White", "Siyah": "Black", "Mavi": "Blue", "Lacivert": "Navy", "Sarı": "Yellow", "Yeşil": "Green",
+const KULUP_KELIME := {"Şimşekleri": "Lightning", "Yıldızları": "Stars", "Kırmızı": "Red", "Beyaz": "White", "Siyah": "Black", "Mavi": "Blue", "Lacivert": "Navy", "Sarı": "Yellow", "Yeşil": "Green",
 	"Turuncu": "Orange", "Mor": "Purple", "Bordo": "Maroon", "Gök": "Sky", "Kara": "Black", "Şerit": "Stripe", "Londra": "London", "Münih": "Munich",
 	"Cenova": "Genoa", "Floransa": "Florence", "Venedik": "Venice", "Marsilya": "Marseille", "Barselona": "Barcelona", "Valensiya": "Valencia",
 	"Strazburg": "Strasbourg", "Sardinya": "Sardinia", "Monako": "Monaco", "Köln": "Cologne", "Torino": "Turin", "Milano": "Milan", "Roma": "Rome",

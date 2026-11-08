@@ -22,7 +22,7 @@
   ['sezon bitti','season over'],['kulüp','clubs'],['lig','leagues'],['puan','pts'],['hafta','weeks'],
   ['TAKIMINI SEÇ','PICK YOUR TEAM'],['Takımını ve rakibini seç','Pick your team and your opponent'],['Takımım','My team'],['Takımın','Your team'],['Rakip','Opponent'],['RAKİP','OPPONENT'],['RAKİBİ SEÇ','PICK OPPONENT'],
   ['KULÜP SEÇ','PICK A CLUB'],['KULÜP','CLUB'],['Kulüp','Club'],['Ligini ve kulübünü seç','Pick your league and club'],
-  ['Ligini ve kulübünü seç. Kariyerin bu cihazda saklanır; istediğin an kaldığın haftadan devam edersin.','Pick your league and club. Your career is saved on this device; continue from the week you left whenever you like.'],['Ligini ve kulübünü seç. Kariyerin bu cihazda saklanır; istediğin an kaldığın haftadan devam edersin. Maç sırası ligin bu sezonki gerçek fikstürüdür.','Pick your league and club. Your career is saved on this device; continue from the week you left whenever you like. Matches follow this season\'s real league fixture list.'],
+  ['Ligini ve kulübünü seç. Kariyerin bu cihazda saklanır; istediğin an kaldığın haftadan devam edersin.','Pick your league and club. Your career is saved on this device; continue from the week you left whenever you like.'],['Ligini ve kulübünü seç. Kariyerin bu cihazda saklanır; istediğin an kaldığın haftadan devam edersin. Avrupa\'nın büyük 6 liginde maç sırası ligin bu sezonki gerçek fikstürüdür.','Pick your league and club. Your career is saved on this device; continue from the week you left whenever you like. In Europe\'s big six leagues matches follow this season\'s real fixture list.'],
   ['MAÇA ÇIK','PLAY THE MATCH'],['SİMÜLE ET','SIMULATE'],['KALANINI SİMÜLE ET','SIMULATE THE REST'],['Puan Durumu','Standings'],['Fikstür','Fixtures'],['Gol Krallığı','Top scorers'],
   ['İÇ SAHA','HOME'],['DEPLASMAN','AWAY'],['SEZON BİTTİ','SEASON OVER'],['YENİ SEZON','NEW SEASON'],['Şampiyon','Champion'],['sırada bitirdi. Şampiyon:','place. Champion:'],
   ['🏆 ŞAMPİYONLUĞU PAYLAŞ','🏆 SHARE THE TITLE'],['📣 SEZONU PAYLAŞ','📣 SHARE THE SEASON'],['📣 GALİBİYETİ PAYLAŞ','📣 SHARE THE WIN'],
@@ -80,14 +80,22 @@
   // lig ve ülke adları
   ['Anadolu Ligi','Anatolian League'],['Ada Ligi','Island League'],['İber Ligi','Iberian League'],['Çizme Ligi','Boot League'],['Ren Ligi','Rhine League'],['Galya Ligi','Gallic League'],
   ['İngiltere','England'],['İspanya','Spain'],['İtalya','Italy'],['Almanya','Germany'],['Fransa','France'],
+  ['Pampa Ligi','Pampas League'],['Alp Ligi','Alpine League'],['Güney Haç Ligi','Southern Cross League'],['Brabant Ligi','Brabant League'],['Amazon Ligi','Amazon League'],['Yangtze Ligi','Yangtze League'],
+  ['And Ligi','Andes League'],['Sahra Ligi','Sahara League'],['Nil Ligi','Nile League'],['Olimpos Ligi','Olympus League'],['Fuji Ligi','Fuji League'],['Han Ligi','Han League'],['Atlas Ligi','Atlas League'],
+  ['Aztek Ligi','Aztec League'],['Lale Ligi','Tulip League'],['Lusitanya Ligi','Lusitania League'],['İnci Ligi','Pearl League'],['Necd Ligi','Najd League'],['Kaledonya Ligi','Caledonia League'],
+  ['Kartaca Ligi','Carthage League'],['Yeni Dünya Ligi','New World League'],['Kap Ligi','Cape League'],
+  ['Arjantin','Argentina'],['Avusturya','Austria'],['Avustralya','Australia'],['Belçika','Belgium'],['Brezilya','Brazil'],['Çin','China'],['Kolombiya','Colombia'],['Cezayir','Algeria'],['Mısır','Egypt'],
+  ['Yunanistan','Greece'],['Japonya','Japan'],['Güney Kore','South Korea'],['Fas','Morocco'],['Meksika','Mexico'],['Hollanda','Netherlands'],['Portekiz','Portugal'],['Katar','Qatar'],['Suudi Arabistan','Saudi Arabia'],
+  ['İskoçya','Scotland'],['Tunus','Tunisia'],['ABD','USA'],['Güney Afrika','South Africa'],
+  ['Avrupa','Europe'],['Amerika','Americas'],['Asya','Asia'],['Afrika','Africa'],
   // paylaşım
-  ['Kaptan Mecit: üstten görünümlü nostaljik futbol. 6 lig, 114 kulüp, internetsiz. Bir maç yapalım mı?','Kaptan Mecit: top-down classic football. 6 leagues, 114 clubs, no internet needed. Fancy a match?'],
+  ['Kaptan Mecit: üstten görünümlü nostaljik futbol. Dört kıtada 28 lig, 496 kulüp, internetsiz. Bir maç yapalım mı?','Kaptan Mecit: top-down classic football. 28 leagues on four continents, 496 clubs, no internet needed. Fancy a match?'],
   ['Sıra sende, bir maç yapalım mı?','Your turn, fancy a match?'],['Kaptan Mecit\'te','In Kaptan Mecit,'],['şampiyonu oldum!','champion!'],['ile','with'],
   ];
   // kulüp adlarının parçaları (yalnız kulüp adı içinde kullanılır)
   var RENK={'Kırmızı':'Red','Beyaz':'White','Siyah':'Black','Mavi':'Blue','Lacivert':'Navy','Sarı':'Yellow','Yeşil':'Green','Turuncu':'Orange','Mor':'Purple','Bordo':'Maroon','Gök':'Sky','Kara':'Black','Şerit':'Stripe',
     'Londra':'London','Münih':'Munich','Cenova':'Genoa','Floransa':'Florence','Venedik':'Venice','Marsilya':'Marseille','Barselona':'Barcelona','Valensiya':'Valencia','Strazburg':'Strasbourg','Sardinya':'Sardinia','Monako':'Monaco','Köln':'Cologne','Torino':'Turin','Milano':'Milan','Roma':'Rome','Napoli':'Naples',
-    'Arıları':'Bees','Keçileri':'Goats','Demircileri':'Ironworkers','Orman':'Forest','Boğaziçi':'Bosphorus','Haliç':'Golden Horn','Karadeniz':'Black Sea'};
+    'Arıları':'Bees','Şimşekleri':'Lightning','Yıldızları':'Stars','Keçileri':'Goats','Demircileri':'Ironworkers','Orman':'Forest','Boğaziçi':'Bosphorus','Haliç':'Golden Horn','Karadeniz':'Black Sea'};
   var SEHIR=['Londra','Münih','Cenova','Floransa','Venedik','Marsilya','Barselona','Valensiya','Strazburg','Sardinya','Monako','Köln','Torino','Milano','Roma','Napoli'];
   function kulupCevir(ad){return ad.split(/([ -])/).map(function(p){return RENK[p]||p}).join('')}
 
