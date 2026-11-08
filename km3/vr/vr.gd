@@ -64,6 +64,7 @@ func _kur() -> void:
 		el.mesh = bm; el.material_override = _duz(Color("#1f3b3c")); c.add_child(el)
 	_lazer_kur()
 	sag.button_pressed.connect(_sag_bas)
+	sag.button_released.connect(_sag_birak)
 	sol.button_pressed.connect(_sol_bas)
 	# kararma perdesi (kafaya bağlı)
 	karart = MeshInstance3D.new(); var q := QuadMesh.new(); q.size = Vector2(2, 2); karart.mesh = q
@@ -157,6 +158,8 @@ func girdi(M) -> void:
 	var w := sag_y * v.x + ileri * v.y
 	if w.length() > 1: w = w.normalized()
 	M.giris.x = w.x; M.giris.y = w.z
+	var g: float = maxf(M.dolum_orani("pas"), M.dolum_orani("sut"))
+	if g > 0: sag.trigger_haptic_pulse("haptic", 0.0, .15 + .6 * g, .03, 0.0)
 
 func _sag_bas(ad: String) -> void:
 	var M = ana.M
@@ -179,8 +182,16 @@ func _sag_bas(ad: String) -> void:
 		elif ad == "by_button" and ana.yardim_acik: ana.yardim_goster(false)
 		return
 	match ad:
-		"trigger_click", "ax_button": if M: M.giris.pasE = true
-		"by_button", "grip_click": if M: M.giris.sutE = true
+		"trigger_click", "ax_button": if M: M.tus_bas("pas")
+		"by_button", "grip_click": if M: M.tus_bas("sut")
+
+# bırakınca: basılı tutulan PAS / ŞUT çıkar (dolarken sağ kol titrer)
+func _sag_birak(ad: String) -> void:
+	var M = ana.M
+	if M == null or ana.menu_acik: return
+	match ad:
+		"trigger_click", "ax_button": M.tus_birak("pas")
+		"by_button", "grip_click": M.tus_birak("sut")
 
 func _sol_bas(ad: String) -> void:
 	match ad:
@@ -296,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG MODU", "Dil / Language"]
-const SURUM := "0.7.9"
+const SURUM := "0.8.0"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D

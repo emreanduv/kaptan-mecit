@@ -1,6 +1,6 @@
 {
   "name": "kaptan-mecit",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "private": true,
   "description": "Kaptan Mecit - nostaljik üstten görünümlü futbol (iOS + Android, Capacitor)",
   "scripts": {

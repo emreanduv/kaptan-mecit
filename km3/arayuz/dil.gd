@@ -59,7 +59,10 @@ const SOZLUK := {
 	"Menü düğmesi: mola, oyuncu değişikliği ve Nasıl oynanır": "Menu button: pause, substitutions and How to play",
 	"M / Esc: mola, oyuncu değişikliği ve Nasıl oynanır": "M / Esc: pause, substitutions and How to play",
 	"Üstteki II: mola, oyuncu değişikliği ve Nasıl oynanır": "II at the top: pause, substitutions and How to play",
-	"PAS": "PASS", "ŞUT": "SHOOT",
+	"PAS": "PASS", "ŞUT": "SHOOT", "BASILI TUT": "HOLD IT",
+	"Şut tuşunu ne kadar tutarsan şut o kadar sert  ·  pası basılı tutup bırak: ara pas": "Hold shoot longer for a harder shot  ·  hold and release pass: through ball",
+	"Z'yi ne kadar tutarsan şut o kadar sert  ·  X'i basılı tutup bırak: ara pas": "Hold Z longer for a harder shot  ·  hold and release X: through ball",
+	"ŞUT'u ne kadar tutarsan şut o kadar sert  ·  PAS'ı basılı tutup bırak: ara pas": "Hold SHOOT longer for a harder shot  ·  hold and release PASS: through ball",
 	# mola
 	"MOLA": "PAUSE", "DEVAM ET": "RESUME", "Çıkan": "Off", "Giren": "On", "DEĞİŞİKLİĞİ YAP": "MAKE THE SUBSTITUTION", "Asistan değişiklikleri": "Assistant substitutions",
 	"MAÇI BIRAK": "QUIT MATCH", "Açık": "On", "Kapalı (sakatlıkta yine girer)": "Off (still steps in for injuries)", "kondisyon": "fitness", "SAKAT": "INJURED",
@@ -97,8 +100,11 @@ tackle  ·  right stick or X: seat  ·  menu button: pause
 Touch:  run with your finger on the left of the screen  ·  PASS / SHOOT at the bottom right  ·  II at the top: pause
 Keyboard:  WASD / arrows run  ·  X pass  ·  Z / space shoot  ·  C camera  ·  M pause
 Gamepad:  left stick run  ·  A pass  ·  B shoot  ·  Y camera  ·  Start pause
+Hold shoot longer for a harder shot; hold and release pass for a
+through ball (into the space ahead of your team-mate).
 
 Rules:  fouls, advantage, yellow / red cards, penalties, offside and VAR.
+At set pieces opponents stay 9.15 m away; free kicks get a wall.
 Sliding in from behind or inside the box gets a card.
 Players tire: check their fitness at the break and make substitutions
 (5 subs, 3 windows outside half-time). Turn the assistant off and the subs are yours.

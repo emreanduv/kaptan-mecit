@@ -94,6 +94,7 @@ const AYAR := "user://km3-ayar.cfg"
 const IPUCU := {
 	"kos": ["KOŞ", "Sol çubuk: baktığın yöne koş", "WASD / oklar ya da sol çubuk: koş", "Ekranın soluna parmağını koy ve kaydır: koş"],
 	"pas": ["PAS VE ŞUT", "A ya da tetik: pas  ·  B ya da kavrama: şut", "X: pas  ·  Z / boşluk: şut", "Sağ altta PAS ve ŞUT"],
+	"guc": ["BASILI TUT", "Şut tuşunu ne kadar tutarsan şut o kadar sert  ·  pası basılı tutup bırak: ara pas", "Z'yi ne kadar tutarsan şut o kadar sert  ·  X'i basılı tutup bırak: ara pas", "ŞUT'u ne kadar tutarsan şut o kadar sert  ·  PAS'ı basılı tutup bırak: ara pas"],
 	"kap": ["TOPU KAP", "Topu kapmak için rakibin üstüne koş, şut tuşu: kayarak müdahale", "Rakibin üstüne koş, Z / boşluk: kayarak müdahale", "Rakibin üstüne koş, ŞUT: kayarak müdahale"],
 	"koltuk": ["KOLTUK", "Sağ çubuk sola/sağa ya da X: başka bir koltuğa geç", "C: kamerayı değiştir", "Kamerayı molada değiştirebilirsin"],
 	"mola": ["MOLA", "Menü düğmesi: mola, oyuncu değişikliği ve Nasıl oynanır", "M / Esc: mola, oyuncu değişikliği ve Nasıl oynanır", "Üstteki II: mola, oyuncu değişikliği ve Nasıl oynanır"],
@@ -137,7 +138,9 @@ func rehber(dt: float, kip: int) -> void:     # kip: 0 ekran, 1 VR, 2 dokunmatik
 	if M.state == "play":
 		ipucu("kos")
 		if M.ball.owner != null:
-			if M.ball.owner.team == BIZ and M.ball.owner == M.ctrl: ipucu("pas")
+			if M.ball.owner.team == BIZ and M.ball.owner == M.ctrl:
+				ipucu("pas")
+				if M.clock > 20: ipucu("guc")
 			elif M.ball.owner.team != BIZ and M.clock > 8: ipucu("kap")
 		if M.clock > 40: ipucu("koltuk")
 		if M.clock > 75: ipucu("mola")
@@ -159,8 +162,11 @@ müdahale  ·  sağ çubuk ya da X: koltuk  ·  menü düğmesi: mola
 Dokunmatik:  ekranın solunda parmakla koş  ·  sağ altta PAS / ŞUT  ·  üstte II mola
 Ekran:  WASD / oklar koş  ·  X pas  ·  Z / boşluk şut  ·  C kamera  ·  M mola
 Oyun kolu:  sol çubuk koş  ·  A pas  ·  B şut  ·  Y kamera  ·  Start mola
+Şut tuşunu ne kadar tutarsan şut o kadar sert; pas tuşunu basılı tutup
+bırakırsan ara pas (top arkadaşının önündeki boşluğa gider).
 
 Kurallar:  faul, avantaj, sarı / kırmızı kart, penaltı, ofsayt ve VAR var.
+Duran topta rakip 9,15 m uzakta bekler; serbest vuruşta baraj kurulur.
 Arkadan ve kutu içinde kayarak müdahale karta gider.
 Oyuncular yorulur: molada kondisyonlarına bakıp değişiklik yap
 (5 hak, devre arası dışında 3 ara). Asistanı kapatırsan değişiklikler senin.

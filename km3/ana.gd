@@ -342,8 +342,11 @@ func _girdi() -> void:
 	var joy := Vector2(Input.get_joy_axis(0, JOY_AXIS_LEFT_X), Input.get_joy_axis(0, JOY_AXIS_LEFT_Y))
 	if joy.length() > .2: v = joy
 	if dok and dok.vec != Vector2.ZERO: v = dok.vec
-	if dok and dok.pas: M.giris.pasE = true; dok.pas = false
-	if dok and dok.sut: M.giris.sutE = true; dok.sut = false
+	if dok and dok.pas: M.tus_bas("pas"); dok.pas = false
+	if dok and dok.sut: M.tus_bas("sut"); dok.sut = false
+	if dok and dok.pas_birak: M.tus_birak("pas"); dok.pas_birak = false
+	if dok and dok.sut_birak: M.tus_birak("sut"); dok.sut_birak = false
+	if dok: dok.guc_ayarla(M.dolum_orani("pas"), M.dolum_orani("sut"))
 	if v.length() > 1: v = v.normalized()
 	# ekran yönünü sahaya çevir: kameranın sağı ve ileri yönü (yere izdüşüm)
 	var sag := kam.global_basis.x; sag.y = 0; sag = sag.normalized()
@@ -368,16 +371,25 @@ func _unhandled_input(e: InputEvent) -> void:
 			KEY_LEFT, KEY_A: mola.kay(mola_satir, -1); return
 			KEY_RIGHT, KEY_D: mola.kay(mola_satir, 1); return
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE: mola.bas(mola_satir); return
+	# bırakınca: basılı tutulan PAS / ŞUT çıkar
+	if M and e is InputEventKey and not e.pressed:
+		match e.keycode:
+			KEY_X, KEY_K: M.tus_birak("pas")
+			KEY_Z, KEY_SPACE, KEY_L: M.tus_birak("sut")
+	elif M and e is InputEventJoypadButton and not e.pressed:
+		match e.button_index:
+			JOY_BUTTON_A: M.tus_birak("pas")
+			JOY_BUTTON_B, JOY_BUTTON_X: M.tus_birak("sut")
 	if e is InputEventKey and e.pressed and not e.echo:
 		match e.keycode:
-			KEY_X, KEY_K: if M: M.giris.pasE = true
-			KEY_Z, KEY_SPACE, KEY_L: if M: M.giris.sutE = true
+			KEY_X, KEY_K: if M: M.tus_bas("pas")
+			KEY_Z, KEY_SPACE, KEY_L: if M: M.tus_bas("sut")
 			KEY_C: _kamera((kam_mod + 1) % KAMERALAR.size())
 			KEY_ESCAPE, KEY_M: if M and not M.demo: menu_goster(not menu_acik)
 	elif e is InputEventJoypadButton and e.pressed:
 		match e.button_index:
-			JOY_BUTTON_A: if M: M.giris.pasE = true
-			JOY_BUTTON_B, JOY_BUTTON_X: if M: M.giris.sutE = true
+			JOY_BUTTON_A: if M: M.tus_bas("pas")
+			JOY_BUTTON_B, JOY_BUTTON_X: if M: M.tus_bas("sut")
 			JOY_BUTTON_Y: _kamera((kam_mod + 1) % KAMERALAR.size())
 			JOY_BUTTON_START: if M and not M.demo: menu_goster(not menu_acik)
 

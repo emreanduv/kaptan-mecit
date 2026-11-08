@@ -9,6 +9,11 @@ signal mola_istendi
 var vec := Vector2.ZERO          # -1..1, ekran yönünde (sağ +x, aşağı +y)
 var pas := false                 # bu karede basıldı mı (okununca sıfırlanır)
 var sut := false
+var pas_birak := false          # basılı tutulan düğme bırakıldı
+var sut_birak := false
+var guc := {"pas": 0.0, "sut": 0.0}   # dolum halkası (0..1)
+func guc_ayarla(p: float, s: float) -> void:
+	if p != guc.pas or s != guc.sut: guc.pas = p; guc.sut = s; queue_redraw()
 var _cubuk_parmak := -1
 var _cubuk_merkez := Vector2.ZERO
 var _cubuk_uc := Vector2.ZERO
@@ -48,6 +53,9 @@ func _input(e: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 		else:
 			if e.index == _cubuk_parmak: _cubuk_parmak = -1; vec = Vector2.ZERO
+			if _dugme_parmak.has(e.index):
+				if _dugme_parmak[e.index] == "pas": pas_birak = true
+				else: sut_birak = true
 			_dugme_parmak.erase(e.index)
 		queue_redraw()
 	elif e is InputEventScreenDrag and e.index == _cubuk_parmak:
@@ -68,6 +76,7 @@ func _draw() -> void:
 		var basili := _dugme_parmak.values().has(ad)
 		draw_circle(c, r, Color(0.04, 0.07, 0.09, .55 if not basili else .8))
 		draw_arc(c, r, 0, TAU, 48, Color("#f3d35a") if ad == "sut" else Color.WHITE, 3.0, true)
+		if guc[ad] > 0: draw_arc(c, r + 7, -PI / 2, -PI / 2 + TAU * guc[ad], 48, Color("#ffd23f"), 6.0, true)
 		var t := Dil.cevir("ŞUT" if ad == "sut" else "PAS")
 		var fs := int(r * .42)
 		var w := yazi.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x

@@ -68,6 +68,7 @@ class Oy:
 	var ucus_z := 0.0
 	var ucus_ofs := Vector2.ZERO
 	var first_time := false
+	var ayak := false          # geri pas: kaleci topu eline alamaz, ayağıyla oynar
 	var won := false
 	var sari := false
 
@@ -137,7 +138,32 @@ var asistan := [true, true]      # asistan değişiklikleri (kullanıcı kendi t
 var yakin_ofs = null
 var gol_atan: Oy = null
 var kutlama_yer := Vector2.ZERO
-var giris := {"x": 0.0, "y": 0.0, "pasE": false, "sutE": false}
+var giris := {"x": 0.0, "y": 0.0, "pasE": false, "sutE": false, "pasS": 0.0, "sutG": -1.0}
+# top bizdeyken PAS/ŞUT basılı tutulur, bırakınca çıkar: ŞUT'ta tutma süresi şut gücü, PAS'ta uzun basış ara pas
+var dolum := {"pas": -1.0, "sut": -1.0}
+const DOLUM_SURE := {"pas": .9, "sut": 1.0}
+func dolum_olur() -> bool:
+	return ctrl != null and not demo and ball.owner == ctrl and T[ctrl.team].human and (state == "play" or (set_piece != null and set_piece.p == ctrl))
+func tus_bas(k: String) -> void:
+	if dolum_olur(): dolum[k] = 0.0
+	else: giris[k + "E"] = true
+func tus_birak(k: String) -> void:
+	if dolum[k] < 0: return
+	if k == "pas": giris.pasS = dolum[k]
+	else: giris.sutG = minf(1.0, dolum[k] / DOLUM_SURE[k])
+	giris[k + "E"] = true; dolum[k] = -1.0
+func dolum_orani(k: String) -> float:
+	return 0.0 if dolum[k] < 0 else minf(1.0, dolum[k] / DOLUM_SURE[k])
+func _dolum_adim(dt: float) -> void:
+	for k in ["pas", "sut"]:
+		if dolum[k] < 0: continue
+		if ctrl == null or ball.owner != ctrl: dolum[k] = -1.0; continue
+		dolum[k] += dt
+		if dolum[k] >= DOLUM_SURE[k] + .15: tus_birak(k)
+func sut_gucu() -> float:
+	return 1.0 if giris.sutG < 0 else .95 + .3 * giris.sutG
+func ara_pas_mi() -> bool:
+	return giris.pasS >= .3
 var olaylar: Array = []    # görüntü/ses katmanına: [ad, ...]
 var _pass_score := 0.0
 
@@ -272,6 +298,7 @@ func uzatma_kontrol(sinir: float) -> bool:
 # ---------- ana adım ----------
 func step(dt: float) -> void:
 	if demo: giris.x = 0.0; giris.y = 0.0
+	_dolum_adim(dt)
 	if state == "over": return
 	if state != "play":
 		state_t -= dt
@@ -308,7 +335,7 @@ func step(dt: float) -> void:
 			if f.is_valid(): f.call()
 			else: state = "play"
 		if state == "pre": mesafe_kurali()
-		giris.pasE = false; giris.sutE = false
+		giris.pasE = false; giris.sutE = false; giris.pasS = 0.0; giris.sutG = -1.0
 		return
 	clock += dt
 	if half == 1 and uzatma_kontrol(dur / 2):
@@ -339,7 +366,7 @@ func step(dt: float) -> void:
 	mesafe_kurali()
 	ball_step(dt)
 	mesafe_kurali()
-	giris.pasE = false; giris.sutE = false
+	giris.pasE = false; giris.sutE = false; giris.pasS = 0.0; giris.sutG = -1.0
 
 func bitir() -> void:
 	state = "over"
@@ -768,11 +795,12 @@ func think(p: Oy, dt: float) -> void:
 				var cq: Oy = cross_target(p) if is_corner(p) else null
 				if giris.pasE:
 					if cq != null: do_cross(p, cq)
+					elif ara_pas_mi() and not set_piece.get("tac", false): do_ara_pas(p, ix if ix != 0 else p.dx, iy if iy != 0 else p.dy)
 					else: do_pass(p, ix if ix != 0 else p.dx, iy if iy != 0 else p.dy)
 				elif giris.sutE:
 					if cq != null: do_cross(p, cq)
 					elif set_piece.get("tac", false): do_pass(p, ix if ix != 0 else p.dx, iy if iy != 0 else p.dy)   # taçta şut yok: uzun atış
-					else: do_shoot(p, ix)
+					else: do_shoot(p, ix, sut_gucu())
 				elif set_piece.t > (6.0 if set_piece.get("ko", false) else 2.5):
 					if cq != null: do_cross(p, cq)
 					else: do_pass(p, p.dx, p.dy)
@@ -783,8 +811,11 @@ func think(p: Oy, dt: float) -> void:
 			if p.role == "G":
 				p.hold += dt
 				if giris.pasE or giris.sutE or p.hold > 1.6: do_pass(p, ix, iy if iy != 0 else fwd_of(p.team)); return
-			if giris.pasE: do_pass(p, ix if ix != 0 else p.dx, iy if iy != 0 else p.dy); return
-			if giris.sutE: do_shoot(p, ix); return
+			if giris.pasE:
+				if ara_pas_mi(): do_ara_pas(p, ix if ix != 0 else p.dx, iy if iy != 0 else p.dy)
+				else: do_pass(p, ix if ix != 0 else p.dx, iy if iy != 0 else p.dy)
+				return
+			if giris.sutE: do_shoot(p, ix, sut_gucu()); return
 			p.hold += dt; p.mx = ix; p.my = iy; p.run = 1.0 if (ix != 0 or iy != 0) else 0.0; return
 		if giris.sutE and not (p.scd > 0):
 			var bd2 := hyp(b.x - p.x, b.y - p.y)
@@ -904,6 +935,17 @@ func release(p: Oy, vx: float, vy: float, vz: float, intended: Oy = null) -> voi
 	b.atis = set_piece != null and set_piece.get("tac", false) and set_piece.p == p
 	p.cd = .35; p.hold = 0; set_piece = null
 
+# ara pas: top alıcının önüne, savunmanın arkasındaki boşluğa yerden atılır
+func do_ara_pas(p: Oy, dx: float, dy: float) -> void:
+	var q: Oy = best_pass(p, dx, dy, true)
+	if q == null: do_pass(p, dx, dy); return
+	var f := fwd_of(p.team); var Tt: Dictionary = T[p.team]
+	var tx := clampf(q.x + q.vx * .6, 3, PW - 3); var ty := clampf(q.y + f * rnd(6, 9), 2, PL - 2)
+	var D := maxf(hyp(tx - p.x, ty - p.y), 1.0); var err: float = (1.0 - Tt.skill) * D * .07
+	tx += rnd(-err, err); ty += rnd(-err, err)
+	var ux := (tx - p.x) / D; var uy := (ty - p.y) / D; var v := clampf(D * 1.05 + 4, 9, 24)
+	p.dx = ux; p.dy = uy; release(p, ux * v, uy * v, 0, q); olay("vurus", .75)
+
 func do_pass(p: Oy, dx: float, dy: float, target: Oy = null) -> void:
 	var q: Oy = target if target != null else best_pass(p, dx, dy, true)
 	if q == null:
@@ -950,6 +992,7 @@ func do_shoot(p: Oy, aim_x: float, pow := 1.0) -> void:
 	var err := (1.15 - acc) * (1.2 + dG * .13) * press
 	ax += rnd(-err, err) + (rnd(-1, 1) * rnd(2.5, 5) if randf() < .12 + (1 - acc) * .3 else 0.0)
 	var tz := rnd(2.6, 3.6) if randf() < .1 + dG * .006 else rnd(.2, 2.2)
+	if human and pow > 1.1 and randf() < (pow - 1.1) * 2.5: tz = rnd(GH + .4, GH + 1.6)   # fazla güç: üstten auta gidebilir
 	var dx := ax - p.x; var dy := gy - p.y; var d := hyp(dx, dy)
 	var v: float = (22 + Tt.str * .5) * pow
 	var t := d / v
@@ -1042,7 +1085,7 @@ func ball_step(dt: float) -> void:
 				var Tq: Dictionary = T[q.team]; var Tp: Dictionary = T[p.team]
 				if Tp.human and p == ctrl and p.hold < .6: continue
 				var rate: float = (1.1 + Tq.skill - Tp.skill * .6) * ((2.6 if q == ctrl else 1.25) if Tq.human else 1.0) * (DIFF.steal[diff] if (Tp.human and p == ctrl) else 1.0)
-				if p.role == "G": rate *= .2
+				if p.role == "G" and not p.ayak: rate *= .2
 				rate *= (1 - ozl(p, "hold", 0)) * (1 + ozl(q, "tackle", 0))
 				if not (Tp.human and p == ctrl): rate *= .55
 				if randf() < rate * dt * 2.2:
@@ -1130,6 +1173,7 @@ func out_of_play(b: Top) -> bool:
 
 func take(p: Oy) -> void:
 	var b := ball
+	p.ayak = p.role == "G" and b.last_team == p.team and b.kicker != null and b.kicker != p and b.kicker.team == p.team and not b.cross   # geri pas
 	if b.ofs != null and not b.ofs.get("yakin", false) and b.ofs.q == p and p.team == b.ofs.team and not demo:
 		ofsayt_cal(p); return
 	if b.ofs != null and b.ofs.get("yakin", false) and b.ofs.q == p: yakin_ofs = {"team": p.team, "t": clock}
