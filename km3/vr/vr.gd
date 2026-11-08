@@ -266,8 +266,8 @@ func _lazer_kur() -> void:
 func _lazer_deger_mi(i: int) -> bool:
 	if ana.lig_acik:
 		var S: Array = ana.lig.satirlar()
-		return i < S.size() and S[i] in ["Lig", "Takımın"]
-	if ana.mola_mi(): return i in [1, 2, 4, 5]
+		return i < S.size() and S[i] in ["Lig", "Takımın", "Kupa"]
+	if ana.mola_mi(): return i in [1, 2, 4, 5, 6]
 	return i < 7 or i == 10
 
 func _lazer_guncelle() -> void:
@@ -306,7 +306,7 @@ func _lazer_guncelle() -> void:
 	_lazer.scale = Vector3(1, 1, boy)
 
 # ---------- 3B menü ----------
-const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG MODU", "Dil / Language"]
+const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language"]
 const SURUM := "0.8.1"
 var _bas: Label3D
 var _ipucu: Label3D
@@ -447,6 +447,7 @@ func _lig_ciz() -> void:
 	_bas.text = "LİG  ·  " + lg.ad + ("  ·  " + L.sezon_adi() + ("  ·  Sezon bitti" if L.bitti() else "  ·  Hafta %d/%d" % [int(L.d.hafta) + 1, L.hafta_sayisi()]) if L.var_mi() else "  ·  Yeni sezon")
 	_ipucu.text = "Çubuk yukarı/aşağı: satır  ·  sola/sağa: değiştir  ·  A ya da tetik: seç  ·  B: ana menü"
 	_mesaj.text = L.mesaj
+	if L.kip == "kupa": _kupa_ciz(L); return
 	# tablo
 	var sutun: Array = []
 	for c in LIG_SUTUN: sutun.append(c[0])
@@ -504,6 +505,9 @@ func _lig_ciz() -> void:
 	else:
 		alt = "Ligini ve kulübünü seç. Her hafta kendi maçını oynarsın; diğer maçlar aynı anda sonuçlanır."
 	_lig_alt.text = alt
+	_lig_eylemler(L)
+
+func _lig_eylemler(L: Lig) -> void:
 	# eylemler (sağ alt)
 	var n := _satir_sayisi()
 	_satir = mini(_satir, n - 1)
@@ -515,7 +519,34 @@ func _lig_ciz() -> void:
 		l.text = L.satir_metni(i, sec)
 		l.font_size = 38
 		l.position = Vector3(.45, -.08 - i * .07, .001)
-		l.modulate = Color("#f3d35a") if sec else (Color("#e5722f") if L.satirlar()[i] in ["MAÇA ÇIK", "SEZONA BAŞLA", "YENİ SEZON"] else Color.WHITE)
+		l.modulate = Color("#f3d35a") if sec else (Color("#e5722f") if L.satirlar()[i] in ["MAÇA ÇIK", "SEZONA BAŞLA", "YENİ SEZON", "KUPAYA BAŞLA"] else Color.WHITE)
+
+# kupa (lig ekranının kupa kipi): eşleşmeler tablo sütunlarında, özet altta
+func _kupa_ciz(L: Lig) -> void:
+	var K: Dictionary = L.kupa_tanim(L.kupa.id) if L.kupa_var() else L.KUPALAR[L.kur_kupa]
+	_bas.text = "KUPA  ·  " + K.ad + "  ·  " + K.kita
+	var sutun: Array = []
+	for c in LIG_SUTUN: sutun.append("")
+	var satir_say := 0
+	if not L.kupa_var():
+		sutun[1] = "KATILAN KULÜPLER"; sutun[7] = "Güç"
+		var KK: Array = L.kupa_katilim(K.id)
+		for x in KK:
+			var t: Dictionary = L.kupa_takim(x)
+			sutun[0] += "\n" + str(satir_say + 1); sutun[1] += "\n" + str(t.ad); sutun[7] += "\n" + str(int(t.str)); satir_say += 1
+		_lig_biz.visible = true
+		var satir_boy := 23 * .0011 * 1.39
+		_lig_biz.position = Vector3(-.27, .30 - satir_boy * (posmod(L.kur_kupa_takim, KK.size()) + 1.5), .001)
+	else:
+		_lig_biz.visible = false
+		for tur in L.kupa_turlari():
+			if satir_say > 22: break
+			sutun[1] += ("\n" if satir_say > 0 else "") + str(tur[0]); satir_say += 1
+			for m in tur[1]:
+				sutun[1] += "\n" + ("» " if m[3] else "") + m[0] + "   " + m[1] + "   " + m[2]; satir_say += 1
+	for k in _lig_sutun.size(): _lig_sutun[k].text = sutun[k]
+	_lig_alt.text = L.kupa_ozet()
+	_lig_eylemler(L)
 
 func lig_acildi(v: bool) -> void:
 	_satir = 0 if v else 9

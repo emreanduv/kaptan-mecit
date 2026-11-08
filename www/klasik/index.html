@@ -374,10 +374,11 @@ const IPUCU={
   mac:['⚽ İlk maçın','Maçtan önce dizilişini seç ya da OTOMATİK bırak: asistan kadrona en uygununu kurar. Kamerayı burada ve maç içinde II menüsünden değiştirebilirsin.'],
   mola:['⏸︎ Mola menüsü','Buradan oyuncu değiştirir, asistanı açıp kapatır, kamerayı ve sesi değiştirirsin. Lig maçında kalan süreyi simüle edebilirsin.'],
   degisiklik:['🔁 Oyuncu değişikliği','Önce çıkacak oyuncuya, sonra girecek yedeğe dokun, DEĞİŞTİR\'e bas. Renkli çubuk kondisyonu gösterir; kırmızıya düşen oyuncu yavaşlar.'],
-  result:['🏁 Maç sonu','Lig maçında DEVAM ile puan durumuna dönersin. Hızlı Maç\'ta RÖVANŞ ile aynı eşleşmeyi yeniden oynarsın. Galibiyeti arkadaşlarınla paylaşabilirsin.'],
+  result:['🏁 Maç sonu','Maç raporunda istatistikler, oyuncu notları ve maçın yıldızı var; bir oyuncuya dokunursan kariyerini görürsün. Lig maçında DEVAM ile puan durumuna dönersin. Hızlı Maç\'ta RÖVANŞ ile aynı eşleşmeyi yeniden oynarsın.'],
+  kupa:['🏆 Kupalar','Bir kıta kupası ya da Kıtalar Arası Kupa seç, kulübünle tek maçlık elemelerde finale yürü. Berabere biterse uzatma ve penaltılar var. Maçı oynayabilir ya da simüle edebilirsin.'],
   settings:['⚙️ Ayarlar','Görüşünü ve önerini Bize yaz ile ilet. Verilerimi sil kariyerini ve ayarlarını bu cihazdan siler.']
 };
-const IPUCU_SIRA=['home','quick','career-new','career','mac','mola','degisiklik','result','settings'];
+const IPUCU_SIRA=['home','quick','career-new','career','kupa','mac','mola','degisiklik','result','settings'];
 const rhDurum=()=>kmOku('km.rehber',null)||{gor:{},kapali:false};
 if(!KM_GOMULU&&!kmOku('km.rehber',null)){const d={gor:{},kapali:false};if(S.car||store())['home','quick','career-new','career','mac','result'].forEach(k=>d.gor[k]=1);kmYaz('km.rehber',d)} /* eski oyunculara temel ipuçları zorla gösterilmez */
 function rhGoruldu(k){const d=rhDurum();d.gor[k]=1;kmYaz('km.rehber',d)}

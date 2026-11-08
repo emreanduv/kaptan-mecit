@@ -69,6 +69,7 @@ var lig: Lig
 var lig_ekran: LigEkran
 var lig_acik := false
 var lig_maci := false
+var kupa_maci := false
 var _lig_bitis := 0.0
 
 # test / ekran görüntüsü (komut satırı)
@@ -556,7 +557,7 @@ func _arayuz() -> void:
 	dug.custom_minimum_size = Vector2(0, 58)
 	dug.pressed.connect(basla)
 	mv.add_child(dug)
-	var lgd := Button.new(); lgd.text = "Lig"; lgd.add_theme_font_size_override("font_size", 22)
+	var lgd := Button.new(); lgd.text = "Lig · Kupalar"; lgd.add_theme_font_size_override("font_size", 22)
 	lgd.add_theme_stylebox_override("normal", _kutu(Color("#2f5d8c"), 12)); lgd.add_theme_stylebox_override("hover", _kutu(Color("#3a6fa3"), 12))
 	lgd.add_theme_stylebox_override("pressed", _kutu(Color("#24486d"), 12)); lgd.add_theme_color_override("font_color", Color.WHITE)
 	lgd.custom_minimum_size = Vector2(0, 50)
@@ -580,6 +581,16 @@ func _arayuz() -> void:
 		ks.pressed.connect(func(): JavaScriptBridge.eval("location.href='../index.html?sec=1'"))
 		alt.add_child(ks)
 	mv.add_child(alt)
+	# standart: puan ver (yalnız telefon uygulamasında), arkadaşına öner, bize yaz
+	var alt2 := HBoxContainer.new(); alt2.add_theme_constant_override("separation", 10)
+	var std := [["Arkadaşına öner", paylas], ["Bize yaz", bize_yaz]]
+	if kabuk(): std.push_front(["★ Puan ver", puan_ver])
+	for x in std:
+		var sb := Button.new(); sb.text = x[0]; sb.add_theme_font_size_override("font_size", 16); sb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		sb.add_theme_stylebox_override("normal", _kutu(Color("#1f3b3c"), 10)); sb.add_theme_stylebox_override("hover", _kutu(Color("#2a4e50"), 10))
+		sb.add_theme_color_override("font_color", Color.WHITE)
+		sb.pressed.connect(x[1]); alt2.add_child(sb)
+	mv.add_child(alt2)
 	_dil_yaz()
 	menu.add_child(mv)
 	ui.add_child(_kaydirmali(menu))
@@ -728,10 +739,11 @@ func yardim_goster(v: bool, metin := "") -> void:
 func maci_birak() -> void:
 	yardim_goster(false)
 	if lig_maci:
-		# lig maçı yarıda bırakıldı: hafta oynanmamış sayılır, lig ekranına dönülür
+		# lig / kupa maçı yarıda bırakıldı: oynanmamış sayılır, lig ekranına dönülür
 		lig_maci = false
 		_gosterim_kur()
-		lig.mesaj = "Maç yarıda kaldı; hafta oynanmadı."
+		lig.mesaj = "Maç yarıda kaldı; kupa maçı oynanmadı." if kupa_maci else "Maç yarıda kaldı; hafta oynanmadı."
+		kupa_maci = false
 		lig_goster(true); return
 	var lg: Dictionary = veri.ligler[sec_lig.selected]
 	_mac_kur(Taktik.kadro_kur(lg.takimlar[sec_ev.selected], lg.id), Taktik.kadro_kur(lg.takimlar[sec_dep.selected], lg.id), 4, 1, true)
@@ -834,6 +846,7 @@ func lig_bas(i: int) -> void:
 	if r == "mac": lig_mac_basla()
 	elif r == "menu": lig_goster(false)
 	elif r == "rapor": rapor_goster()
+	elif r == "kupa_mac": kupa_mac_basla()
 	else:
 		lig_ekran.satir = mini(lig_ekran.satir, lig.satirlar().size() - 1)
 		lig_ekran.yenile()
@@ -854,6 +867,49 @@ func lig_mac_basla() -> void:
 	afis_goster("HAFTA %d  ·  %s" % [int(lig.d.hafta) + 1, "İÇ SAHA" if int(mc[0]) == biz else "DEPLASMAN"], (ev.kisa + " - " + dep.kisa) if int(mc[0]) == biz else (dep.kisa + " - " + ev.kisa), 2.4)
 	kam_mod = sec_kam.selected
 	ses.baslat()
+
+# kupa maçı: kullanıcı her zaman T[0] (tarafsız saha)
+func kupa_mac_basla() -> void:
+	var m = lig.kupa_benim_mac()
+	if m == null: return
+	var ben: Array = lig.kupa.ben; var rk: Array = m.b if Lig._ayni(m.a, ben) else m.a
+	var dz: String = "" if sec_dz.selected <= 0 else sec_dz.metin()
+	var ev := Taktik.kadro_kur(lig.kupa_takim(ben), str(ben[0]), dz)
+	var dep := Taktik.kadro_kur(lig.kupa_takim(rk), str(rk[0]), "")
+	lig_acik = false; lig_maci = true; kupa_maci = true; _lig_bitis = 0.0
+	menu_goster(false)
+	_mac_kur(ev, dep, SURELER[sec_sure.selected], sec_zor.selected, false, false)
+	afis_goster(lig.kupa_tanim(lig.kupa.id).ad + "  ·  " + lig.kupa_tur_adi(int(lig.kupa.tur)), ev.kisa + " - " + dep.kisa, 2.4)
+	kam_mod = sec_kam.selected
+	ses.baslat()
+
+# ---------- puan ver · arkadaşına öner · bize yaz (bütün oyunlarda standart) ----------
+func kabuk() -> bool:
+	return OS.has_feature("web") and str(JavaScriptBridge.eval("new URLSearchParams(location.search).get('kabuk') || ''", true)) == "1"
+
+const PAY_METIN := "Kaptan Mecit: üç boyutlu stadyumda futbol. Dört kıtada 28 lig, kupalar, lig modu. Bir maç yapalım mı?"
+func puan_ver() -> void:
+	if OS.has_feature("web"): JavaScriptBridge.eval("try{var R=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.InAppReview;if(R&&R.requestReview)R.requestReview()}catch(e){}")
+
+func paylas() -> void:
+	var metin := Dil.cevir(PAY_METIN)
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("""(function(t){var ios=window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios';
+			var u=ios?'https://apps.apple.com/search?term=Kaptan%20Mecit':(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='android'?'https://play.google.com/store/apps/details?id=com.anduv.kaptanmecit':'https://emreanduv.github.io/kaptan-mecit-3/');
+			var P=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Share;
+			var kopya=function(){try{navigator.clipboard.writeText(t+' '+u)}catch(e){}};
+			try{if(P&&P.share){P.share({title:'Kaptan Mecit',text:t,url:u}).catch(kopya);return}if(navigator.share){navigator.share({title:'Kaptan Mecit',text:t,url:u}).catch(kopya);return}}catch(e){}
+			kopya()})(""" + JSON.stringify(metin) + ")")
+		afis_goster("Arkadaşına öner", "Paylaşım açıldı ya da bağlantı kopyalandı", 3.0)
+	else:
+		DisplayServer.clipboard_set(metin + " https://emreanduv.github.io/kaptan-mecit-3/")
+		afis_goster("Arkadaşına öner", "Bağlantı panoya kopyalandı", 3.0)
+
+func bize_yaz() -> void:
+	var surum: String = str(load("res://vr/vr.gd").SURUM)
+	var url: String = "mailto:emreanduvart@gmail.com?subject=" + ("Kaptan Mecit 3 – Görüş ve öneri (" + surum + ", " + OS.get_name() + ")").uri_encode() + "&body=" + ("Merhaba, oyunla ilgili görüşüm:\n\n\n— " + OS.get_name() + (" · lig: " + lig.lig_veri().ad if lig.var_mi() else "")).uri_encode()
+	if OS.has_feature("web"): JavaScriptBridge.eval("location.href=" + JSON.stringify(url))
+	else: OS.shell_open(url)
 
 func _hizli_bitir() -> void:
 	_lig_bitis = 0.0
@@ -877,6 +933,15 @@ func rapor_goster() -> void:
 func _lig_bitir() -> void:
 	if not lig_maci: return
 	lig_maci = false
+	if kupa_maci:
+		kupa_maci = false
+		son_rapor = M.rapor_metni(0); lig.son_rapor = son_rapor
+		lig.mesaj = lig.kupa_sonuc(M.T[0].score, M.T[1].score)
+		if lig.kupa_kazandi(): lig.mesaj = "ŞAMPİYONSUN!  " + lig.kupa_tanim(lig.kupa.id).ad
+		_gosterim_kur()
+		lig_goster(true)
+		rapor_goster()
+		return
 	son_rapor = M.rapor_metni(1 if M.kul_dep else 0); lig.son_rapor = son_rapor
 	lig.kullanici_sonuc(M.T[0].score, M.T[1].score, M.events)
 	_gosterim_kur()

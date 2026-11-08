@@ -47,8 +47,9 @@ func yenile() -> void:
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	mv.add_child(sc); sc.add_child(ic); ic.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	ic.add_child(hb)
-	var sol: Control = _tablo_panel()
-	if lig.var_mi() and lig.gorunum == "fikstur": sol = _fikstur_panel()
+	var sol: Control = _kupa_panel() if lig.kip == "kupa" else _tablo_panel()
+	if lig.kip == "kupa": pass
+	elif lig.var_mi() and lig.gorunum == "fikstur": sol = _fikstur_panel()
 	elif lig.var_mi() and lig.gorunum == "goller": sol = _goller_panel()
 	if dikey:
 		hb.add_child(_sag_panel()); hb.add_child(sol)
@@ -64,7 +65,7 @@ func ciz() -> void:
 		var b: Button = dugmeler[i]
 		var sec := i == satir
 		b.text = lig.satir_metni(i, sec)
-		if S[i] in ["Lig", "Takımın"]: b.text = b.text.trim_prefix("‹  ").trim_suffix("  ›")   # okları yandaki düğmeler gösterir
+		if S[i] in ["Lig", "Takımın", "Kupa"]: b.text = b.text.trim_prefix("‹  ").trim_suffix("  ›")   # okları yandaki düğmeler gösterir
 		var ana_eylem: bool = S[i] in ["MAÇA ÇIK", "SEZONA BAŞLA", "YENİ SEZON"]
 		if ((S[i] == "Fikstür" and lig.gorunum == "fikstur") or (S[i] == "Gol krallığı" and lig.gorunum == "goller")) and not sec:   # açık görünüm sekmesi
 			b.add_theme_stylebox_override("normal", _kutu(Color("#3d4a5c"), 6, 7)); b.add_theme_color_override("font_color", ALTIN); continue
@@ -76,6 +77,7 @@ func ciz() -> void:
 var _mesaj: Label
 
 func _baslik() -> Control:
+	if lig.kip == "kupa": return _kupa_baslik()
 	var var_mi := lig.var_mi()
 	var t: Dictionary = lig.takim(lig.biz()) if var_mi else lig.veri.ligler[lig.kur_lig].takimlar[lig.kur_takim]
 	var p := PanelContainer.new()
@@ -263,7 +265,7 @@ func _sag_panel() -> Control:
 		b.add_theme_stylebox_override("hover", _kutu(Color("#4a5566"), 6, 7)); b.add_theme_stylebox_override("pressed", _kutu(ALTIN, 6, 7))
 		b.add_theme_color_override("font_hover_color", Color.WHITE)
 		b.pressed.connect(func(): satir = i; eylem.emit("bas"))
-		if S[i] in ["Lig", "Takımın"]:
+		if S[i] in ["Lig", "Takımın", "Kupa"]:
 			# seçici satır: iki yanda ‹ › düğmesi, ortaya basınca ileri
 			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			var hb := HBoxContainer.new(); hb.add_theme_constant_override("separation", 6)
@@ -279,7 +281,13 @@ func _sag_panel() -> Control:
 			v.add_child(b)
 		dugmeler.append(b)
 	_mesaj = _etiket("", 14, SOLUK); _mesaj.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; v.add_child(_mesaj)
-	if lig.var_mi():
+	if lig.kip == "kupa":
+		var kp := PanelContainer.new(); kp.add_theme_stylebox_override("panel", _kutu(PANEL, 6, 0))
+		var kv := VBoxContainer.new(); kp.add_child(kv)
+		kv.add_child(_serit("KUPA"))
+		var kl := _etiket(lig.kupa_ozet(), 16, ALTIN if lig.kupa_kazandi() else YAZI); kl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; kv.add_child(_ic(kl))
+		v.add_child(kp)
+	elif lig.var_mi():
 		var mp := PanelContainer.new(); mp.add_theme_stylebox_override("panel", _kutu(PANEL, 6, 0))
 		var mv := VBoxContainer.new(); mv.add_theme_constant_override("separation", 6); mp.add_child(mv)
 		if lig.bitti():
@@ -349,3 +357,50 @@ func _etiket(t: String, boy: int, renk: Color) -> Label:
 static func _kutu(c: Color, r: int, m: int) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new(); s.bg_color = c; s.set_corner_radius_all(r); s.set_content_margin_all(m)
 	return s
+
+
+# ---------- kupa ----------
+func _kupa_baslik() -> Control:
+	var K: Dictionary = lig.kupa_tanim(lig.kupa.id) if lig.kupa_var() else lig.KUPALAR[lig.kur_kupa]
+	var t: Dictionary = lig.kupa_takim(lig.kupa.ben) if lig.kupa_var() else {}
+	if t.is_empty():
+		var KK: Array = lig.kupa_katilim(K.id)
+		t = lig.kupa_takim(KK[posmod(lig.kur_kupa_takim, KK.size())])
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", _kutu(Color(t.c1), 0, 12))
+	var hb := HBoxContainer.new(); hb.add_theme_constant_override("separation", 16); p.add_child(hb)
+	var yazi_renk := Color(t.c2) if Mac.renk_farki(t.c1, t.c2) > 128 else Color.WHITE
+	hb.add_child(_etiket(t.ad, 26, yazi_renk))
+	var al := _etiket("KUPA  ·  " + K.ad + " · " + K.kita + ("  ·  " + lig.kupa_tur_adi(int(lig.kupa.tur)) if lig.kupa_var() and not lig.kupa.bitti and not lig.kupa.elendi else ""), 17, yazi_renk)
+	al.size_flags_horizontal = Control.SIZE_EXPAND_FILL; al.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	hb.add_child(al)
+	return p
+
+func _kupa_panel() -> Control:
+	var p := PanelContainer.new(); p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	p.add_theme_stylebox_override("panel", _kutu(PANEL, 6, 0))
+	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 0); p.add_child(v)
+	if not lig.kupa_var():
+		var K: Dictionary = lig.KUPALAR[lig.kur_kupa]
+		v.add_child(_serit("KATILAN KULÜPLER  ·  " + K.ad + "  ·  %d kulüp" % int(K.n)))
+		var k := 0
+		var KK: Array = lig.kupa_katilim(K.id)
+		for x in KK:
+			var t: Dictionary = lig.kupa_takim(x)
+			var biz := k == posmod(lig.kur_kupa_takim, KK.size())
+			v.add_child(_gol_satir([str(k + 1), t.ad, lig.veri.ligler[lig._lig_i(str(x[0]))].ad, str(int(t.str))], k, false, biz)); k += 1
+		return p
+	for tur in lig.kupa_turlari():
+		v.add_child(_serit(str(tur[0])))
+		var k := 0
+		for m in tur[1]:
+			var r := PanelContainer.new(); var st := _kutu(BIZ_RENK if m[3] else (SATIR_A if k % 2 == 0 else SATIR_B), 0, 0)
+			st.content_margin_top = 2; st.content_margin_bottom = 2; st.content_margin_left = 10; st.content_margin_right = 10
+			r.add_theme_stylebox_override("panel", st)
+			var hb := HBoxContainer.new(); r.add_child(hb)
+			var a := _etiket(m[0], 15, ALTIN if m[4] == 0 else YAZI); a.size_flags_horizontal = Control.SIZE_EXPAND_FILL; a.clip_text = true
+			var sk := _etiket(m[1], 15, Color.WHITE); sk.custom_minimum_size = Vector2(110, 0); sk.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			var b := _etiket(m[2], 15, ALTIN if m[4] == 1 else YAZI); b.size_flags_horizontal = Control.SIZE_EXPAND_FILL; b.clip_text = true; b.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+			hb.add_child(a); hb.add_child(sk); hb.add_child(b)
+			v.add_child(r); k += 1
+	return p

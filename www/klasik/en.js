@@ -22,7 +22,7 @@
   // maç raporu ve takım konuşması
   ['KAPAT','CLOSE'],
   // kupalar
-  ['KUPALAR','CUPS'],['Kıta kupaları · Kıtalar Arası Kupa','Continental cups · Intercontinental Cup'],['Kupanı ve kulübünü seç','Pick your cup and club'],['KUPA','CUP'],
+  ['KUPALAR','CUPS'],['🏆 Kupalar','🏆 Cups'],['Bir kıta kupası ya da Kıtalar Arası Kupa seç, kulübünle tek maçlık elemelerde finale yürü. Berabere biterse uzatma ve penaltılar var. Maçı oynayabilir ya da simüle edebilirsin.','Pick a continental cup or the Intercontinental Cup and march to the final in single-match knockouts. Extra time and penalties if level. Play the match or simulate it.'],['Kıta kupaları · Kıtalar Arası Kupa','Continental cups · Intercontinental Cup'],['Kupanı ve kulübünü seç','Pick your cup and club'],['KUPA','CUP'],
   ['Şampiyonlar Ligi','League of Champions'],['Kondor Kupası','Condor Cup'],['Kuzey Yıldızı Kupası','North Star Cup'],['İpek Yolu Kupası','Silk Road Cup'],['Savana Kupası','Savanna Cup'],['Kıtalar Arası Kupa','Intercontinental Cup'],
   ['ŞAMPİYONLAR LİGİ','LEAGUE OF CHAMPIONS'],['KONDOR KUPASI','CONDOR CUP'],['KUZEY YILDIZI KUPASI','NORTH STAR CUP'],['İPEK YOLU KUPASI','SILK ROAD CUP'],['SAVANA KUPASI','SAVANNA CUP'],['KITALAR ARASI KUPA','INTERCONTINENTAL CUP'],
   ['Güney Amerika','South America'],['Kuzey Amerika','North America'],['Dünya','World'],
@@ -67,7 +67,7 @@
   ['Maçtan önce dizilişini seç ya da OTOMATİK bırak: asistan kadrona en uygununu kurar. Kamerayı burada ve maç içinde II menüsünden değiştirebilirsin.','Pick your formation before the match or leave it on AUTO: the assistant sets the best one for your squad. Change the camera here or from the II menu during the match.'],
   ['Buradan oyuncu değiştirir, asistanı açıp kapatır, kamerayı ve sesi değiştirirsin. Lig maçında kalan süreyi simüle edebilirsin.','Here you make substitutions, switch the assistant on or off and change camera and sound. In a league match you can simulate the rest.'],
   ["Önce çıkacak oyuncuya, sonra girecek yedeğe dokun, DEĞİŞTİR'e bas. Renkli çubuk kondisyonu gösterir; kırmızıya düşen oyuncu yavaşlar.",'Tap the player coming off, then the sub going on, and press SUBSTITUTE. The coloured bar shows fitness; a player in the red slows down.'],
-  ["Lig maçında DEVAM ile puan durumuna dönersin. Hızlı Maç'ta RÖVANŞ ile aynı eşleşmeyi yeniden oynarsın. Galibiyeti arkadaşlarınla paylaşabilirsin.",'In a league match CONTINUE takes you back to the standings. In Quick Match REMATCH replays the same fixture. You can share a win with your friends.'],
+  ["Maç raporunda istatistikler, oyuncu notları ve maçın yıldızı var; bir oyuncuya dokunursan kariyerini görürsün. Lig maçında DEVAM ile puan durumuna dönersin. Hızlı Maç'ta RÖVANŞ ile aynı eşleşmeyi yeniden oynarsın.",'The match report has stats, player ratings and the player of the match; tap a player to see his career. In a league match CONTINUE takes you back to the standings. In Quick Match REMATCH replays the same fixture.'],
   ['Görüşünü ve önerini Bize yaz ile ilet. Verilerimi sil kariyerini ve ayarlarını bu cihazdan siler.','Send feedback with Write to us. Delete my data removes your career and settings from this device.'],
   // kontroller ve kurallar
   ['kaleye hücum ediyorsun','goal'],['Sen yukarıdaki','You attack the top'],['Sen aşağıdaki','You attack the bottom'],['Sen sağdaki','You attack the right'],['Sen soldaki','You attack the left'],['Sen karşıdaki','You attack the far'],

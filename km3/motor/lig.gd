@@ -10,6 +10,11 @@ const SURUM := 1
 var veri: Dictionary            # takimlar.json
 var d: Dictionary = {}          # sezon durumu (boşsa sezon yok)
 var son_rapor := ""             # son lig maçının raporu (ana doldurur)
+var kip := "lig"                # lig ekranı ne gösteriyor: "lig" ya da "kupa"
+var kupa := {}                  # kupa durumu (boşsa kupa yok); kayıt: user://km3-kupa.json
+var kur_kupa := 0
+var kur_kupa_takim := 0
+const KUPA_KAYIT := "user://km3-kupa.json"
 var kur_lig := 0                # kurulum ekranında seçilen lig / takım
 var kur_takim := 0
 var mesaj := ""
@@ -26,6 +31,7 @@ func _init(v: Dictionary) -> void:
 func var_mi() -> bool: return not d.is_empty()
 
 func yukle() -> void:
+	kupa_yukle()
 	d = {}
 	if not FileAccess.file_exists(KAYIT): return
 	var j = JSON.parse_string(FileAccess.get_file_as_string(KAYIT))
@@ -47,6 +53,8 @@ func kaydet() -> void:
 
 func sil() -> void:
 	son_rapor = ""
+	kupa = {}
+	if FileAccess.file_exists(KUPA_KAYIT): DirAccess.remove_absolute(ProjectSettings.globalize_path(KUPA_KAYIT))
 	d = {}; son_hafta = []; mesaj = ""; gorunum = "tablo"
 	if FileAccess.file_exists(KAYIT): DirAccess.remove_absolute(ProjectSettings.globalize_path(KAYIT))
 
@@ -277,14 +285,17 @@ func sezon_adi() -> String:
 
 # ---------- menü satırları (ekran ve VR ortak) ----------
 func satirlar() -> Array:
-	if not var_mi(): return ["Lig", "Takımın", "SEZONA BAŞLA", "Ana menü"]
+	if kip == "kupa": return kupa_satirlari()
+	if not var_mi(): return ["Lig", "Takımın", "SEZONA BAŞLA", "Kupalar", "Ana menü"]
 	var r: Array = ["YENİ SEZON", "Fikstür", "Gol krallığı", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Fikstür", "Gol krallığı", "Ana menü", "Ligi bırak"]
 	if son_rapor != "": r.insert(r.find("Ana menü"), "Maç raporu")
+	r.insert(r.find("Ana menü"), "Kupalar")
 	return r
 
 func satir_metni(i: int, sec := false) -> String:
 	var s: String = satirlar()[i]
 	var ok := ("»  " if sec else "")
+	if kip == "kupa": return kupa_satir_metni(s, sec)
 	match s:
 		"Lig": return ("‹  " if sec else "") + "Lig:  " + veri.ligler[kur_lig].ad + " · " + veri.ligler[kur_lig].ulke + ("  ›" if sec else "")
 		"Takımın":
@@ -300,12 +311,17 @@ func satir_metni(i: int, sec := false) -> String:
 
 func kay(i: int, yon: int) -> void:
 	var s: String = satirlar()[i]
+	if kip == "kupa":
+		if s == "Kupa": kur_kupa = posmod(kur_kupa + yon, KUPALAR.size()); kur_kupa_takim = 0
+		elif s == "Takımın": kur_kupa_takim = posmod(kur_kupa_takim + yon, kupa_katilim(KUPALAR[kur_kupa].id).size())
+		return
 	if s == "Lig": kur_lig = posmod(kur_lig + yon, veri.ligler.size()); kur_takim = 0
 	elif s == "Takımın": kur_takim = posmod(kur_takim + yon, veri.ligler[kur_lig].takimlar.size())
 
 # döndürür: "mac" (maça çık), "menu" (ana menüye dön) ya da ""
 func bas(i: int) -> String:
 	var s: String = satirlar()[i]
+	if kip == "kupa": return kupa_bas(s, i)
 	match s:
 		"Lig", "Takımın": kay(i, 1)
 		"SEZONA BAŞLA": yeni_sezon(kur_lig, kur_takim)
@@ -318,6 +334,7 @@ func bas(i: int) -> String:
 			yeni_sezon(lg, tk, sz)
 		"Ana menü": gorunum = "tablo"; return "menu"
 		"Maç raporu": return "rapor"
+		"Kupalar": kip = "kupa"; mesaj = ""
 		"Ligi bırak":
 			var simdi := Time.get_ticks_msec() / 1000.0
 			if simdi - _birak_onay > 4.0:
@@ -352,3 +369,209 @@ func fikstur_biz() -> Array:
 static func sonuc_harf(x: Array) -> String:
 	if int(x[3]) < 0: return ""
 	return "G" if int(x[3]) > int(x[4]) else ("B" if int(x[3]) == int(x[4]) else "M")
+
+
+# ---------- KUPALAR (Champion Battle Manager 4.6'daki gibi) ----------
+# Kıta kupaları ve Kıtalar Arası Kupa: tek maçlık eleme; berabere biterse penaltılar. Katılanlar: kupanın liglerinden
+# kulüp gücü × lig itibarına göre en iyiler (bir ligden en çok 4; az ligli kupada eşit pay). Kıtalar Arası: kıta kupalarının en güçlüleri.
+const KUPALAR := [{"id": "avr", "ad": "Şampiyonlar Ligi", "kita": "Avrupa", "n": 16}, {"id": "kon", "ad": "Kondor Kupası", "kita": "Güney Amerika", "lg": ["br", "ar", "co"], "n": 16},
+	{"id": "kuz", "ad": "Kuzey Yıldızı Kupası", "kita": "Kuzey Amerika", "lg": ["mx", "us"], "n": 16}, {"id": "ipe", "ad": "İpek Yolu Kupası", "kita": "Asya", "lg": ["sa", "jp", "kr", "qa", "cn", "au"], "n": 16},
+	{"id": "sav", "ad": "Savana Kupası", "kita": "Afrika", "lg": ["eg", "ma", "za", "dz", "tn"], "n": 16}, {"id": "kit", "ad": "Kıtalar Arası Kupa", "kita": "Dünya", "n": 8}]
+
+func kupa_tanim(id: String) -> Dictionary:
+	for k in KUPALAR:
+		if k.id == id: return k
+	return KUPALAR[0]
+
+func _lig_i(lid: String) -> int:
+	for i in veri.ligler.size():
+		if veri.ligler[i].id == lid: return i
+	return -1
+
+func kupa_takim(x: Array) -> Dictionary:
+	var li := _lig_i(str(x[0]))
+	if li < 0: return {}
+	for t in veri.ligler[li].takimlar:
+		if str(t.id) == str(x[1]): return t
+	return {}
+
+func _kupa_havuz(id: String, n := 0) -> Array:
+	var K := kupa_tanim(id)
+	if n == 0: n = int(K.n)
+	var lgs: Array = K.get("lg", [])
+	if id == "avr":
+		for l in veri.ligler:
+			if l.get("kita", "") == "Avrupa": lgs.append(l.id)
+	var aday := []
+	for lid in lgs:
+		var li := _lig_i(lid)
+		if li < 0: continue
+		var it := float(veri.ligler[li].get("it", .6))
+		for t in veri.ligler[li].takimlar: aday.append([lid, str(t.id), float(t.str) + 6.0 * it + float(posmod(hash(lid + str(t.id)), 97)) / 1000.0])
+	aday.sort_custom(func(a, b): return a[2] > b[2])
+	var say := {}; var sinir := maxi(4, ceili(float(n) / maxf(1.0, lgs.size())))
+	var out := []
+	for a in aday:
+		say[a[0]] = int(say.get(a[0], 0)) + 1
+		if say[a[0]] <= sinir and out.size() < n: out.append([a[0], a[1]])
+	return out
+
+func kupa_katilim(id: String) -> Array:
+	if id != "kit": return _kupa_havuz(id)
+	var out := []
+	for p in [["avr", 3], ["kon", 2], ["kuz", 1], ["ipe", 1], ["sav", 1]]: out.append_array(_kupa_havuz(p[0], p[1]))
+	return out
+
+func kupa_var() -> bool: return not kupa.is_empty()
+
+func kupa_tur_adi(i: int) -> String:
+	var n := (kupa.esle[0] as Array).size() * 2 >> i
+	return "Final" if n == 2 else ("Yarı final" if n == 4 else ("Çeyrek final" if n == 8 else "Son " + str(n)))
+
+func kupa_basla(id: String, ben: Array) -> void:
+	var t := kupa_katilim(id); t.shuffle()
+	var ilk := []
+	for i in range(0, t.size(), 2): ilk.append({"a": t[i], "b": t[i + 1], "s": []})
+	kupa = {"id": id, "ben": ben, "tur": 0, "esle": [ilk], "bitti": false, "elendi": false}
+	kupa_kaydet()
+
+static func _ayni(x, y) -> bool: return x is Array and y is Array and str(x[0]) == str(y[0]) and str(x[1]) == str(y[1])
+
+func kupa_benim_mac():
+	if not kupa_var() or kupa.bitti or kupa.elendi: return null
+	for m in kupa.esle[int(kupa.tur)]:
+		if (m.s as Array).is_empty() and (_ayni(m.a, kupa.ben) or _ayni(m.b, kupa.ben)): return m
+	return null
+
+static func kupa_kazanan(m: Dictionary):
+	var s: Array = m.s
+	if s.is_empty(): return null
+	return m.a if (int(s[0]) > int(s[1]) or (int(s[0]) == int(s[1]) and int(s[2]) > int(s[3]))) else m.b
+
+func kupa_kazandi() -> bool:
+	if not kupa_var() or not kupa.bitti: return false
+	var f: Array = kupa.esle[(kupa.esle as Array).size() - 1]
+	return f.size() == 1 and _ayni(kupa_kazanan(f[0]), kupa.ben)
+
+# [ev gol, dep gol, ev penaltı, dep penaltı] (berabere değilse penaltılar 0)
+func _kupa_sim(a: Array, b: Array) -> Array:
+	var A := kupa_takim(a); var B := kupa_takim(b)
+	var rng := RandomNumberGenerator.new(); rng.randomize()
+	var fa: float = float(A.get("str", 6)); var fb: float = float(B.get("str", 6))
+	var x := _poisson(clampf(1.4 + (fa - fb) * .16 + .15, .25, 4.0), rng); var y := _poisson(clampf(1.1 + (fb - fa) * .16, .2, 4.0), rng)
+	return [x, y] + _penalti(x, y, fa, fb, rng)
+
+static func _penalti(x: int, y: int, fa: float, fb: float, rng: RandomNumberGenerator) -> Array:
+	if x != y: return [0, 0]
+	var lo := 2 + rng.randi() % 3
+	return [lo + 1, lo] if rng.randf() < clampf(.5 + (fa - fb) * .05, .2, .8) else [lo, lo + 1]
+
+func kupa_ilerle() -> void:
+	var tur: Array = kupa.esle[int(kupa.tur)]
+	for m in tur:
+		if (m.s as Array).is_empty() and (kupa.elendi or not (_ayni(m.a, kupa.ben) or _ayni(m.b, kupa.ben))): m.s = _kupa_sim(m.a, m.b)
+	for m in tur:
+		if (m.s as Array).is_empty(): return
+	var biz_var := false
+	for m in tur:
+		if _ayni(kupa_kazanan(m), kupa.ben): biz_var = true
+	if not biz_var: kupa.elendi = true
+	if tur.size() == 1: kupa.bitti = true; return
+	var w := []
+	for m in tur: w.append(kupa_kazanan(m))
+	var yeni := []
+	for i in range(0, w.size(), 2): yeni.append({"a": w[i], "b": w[i + 1], "s": []})
+	kupa.esle.append(yeni); kupa.tur = int(kupa.tur) + 1
+	if kupa.elendi: kupa_ilerle()
+
+# kullanıcının kupa maçı bitti (biz motor T[0]); beraberlikte penaltılar güçlere göre
+func kupa_sonuc(g_biz: int, g_rakip: int) -> String:
+	var m = kupa_benim_mac()
+	if m == null: return ""
+	var biz_a := _ayni(m.a, kupa.ben)
+	var rng := RandomNumberGenerator.new(); rng.randomize()
+	var A := kupa_takim(kupa.ben); var R := kupa_takim(m.b if biz_a else m.a)
+	var p := _penalti(g_biz, g_rakip, float(A.get("str", 6)), float(R.get("str", 6)), rng)
+	m.s = [g_biz, g_rakip, p[0], p[1]] if biz_a else [g_rakip, g_biz, p[1], p[0]]
+	kupa_ilerle(); kupa_kaydet()
+	return ("Penaltılarda %d-%d %s" % [p[0], p[1], "kazandın!" if p[0] > p[1] else "kaybettin."]) if g_biz == g_rakip else ""
+
+func kupa_sim_mac() -> void:
+	var m = kupa_benim_mac()
+	if m == null: return
+	m.s = _kupa_sim(m.a, m.b); kupa_ilerle(); kupa_kaydet()
+
+func kupa_kaydet() -> void:
+	var f := FileAccess.open(KUPA_KAYIT, FileAccess.WRITE)
+	if f: f.store_string(JSON.stringify(kupa)); f.close()
+
+func kupa_yukle() -> void:
+	kupa = {}
+	if not FileAccess.file_exists(KUPA_KAYIT): return
+	var j = JSON.parse_string(FileAccess.get_file_as_string(KUPA_KAYIT))
+	if typeof(j) != TYPE_DICTIONARY or not j.has("esle"): return
+	kupa = j
+	if kupa_takim(kupa.ben).is_empty(): kupa = {}
+
+func kupa_satirlari() -> Array:
+	if not kupa_var(): return ["Kupa", "Takımın", "KUPAYA BAŞLA", "Lige dön", "Ana menü"]
+	var r: Array = []
+	if kupa_benim_mac() != null: r = ["MAÇA ÇIK", "Maçı simüle et"]
+	if son_rapor != "": r.append("Maç raporu")
+	r.append_array(["Yeni kupa" if (kupa.bitti or kupa.elendi) else "Kupayı bırak", "Lige dön", "Ana menü"])
+	return r
+
+func kupa_satir_metni(s: String, sec: bool) -> String:
+	var ok := ("»  " if sec else "")
+	match s:
+		"Kupa": return ("‹  " if sec else "") + "Kupa:  " + KUPALAR[kur_kupa].ad + " · " + KUPALAR[kur_kupa].kita + ("  ›" if sec else "")
+		"Takımın":
+			var K: Array = kupa_katilim(KUPALAR[kur_kupa].id)
+			var t := kupa_takim(K[posmod(kur_kupa_takim, K.size())])
+			return ("‹  " if sec else "") + "Takımın:  " + str(t.get("ad", "?")) + "  (güç " + str(int(t.get("str", 0))) + ")" + ("  ›" if sec else "")
+		"MAÇA ÇIK":
+			var m = kupa_benim_mac()
+			var rk: Dictionary = kupa_takim(m.b if _ayni(m.a, kupa.ben) else m.a)
+			return ok + "MAÇA ÇIK  ·  " + kupa_tur_adi(int(kupa.tur)) + "  ·  " + str(kupa_takim(kupa.ben).kisa) + " - " + str(rk.kisa)
+	return ok + s
+
+func kupa_bas(s: String, i: int) -> String:
+	match s:
+		"Kupa", "Takımın": kay(i, 1)
+		"KUPAYA BAŞLA":
+			var K: Array = kupa_katilim(KUPALAR[kur_kupa].id)
+			kupa_basla(KUPALAR[kur_kupa].id, K[posmod(kur_kupa_takim, K.size())])
+		"MAÇA ÇIK": return "kupa_mac"
+		"Maçı simüle et": kupa_sim_mac()
+		"Maç raporu": return "rapor"
+		"Lige dön": kip = "lig"; mesaj = ""
+		"Ana menü": return "menu"
+		"Yeni kupa": kupa = {}; kupa_kaydet()
+		"Kupayı bırak":
+			var simdi := Time.get_ticks_msec() / 1000.0
+			if simdi - _birak_onay > 4.0: _birak_onay = simdi; mesaj = "Emin misin? Kupa silinir; bir kez daha bas"
+			else: _birak_onay = 0.0; kupa = {}; kupa_kaydet(); mesaj = ""
+	return ""
+
+# eşleşme satırları (ekran ve VR): her tur için [tur adı, [[ev, skor, dep, biz mi, kazanan 0/1/-1], ...]] (son tur önce)
+func kupa_turlari() -> Array:
+	var out := []
+	for i in range((kupa.esle as Array).size() - 1, -1, -1):
+		var sat := []
+		for m in kupa.esle[i]:
+			var s: Array = m.s
+			var sk := "–" if s.is_empty() else ("%d-%d" % [int(s[0]), int(s[1])] + ((" (p %d-%d)" % [int(s[2]), int(s[3])]) if int(s[0]) == int(s[1]) else ""))
+			var w = kupa_kazanan(m)
+			sat.append([str(kupa_takim(m.a).get("ad", "?")), sk, str(kupa_takim(m.b).get("ad", "?")), _ayni(m.a, kupa.ben) or _ayni(m.b, kupa.ben), -1 if w == null else (0 if _ayni(w, m.a) else 1)])
+		out.append([kupa_tur_adi(i), sat])
+	return out
+
+func kupa_ozet() -> String:
+	if not kupa_var(): return "Kupanı ve kulübünü seç. Tek maçlık eleme; berabere biterse penaltılar. Kazanan bir sonraki tura çıkar."
+	var K := kupa_tanim(kupa.id); var ben: Dictionary = kupa_takim(kupa.ben)
+	if kupa.bitti:
+		if kupa_kazandi(): return "ŞAMPİYONSUN!  " + str(ben.ad) + " · " + K.ad
+		var f: Array = kupa.esle[(kupa.esle as Array).size() - 1]
+		return K.ad + " bitti · Şampiyon: " + str(kupa_takim(kupa_kazanan(f[0])).get("ad", "?"))
+	if kupa.elendi: return str(ben.ad) + " elendi."
+	return K.ad + " · " + kupa_tur_adi(int(kupa.tur)) + " · " + str(ben.ad)
