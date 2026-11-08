@@ -27,7 +27,6 @@ jobs:
           sparse-checkout: |
             araclar
             store
-          sparse-checkout-cone-mode: false
       - name: Yayın öncesi kontrol
         run: bash _ana/araclar/yayin-kontrol-champion.sh "${{ inputs.ref }}" "${{ inputs.version_name }}" www/index.html _ana/store/champion/SON-SURUM
       - uses: actions/setup-node@v4
