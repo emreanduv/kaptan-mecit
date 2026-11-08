@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Yayın öncesi kontrol
+        run: bash araclar/yayin-kontrol.sh "${{ github.ref_name }}" "${{ inputs.version_name }}" store/SON-SURUM
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - uses: actions/setup-java@v4

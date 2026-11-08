@@ -23,4 +23,4 @@ Kaptan Mecit (Klasik ve Modern) ligleri, kulüpleri ve kadroları Champion Battl
 
 Sonra: Klasik Playwright denemeleri, `km3/dene/lig_dene.gd` (bütün liglerde sezon), sürüm yükselt, KM3 web dışa aktar → Pages, derlemeler.
 
-Eski betik `kmveri.mjs` (yalnız 6 lig) yerine `km28.mjs` kullanılır.
+(Eski 6 liglik `kmveri.mjs` kaldırıldı; git geçmişinde duruyor.)
