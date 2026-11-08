@@ -14,6 +14,7 @@
 - 7 Kas: **1.5.5** — lig ekranında kulüp seçimi: ‹ › düğmeleri + listeden dokunarak seçim (KM3 0.7.6; Quest'e bir sonraki sürümde). Android (22) Play dahili test; iOS (21) TestFlight beta incelemesinde.
 - 7 Kas (günlük görev): **KM3 0.7.7** — lig ekranında Fikstür görünümü (ekran + VR), web güncellendi. Meta v1 (0.7.5) hâlâ "Gönderildi". Apple: Kurt Yolu 1.1.0 hâlâ WAITING_FOR_REVIEW.
 - 8 Kas: **1.5.7 / KM3 0.7.8** — duran top kuralı: topçu topa dokunmadan rakip 9,15 m uzakta, top kapma/kayma yok; santrada rakip kendi yarısında. Android (24) Play dahili test; iOS (23) TestFlight beta incelemesinde. Quest'e Meta incelemesi bitince (sürüm kodu 9).
+- 8 Kas (günlük görev): **KM3 0.7.9** — lig gol krallığı (ekran + VR; sezon sonunda gol kralı). Web güncellendi; mağaza derlemesi yok (bir sonraki 1.5.x derlemesi Modern'i otomatik alır). Meta v1 (0.7.5) hâlâ "Gönderildi". Apple: Kurt Yolu 1.1.0 hâlâ WAITING_FOR_REVIEW; CBM 4.5.1 de 8 Kas 05:42Z'den beri WAITING_FOR_REVIEW (başka oturum/Emre); Yaşam Rehberi 1.1.0 READY_FOR_SALE.
 - 8 Kas: **1.5.6** — lig/kariyer gerçek 2026-27 fikstürüyle başlar (Klasik + Modern; `km3/veri/fikstur.json`, CBM tsdb eşlemesi). Android (23) Play dahili test; iOS (22) TestFlight beta incelemesinde.
 - Steam/Champion kopyası artık `www/klasik/index.html` (+ `*.js`).
 
