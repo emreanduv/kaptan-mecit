@@ -54,7 +54,7 @@ for lg in LG_ORDER:
         HAVUZ[f'{lg}:{r[0]}'] = K['HAVUZ'][f"{lg}:{satirlar[len(t)-1][0]}"]
     if lg in eskiSira:
         o = eskiSira[lg]; t.sort(key=lambda r: o.index(r[0]) if r[0] in o else len(o))
-    LEAGUES[lg] = {'kurgu': L['kurgu'], 'ad': L['ad'], 'kita': L['kita'], 'fn': fn, 'ln': ln, 't': t}
+    LEAGUES[lg] = {'kurgu': L['kurgu'], 'ad': L['ad'], 'kita': L['kita'], 'it': L['itibar'], 'fn': fn, 'ln': ln, 't': t}
 
 # 3) gerçek fikstür (verisi olan ligler): tsdb -> kulüp kimliği
 ts_id = {(lg, c['tsdb']): esle[lg][c['id']] for lg, l in D['ligler'].items() for c in l['kulupler'] if c.get('tsdb')}

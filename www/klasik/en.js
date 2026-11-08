@@ -20,7 +20,16 @@
   ['NASIL OYNANIR?','HOW TO PLAY?'],['ARKADAŞINA ÖNER','RECOMMEND TO A FRIEND'],['Arkadaşına öner','Recommend to a friend'],
   ['NOSTALJİK FUTBOL','CLASSIC FOOTBALL'],
   // maç raporu ve takım konuşması
-  ['KAPAT','CLOSE'],  ['Yıl','Year'],['A milli','National team'],['kiralık','loan'],['Kariyer bilgisi yok.','No career data.'],['oyuncuya dokun: kariyeri','tap a player: career'],
+  ['KAPAT','CLOSE'],
+  // kupalar
+  ['KUPALAR','CUPS'],['Kıta kupaları · Kıtalar Arası Kupa','Continental cups · Intercontinental Cup'],['Kupanı ve kulübünü seç','Pick your cup and club'],['KUPA','CUP'],
+  ['Şampiyonlar Ligi','League of Champions'],['Kondor Kupası','Condor Cup'],['Kuzey Yıldızı Kupası','North Star Cup'],['İpek Yolu Kupası','Silk Road Cup'],['Savana Kupası','Savanna Cup'],['Kıtalar Arası Kupa','Intercontinental Cup'],
+  ['ŞAMPİYONLAR LİGİ','LEAGUE OF CHAMPIONS'],['KONDOR KUPASI','CONDOR CUP'],['KUZEY YILDIZI KUPASI','NORTH STAR CUP'],['İPEK YOLU KUPASI','SILK ROAD CUP'],['SAVANA KUPASI','SAVANNA CUP'],['KITALAR ARASI KUPA','INTERCONTINENTAL CUP'],
+  ['Güney Amerika','South America'],['Kuzey Amerika','North America'],['Dünya','World'],
+  ['tek maçlık eleme, berabere biterse uzatma ve penaltılar','single-match knockout, extra time and penalties if level'],['kıta kupalarının en güçlü kulüpleri','the strongest clubs of the continental cups'],
+  ['KUPAYA BAŞLA','START THE CUP'],['MAÇI SİMÜLE ET','SIMULATE MATCH'],['KUPAYI BIRAK','QUIT THE CUP'],['YENİ KUPA','NEW CUP'],['EMİN MİSİN? KUPA SİLİNİR · BİR DAHA BAS','SURE? THE CUP WILL BE DELETED · TAP AGAIN'],
+  ['ŞAMPİYONSUN!','YOU ARE THE CHAMPION!'],['ŞAMPİYONLUĞU PAYLAŞ','SHARE THE TITLE'],['Şampiyon:','Champion:'],['elendi.','is knocked out.'],['elendin','knocked out'],['kupa bitti','cup over'],
+  ['Yarı final','Semi-final'],['YARI FİNAL','SEMI-FINAL'],['Çeyrek final','Quarter-final'],['ÇEYREK FİNAL','QUARTER-FINAL'],['FİNAL','FINAL'],['Son 16','Round of 16'],['SON 16','ROUND OF 16'],  ['Yıl','Year'],['A milli','National team'],['kiralık','loan'],['Kariyer bilgisi yok.','No career data.'],['oyuncuya dokun: kariyeri','tap a player: career'],
   ['MAÇ RAPORU','MATCH REPORT'],['MAÇIN YILDIZI','PLAYER OF THE MATCH'],['OYUNCU NOTLARI','PLAYER RATINGS'],['KARTLAR','CARDS'],['Topla oynama','Possession'],['İsabetli şut','Shots on target'],['Pas isabeti','Pass accuracy'],
   ['Kurtarış','Saves'],['Korner','Corners'],['Ofsayt','Offsides'],['Faul','Fouls'],['Kart','Cards'],['Şut','Shots'],['⚽ gol · 👟 asist · ⭐ maçın yıldızı · yanındaki dakika: oyuna giriş','⚽ goal · 👟 assist · ⭐ player of the match · minute: came on'],
   ['MAÇ ÖNÜ KONUŞMASI','PRE-MATCH TEAM TALK'],['DEVRE ARASI KONUŞMASI','HALF-TIME TEAM TALK'],['DEVRE ARASI','HALF-TIME'],['😌 Sakin olun, oyununuzu oynayın','😌 Stay calm, play your game'],['💪 Size güveniyorum','💪 I believe in you'],['🔥 Hırslı olun, her topa basın','🔥 Be fierce, press every ball'],
