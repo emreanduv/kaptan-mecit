@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       bundle: { description: "Paket kimliği", default: "com.championchess.manager" }
-      kip: { description: "durum ya da gonder", default: "durum" }
+      kip: { description: "durum, gonder ya da iptal", default: "durum" }
       version: { description: "Gönderilecek sürüm (gonder için)", required: false, default: "" }
 permissions:
   contents: write

@@ -1,5 +1,5 @@
 # App Store durumu (CI). KIP=durum: sürümleri, durumlarını ve bağlı derlemeyi yazar (hiçbir şeyi değiştirmez).
-# KIP=gonder: hazırlanmış (PREPARE_FOR_SUBMISSION, derlemesi bağlı) iOS sürümünü incelemeye gönderir.
+# KIP=iptal: incelemedeki gönderimi geri çeker. KIP=gonder: hazırlanmış (PREPARE_FOR_SUBMISSION, derlemesi bağlı) iOS sürümünü incelemeye gönderir.
 import jwt, time, json, os, urllib.request, urllib.error
 KID=os.environ['ASC_KEY_ID']; ISS=os.environ['ASC_ISSUER_ID']; BUNDLE=os.environ['BUNDLE']; KIP=os.environ.get('KIP','durum'); VER=os.environ.get('VERSION','')
 KEY=open(os.path.expanduser(f'~/private_keys/AuthKey_{KID}.p8')).read(); log=[]
@@ -28,5 +28,11 @@ if KIP=='gonder':
             api('POST','v1/reviewSubmissionItems',{'data':{'type':'reviewSubmissionItems','relationships':{'reviewSubmission':{'data':{'type':'reviewSubmissions','id':RID}},'appStoreVersion':{'data':{'type':'appStoreVersions','id':v['id']}}}}})
             r=api('PATCH',f'v1/reviewSubmissions/{RID}',{'data':{'type':'reviewSubmissions','id':RID,'attributes':{'submitted':True}}})
             out['gonderildi']=bool(r) and v['attributes']['versionString']
+if KIP=='iptal':                                               # incelemedeki gönderimi geri çek (derleme değiştirmek için)
+    ex=api('GET',f'v1/reviewSubmissions?filter[app]={AID}&filter[state]=WAITING_FOR_REVIEW,IN_REVIEW,UNRESOLVED_ISSUES&limit=5') or {'data':[]}
+    out['iptal']=[]
+    for rs in ex['data']:
+        r=api('PATCH',f"v1/reviewSubmissions/{rs['id']}",{'data':{'type':'reviewSubmissions','id':rs['id'],'attributes':{'canceled':True}}})
+        out['iptal'].append([rs['id'], rs['attributes'].get('state'), bool(r)])
 out['hatalar']=log
 json.dump(out,open('durum.json','w'),ensure_ascii=False,indent=1); print(json.dumps(out,ensure_ascii=False))
