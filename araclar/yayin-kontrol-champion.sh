@@ -16,4 +16,6 @@ if [ -f "$SON" ]; then
   EN=$(printf '%s\n%s\n' "$ESKI" "$SURUM" | sort -V | tail -1)
   [ "$EN" = "$SURUM" ] || hata "Sürüm geri gidiyor: $SURUM < yayınlanan $ESKI"
 fi
+# Türkçe yazı (iOS "ı") ve ◀ ▶ işaretleri — CLAUDE.md "Türkçe yazı ve iOS işaretleri"
+python3 "$(dirname "$0")/turkce-yazi-kontrol.py" www || hata "Türkçe yazı / iOS işaret denetimi tutmadı"
 [ $HATA = 0 ] && echo "Yayın öncesi kontrol tamam: $DAL · $SURUM" || exit 1

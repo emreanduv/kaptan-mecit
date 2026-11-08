@@ -43,7 +43,7 @@
   ['Eski kariyer kaydı bu sürümle uyumsuzdu, sıfırlandı.','The old career save did not fit this version and was reset.'],['Bir sorun oldu. Ayarlar sıfırlanıyor…','Something went wrong. Resetting settings…'],
   ['Bağlantı kopyalandı, istediğin yere yapıştır.','Link copied, paste it anywhere.'],
   // rehber ipuçları
-  ['🏠 Ana menü','🏠 Main menu'],['⚡ Hızlı Maç','⚡ Quick Match'],['🏆 Lig kariyeri','🏆 League career'],['📋 Kulübün','📋 Your club'],['⚽ İlk maçın','⚽ Your first match'],['⏸ Mola menüsü','⏸ Pause menu'],['🔁 Oyuncu değişikliği','🔁 Substitutions'],['🏁 Maç sonu','🏁 Full time'],['⚙️ Ayarlar','⚙️ Settings'],
+  ['🏠 Ana menü','🏠 Main menu'],['⚡ Hızlı Maç','⚡ Quick Match'],['🏆 Lig kariyeri','🏆 League career'],['📋 Kulübün','📋 Your club'],['⚽ İlk maçın','⚽ Your first match'],['⏸︎ Mola menüsü','⏸︎ Pause menu'],['🔁 Oyuncu değişikliği','🔁 Substitutions'],['🏁 Maç sonu','🏁 Full time'],['⚙️ Ayarlar','⚙️ Settings'],
   ["HIZLI MAÇ ile iki takım seçip hemen sahaya çıkarsın. LİG ile bir kulüp seçip bütün sezonu oynarsın. Süre, zorluk, kamera ve ses AYARLAR'da.",'QUICK MATCH: pick two teams and play right away. LEAGUE: pick a club and play the whole season. Length, difficulty, camera and sound are in SETTINGS.'],
   ['Önce Takımım, sonra Rakip sekmesinden kulüp seç. Farklı liglerden takımları da karşılaştırabilirsin. Yıldızlar takımın gücünü gösterir.','Pick a club on My team, then on Opponent. Teams from different leagues can meet too. Stars show a team\'s strength.'],
   ['MAÇA ÇIK ile haftanın maçını oynarsın, SİMÜLE ET ile sonucu hemen alırsın. Puan durumu, fikstür ve gol krallığı alttaki sekmelerde.','PLAY THE MATCH plays this week\'s game, SIMULATE gives you the result at once. Standings, fixtures and top scorers are in the tabs below.'],
@@ -74,7 +74,7 @@
   ['PENALTI KARARI GEÇERLİ','PENALTY STANDS'],['PENALTI KARARI İNCELENİYOR…','CHECKING THE PENALTY…'],['TEMAS YETERSİZ · PENALTI İPTAL','NOT ENOUGH CONTACT · NO PENALTY'],
   ['🧠 TAKTİK','🧠 TACTICS'],['🤖 ASİSTAN','🤖 ASSISTANT'],['ORTA SAHA KALABALIKLAŞTI','MIDFIELD PACKED'],['BEŞLİ SAVUNMA','FIVE AT THE BACK'],['STOPERLER ÜÇLENDİ · ÜÇ FORVET','THREE CENTRE-BACKS · THREE STRIKERS'],['ÇİFT FORVET → ÜÇÜNCÜ FORVET','TWO STRIKERS → THIRD STRIKER'],['ÜÇ FORVET','THREE STRIKERS'],
   ['SKOR İÇİN HÜCUM','CHASING THE GAME'],['SKORU KORUMAK','HOLDING THE LEAD'],['YORGUNLUK','FATIGUE'],['KALECİ ATILDI','KEEPER SENT OFF'],['Kendi kalesine','Own goal'],['TEKNİK DİREKTÖR','MANAGER'],
-  ['TEKRAR · GEÇ ▶','REPLAY · SKIP ▶'],['EV','HOME'],['DEP','AWAY'],['SIRA','POS'],['PUAN','PTS'],['FORM','FORM'],['SEN','YOU'],['KORNER','CORNER'],['SOL TARAF:','LEFT SIDE:'],['LİG','LEAGUE'],
+  ['TEKRAR · GEÇ ▶︎','REPLAY · SKIP ▶︎'],['EV','HOME'],['DEP','AWAY'],['SIRA','POS'],['PUAN','PTS'],['FORM','FORM'],['SEN','YOU'],['KORNER','CORNER'],['SOL TARAF:','LEFT SIDE:'],['LİG','LEAGUE'],
   // diziliş
   ['Geniş','Wide'],['Hücum','Attack'],['Savunma','Defensive'],['Dar','Narrow'],['Elmas','Diamond'],['Kanat','Wing-back'],
   // lig ve ülke adları
