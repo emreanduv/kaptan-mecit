@@ -29,6 +29,7 @@ jobs:
             araclar
             store
       - name: Yayın öncesi kontrol
+        working-directory: .
         run: bash _ana/araclar/yayin-kontrol-champion.sh "${{ inputs.ref }}" "${{ inputs.surum }}" www/index.html _ana/store/champion/SON-SURUM
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
