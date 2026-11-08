@@ -20,6 +20,7 @@
   ['NASIL OYNANIR?','HOW TO PLAY?'],['ARKADAŞINA ÖNER','RECOMMEND TO A FRIEND'],['Arkadaşına öner','Recommend to a friend'],
   ['NOSTALJİK FUTBOL','CLASSIC FOOTBALL'],
   // maç raporu ve takım konuşması
+  ['KAPAT','CLOSE'],  ['Yıl','Year'],['A milli','National team'],['kiralık','loan'],['Kariyer bilgisi yok.','No career data.'],['oyuncuya dokun: kariyeri','tap a player: career'],
   ['MAÇ RAPORU','MATCH REPORT'],['MAÇIN YILDIZI','PLAYER OF THE MATCH'],['OYUNCU NOTLARI','PLAYER RATINGS'],['KARTLAR','CARDS'],['Topla oynama','Possession'],['İsabetli şut','Shots on target'],['Pas isabeti','Pass accuracy'],
   ['Kurtarış','Saves'],['Korner','Corners'],['Ofsayt','Offsides'],['Faul','Fouls'],['Kart','Cards'],['Şut','Shots'],['⚽ gol · 👟 asist · ⭐ maçın yıldızı · yanındaki dakika: oyuna giriş','⚽ goal · 👟 assist · ⭐ player of the match · minute: came on'],
   ['MAÇ ÖNÜ KONUŞMASI','PRE-MATCH TEAM TALK'],['DEVRE ARASI KONUŞMASI','HALF-TIME TEAM TALK'],['DEVRE ARASI','HALF-TIME'],['😌 Sakin olun, oyununuzu oynayın','😌 Stay calm, play your game'],['💪 Size güveniyorum','💪 I believe in you'],['🔥 Hırslı olun, her topa basın','🔥 Be fierce, press every ball'],

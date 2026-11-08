@@ -1683,11 +1683,32 @@ func rapor() -> Dictionary:
 	return {"sc": sc, "oy": liste, "yildiz": yildiz, "ist": {"Topla oynama %": [top0, 100 - top0], "Şut": ist.sut, "İsabetli şut": ist.isabet, "Pas isabeti %": pasy,
 		"Korner": korner, "Faul": faul, "Kurtarış": ist.kurtar}}
 
+# oyuncu kariyer geçmişi (Champion 4.5.0'daki gibi): veri/kariyer.json, anahtar lig:kulüp:forma no
+static var KAR := {}
+static func kariyer(lig: String, kulup: String, no: int) -> String:
+	if KAR.is_empty():
+		var j = JSON.parse_string(FileAccess.get_file_as_string("res://veri/kariyer.json"))
+		KAR = j if j is Dictionary else {"K": {}, "KLUP": []}
+	var v = KAR.K.get(lig + ":" + kulup + ":" + str(no))
+	if v == null: return ""
+	var par := []
+	var g: Array = v[0]
+	for i in range(g.size() - 1, maxi(-1, g.size() - 5), -1):
+		var x: Array = g[i]
+		var yil := str(int(x[0])) + ("–" if int(x[1]) == 0 else ("–" + str(int(x[1])).substr(2) if int(x[1]) != int(x[0]) else ""))
+		par.append("%s %s (%d M%s)%s" % [yil, KAR.KLUP[int(x[2])], int(x[3]), (" · %d G" % int(x[4])) if int(x[4]) > 0 else "", " kiralık" if x.size() > 5 and int(x[5]) == 1 else ""])
+	var t := " · ".join(par)
+	if v.size() > 1: t += "  ·  A milli %d M · %d G" % [int(v[1][0]), int(v[1][1])]
+	return t
+
 # rapor yazısı (ekran ve VR paneli); ev: soldaki takım indisi
 func rapor_metni(ev := 0) -> String:
 	var R := rapor(); var dep := 1 - ev
 	var t := "MAÇ RAPORU\n%s  %d - %d  %s\n" % [T[ev].t.ad, R.sc[ev], R.sc[dep], T[dep].t.ad]
 	if R.yildiz != null: t += "\nMAÇIN YILDIZI:  %s  (%s)  ·  %.1f\n" % [R.yildiz.n, T[R.yildiz.team].t.kisa, R.yildiz.not_]
+	if R.yildiz != null and T[R.yildiz.team].t.has("lig"):
+		var kr := kariyer(str(T[R.yildiz.team].t.lig), str(T[R.yildiz.team].t.id), int(R.yildiz.no))
+		if kr != "": t += "  Kariyeri: " + kr + "\n"
 	t += "\nGOLLER\n"
 	if events.is_empty(): t += "  Gol yok.\n"
 	for e in events: t += "  %d'  %s  %s%s\n" % [e.min, T[e.team].t.kisa, e.n, ("  (asist: %s)" % e.as) if str(e.get("as", "")) != "" else ""]

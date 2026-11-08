@@ -71,7 +71,9 @@ button{font-family:var(--f);color:inherit;cursor:pointer}
 .vs .mid{font-family:var(--f-px);font-size:16px;color:var(--muted)}
 .vs .mid.sc{font-size:26px;color:var(--ink)}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
-.konus{margin:8px 0;text-align:center}.konus b{display:block;font-size:12px;letter-spacing:.5px;margin-bottom:4px}
+.konus{margin:8px 0;text-align:center}
+#okart{position:fixed;inset:0;z-index:60;background:#0009;display:flex;align-items:center;justify-content:center;padding:16px}#okart .ok{max-width:440px;width:100%;max-height:85vh;overflow:auto}
+.kar{width:100%;border-collapse:collapse;font-size:13px}.kar th,.kar td{text-align:left;padding:3px 4px;border-bottom:1px solid var(--paper-d)}.kar td:nth-child(3),.kar td:nth-child(4),.kar th:nth-child(3),.kar th:nth-child(4){text-align:right}.notlar li[data-act]{cursor:pointer}.konus b{display:block;font-size:12px;letter-spacing:.5px;margin-bottom:4px}
 .rapor .yildiz{background:linear-gradient(90deg,#ffd15c,#f0b232);color:var(--ink);border-radius:10px;padding:8px 10px;font-weight:800;margin-bottom:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}.rapor .yildiz span{margin-left:auto;background:var(--ink);color:#fff;border-radius:6px;padding:1px 7px}
 .rstat .rs{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:6px;font-size:13px;margin:3px 0}.rstat .rs b{text-align:center}.rstat .rs span{text-align:center;font-weight:700}.rstat .rs i{display:block;height:5px;background:var(--paper-d);border-radius:3px;overflow:hidden;margin-top:2px}.rstat .rs em{display:block;height:100%;background:var(--navy)}
 .notlar{display:grid;grid-template-columns:1fr 1fr;gap:8px}.notlar ul{list-style:none;margin:0;padding:0;font-size:12.5px}.notlar li{display:flex;justify-content:space-between;gap:4px;padding:3px 0;border-bottom:1px solid var(--paper-d)}.notlar li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.notlar li.yz{font-weight:800}
@@ -517,7 +519,7 @@ function resultScreen(){
    <div class="card"><div class="vs"><div class="side">${KIT(r.H)}${esc(r.H.name)}</div><div class="mid sc">${r.hs}-${r.as}</div><div class="side">${KIT(r.A)}${esc(r.A.name)}</div></div>
    <span class="verdict ${won?'w':draw?'':'l'}">${won?'GALİBİYET':draw?'BERABERLİK':'MAĞLUBİYET'}</span>
    ${r.events.length?`<div class="res">${r.events.map(e=>`<div><span>${e.side==='h'?`${e.min}' ${esc(e.n)}${e.as?`<small> (${esc(e.as)})</small>`:''}`:''}</span><b>⚽</b><span>${e.side==='a'?`${e.as?`<small>(${esc(e.as)}) </small>`:''}${esc(e.n)} ${e.min}'`:''}</span></div>`).join('')}</div>`:'<p class="dim" style="text-align:center">Gol yok.</p>'}</div>
-   ${raporHtml(r.rapor,r.tak||[0,1])}
+   ${raporHtml(r.rapor,r.tak||[0,1],r.tk)}
    <div class="stack"><button class="big" data-act="${r.career?'career':'quick'}">DEVAM</button>${r.career?'':'<button class="alt dark" data-act="qplay">RÖVANŞ</button>'}${won?'<button class="alt ghost" data-act="paylasMac">📣 GALİBİYETİ PAYLAŞ</button>':''}</div></section>`;
 }
 function howtoScreen(){return `<section class="screen">${topbar('NASIL OYNANIR?','Altın çerçeveliler henüz görmediğin ipuçları',UI.howBack||'home')}<div class="card howto"><h3>KONTROLLER</h3>${ctrlHtml()}<p class="dim">${KURALLAR}</p></div>
@@ -550,6 +552,8 @@ function render0(){
 function go(s){UI.screen=s;render();window.scrollTo(0,0)}
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b||b.closest('#game'))return;const a=b.dataset.act,v=b.dataset.v;SND.click();
+  if(a==='okart'){oyuncuKart(b.dataset.lg,b.dataset.id,+b.dataset.no,b.dataset.ad);return}
+  if(a==='okartKapat'){const o=$('#okart');if(o)o.remove();return}
   switch(a){
     case'home':case'quick':case'settings':UI.silOnay=false;go(a);break;
     case'howto':UI.howBack='home';go('howto');break;
@@ -1503,6 +1507,14 @@ function flash(t){banner(t,'',null,true)}
 function hud(){if(!M)return;const a=M.T[0],b=M.T[1];$('#sb').innerHTML=`<span class="tk"><i style="background:${a.kit.c1}"></i>${esc(a.t.short)}</span><span class="scr">${a.score}-${b.score}${M.pen?` (${M.pen.g[0]}-${M.pen.g[1]})`:''}</span><span class="tk">${esc(b.t.short)}<i style="background:${b.kit.c1}"></i></span><span class="min">${minTxt()}</span>`}
 
 /* ===================== MAÇ RAPORU (Champion Battle Manager 4.5.1'deki gibi): goller, asistler, kartlar, istatistik, oyuncu notları, maçın yıldızı ===================== */
+/* oyuncu kartı: kariyer geçmişi (Champion Battle Manager 4.5.0'daki gibi; yıl, kulüp, maç, gol, kiralık, A milli). Veri ayrı dosyada, ilk açılışta yüklenir. */
+function kmKariyerYukle(cb){if(window.KARIYER)return cb();const s=document.createElement('script');s.src='kariyer.js';s.onload=()=>cb();s.onerror=()=>cb();document.head.appendChild(s)}
+function oyuncuKart(lg,id,no,ad){kmKariyerYukle(()=>{const K=window.KARIYER,v=K&&K.K[lg+':'+id+':'+no],t=team(lg,id);const o=document.createElement('div');o.id='okart';o.dataset.act='okartKapat';
+  const g=v?v[0]:[],mi=v&&v[1];const sat=g.slice().reverse().map(x=>`<tr><td>${x[0]}${x[1]===0?'–':x[1]!==x[0]?'–'+String(x[1]).slice(2):''}</td><td>${esc(K.KLUP[x[2]]||'?')}${x[5]?' <small>(kiralık)</small>':''}</td><td>${x[3]}</td><td>${x[4]}</td></tr>`).join('');
+  o.innerHTML=`<div class="card ok" data-act="okartKapat"><h3>${no} ${esc(ad)}</h3><p class="dim" style="margin:0 0 6px">${t?esc(t.name):''}</p>
+   ${g.length?`<table class="kar"><tr><th>Yıl</th><th>Kulüp</th><th>M</th><th>⚽</th></tr>${sat}</table>`:'<p class="dim">Kariyer bilgisi yok.</p>'}
+   ${mi?`<p style="margin:8px 0 0"><b>A milli</b> · ${mi[0]} M · ${mi[1]} ⚽</p>`:''}<button class="alt dark" data-act="okartKapat" style="margin-top:10px">KAPAT</button></div>`;
+  const e=$('#okart');if(e)e.remove();document.body.appendChild(o)})}
 function kmOy(p){if(!M.oy)M.oy={};return M.oy[p.id]||(M.oy[p.id]={id:p.id,n:p.n,no:p.no,team:p.team,rol:p.role,g:0,a:0,s:0,i:0,k:0,p:0,pk:0,f:0,gir:0,cik:0})}
 function kmRapor(m){if(!m.ist)return null;const sc=[m.T[0].score,m.T[1].score],R=rng(hashStr(m.T[0].t.id+m.T[1].t.id+sc.join('-')+Math.round(m.clock)));
   const kartOf={};(m.kart||[]).forEach(([t,id,k])=>{kartOf[id]=(kartOf[id]||'')+k});
@@ -1517,15 +1529,15 @@ function kmRapor(m){if(!m.ist)return null;const sc=[m.T[0].score,m.T[1].score],R
     kart:[0,1].map(t=>(m.kart||[]).filter(k=>k[0]===t).length)},oy,yildiz:yildiz&&{n:yildiz.n,team:yildiz.team,not:yildiz.not},
     kartlar:(m.kart||[]).map(([t,id,k])=>({team:t,n:(m.oy[id]||{}).n||'?',k})),degisiklik:(m.subLog||[]).map(x=>({...x}))}}
 /* rapor ekranı: sol = ev sahibi, sağ = deplasman; tak: [ev takım indisi, dep takım indisi] */
-function raporHtml(rp,tak){if(!rp)return '';const [h,a]=tak,I=rp.ist,sat=(ad,v,yuz)=>{const x=v[h],y=v[a],t=(x+y)||1;return `<div class="rs"><b>${x}${yuz?'%':''}</b><span>${ad}<i><em style="width:${Math.round(x/t*100)}%"></em></i></span><b>${y}${yuz?'%':''}</b></div>`};
+function raporHtml(rp,tak,tk){if(!rp)return '';const [h,a]=tak,I=rp.ist,sat=(ad,v,yuz)=>{const x=v[h],y=v[a],t=(x+y)||1;return `<div class="rs"><b>${x}${yuz?'%':''}</b><span>${ad}<i><em style="width:${Math.round(x/t*100)}%"></em></i></span><b>${y}${yuz?'%':''}</b></div>`};
   const pasY=[0,1].map(t=>I.pas[t]?Math.round(I.pasOk[t]/I.pas[t]*100):0);
-  const not=t=>rp.oy.filter(o=>o.team===t).sort((x,y)=>(x.gir?1:0)-(y.gir?1:0)||x.no-y.no).map(o=>`<li class="${rp.yildiz&&o.n===rp.yildiz.n&&o.team===rp.yildiz.team?'yz':''}"><span>${o.no} ${esc(o.n)}${o.g?' '+'⚽'.repeat(Math.min(o.g,3)):''}${o.a?' 👟':''}${/K/.test(o.kart)?' 🟥':/S/.test(o.kart)?' 🟨':''}${o.gir?` <small>${o.gir}'</small>`:''}</span><b class="nt" style="--n:${o.not}">${o.not.toFixed(1)}</b></li>`).join('');
+  const not=t=>rp.oy.filter(o=>o.team===t).sort((x,y)=>(x.gir?1:0)-(y.gir?1:0)||x.no-y.no).map(o=>`<li class="${rp.yildiz&&o.n===rp.yildiz.n&&o.team===rp.yildiz.team?'yz':''}"${tk&&tk[t]&&tk[t].lg?` data-act="okart" data-lg="${tk[t].lg}" data-id="${tk[t].id}" data-no="${o.no}" data-ad="${esc(o.n)}"`:''}><span>${o.no} ${esc(o.n)}${o.g?' '+'⚽'.repeat(Math.min(o.g,3)):''}${o.a?' 👟':''}${/K/.test(o.kart)?' 🟥':/S/.test(o.kart)?' 🟨':''}${o.gir?` <small>${o.gir}'</small>`:''}</span><b class="nt" style="--n:${o.not}">${o.not.toFixed(1)}</b></li>`).join('');
   return `<div class="card rapor"><h3>MAÇ RAPORU</h3>
    ${rp.yildiz?`<div class="yildiz">⭐ MAÇIN YILDIZI · <b>${esc(rp.yildiz.n)}</b> <span>${rp.yildiz.not.toFixed(1)}</span></div>`:''}
    <div class="rstat">${sat('Topla oynama',I.top,1)}${sat('Şut',I.sut)}${sat('İsabetli şut',I.isabet)}${sat('Pas isabeti',pasY,1)}${sat('Korner',I.korner)}${sat('Faul',I.faul)}${sat('Ofsayt',I.ofs)}${sat('Kurtarış',I.kurtar)}${sat('Kart',I.kart)}</div>
    ${rp.kartlar.length?`<h3>KARTLAR</h3><div class="res">${rp.kartlar.map(k=>`<div><span>${k.team===h?esc(k.n):''}</span><b>${k.k==='S'?'🟨':'🟥'}</b><span>${k.team===a?esc(k.n):''}</span></div>`).join('')}</div>`:''}
    <h3>OYUNCU NOTLARI</h3><div class="notlar"><ul>${not(h)}</ul><ul>${not(a)}</ul></div>
-   <p class="dim" style="font-size:12px;margin:6px 0 0">⚽ gol · 👟 asist · ⭐ maçın yıldızı · yanındaki dakika: oyuna giriş</p></div>`}
+   <p class="dim" style="font-size:12px;margin:6px 0 0">⚽ gol · 👟 asist · ⭐ maçın yıldızı · yanındaki dakika: oyuna giriş · oyuncuya dokun: kariyeri</p></div>`}
 function endMatch(quit){
   if(!M)return;const m=M;M=null;SND.ambStop();
   $('#game').hidden=true;$('#app').hidden=false;$('#pmenu').hidden=true;hideBanner();document.documentElement.style.overflow='';joyId=null;joyV={x:0,y:0};joy.hidden=true;
@@ -1534,14 +1546,14 @@ function endMatch(quit){
     const uz=!quit&&m.uzVar?{uzatma:[m.T[0].score-s90[0],m.T[1].score-s90[1]],...(m.pen?{pen:[...m.pen.g]}:{})}:null;
     const kond=quit?[]:m.P.map(p=>[p.team,p.id,Math.round(p.st*100)]).concat(m.out);   /* atılan oyuncular m.out'ta */
     try{(window.parent&&window.parent!==window?window.parent:window).postMessage({ccm:'sonuc',gf,ga,quit:!!quit,win:gf>ga,goller:quit?[]:m.events.map(e=>({t:e.team,dk:e.min,ad:e.n,pid:e.pid})),uz,kond,sakat:quit?[]:m.inj,deg:m.sub.map(x=>x.n),kartlar:quit?[]:(m.kart||[])},'*')}catch(e){}
-    if(window.parent===window){UI.result={H:m.T[0].t,A:m.T[1].t,hs:gf,as:ga,events:m.events,career:false,week:0,mine:{me:gf,op:ga},rapor:kmRapor(m),tak:[0,1]};go('result')}return}
+    if(window.parent===window){UI.result={H:m.T[0].t,A:m.T[1].t,hs:gf,as:ga,events:m.events,career:false,week:0,mine:{me:gf,op:ga},rapor:kmRapor(m),tak:[0,1],tk:[m.T[0].t,m.T[1].t]};go('result')}return}
   if(quit){go('quick');return}
   const me=m.T[0].t,opp=m.T[1].t;
   let H=me,A=opp,hs=m.T[0].score,as=m.T[1].score,events=m.events.map(e=>({...e}));
   if(m.career&&!m.career.home){H=opp;A=me;hs=m.T[1].score;as=m.T[0].score;events.forEach(e=>e.side=e.side==='h'?'a':'h')}
   if(m.career){const sc={h:[],a:[]};events.forEach(e=>{if(e.pid)sc[e.side].push(e.pid)});finishWeek(hs,as,sc)}
   const myScore=m.T[0].score,opScore=m.T[1].score;
-  UI.result={H,A,hs,as,events,career:!!m.career,week:m.career?m.career.week:0,mine:{me:myScore,op:opScore},rapor:kmRapor(m),tak:m.career&&!m.career.home?[1,0]:[0,1]};
+  UI.result={H,A,hs,as,events,career:!!m.career,week:m.career?m.career.week:0,mine:{me:myScore,op:opScore},rapor:kmRapor(m),tak:m.career&&!m.career.home?[1,0]:[0,1],tk:[m.T[0].t,m.T[1].t]};
   /* galibiyet/mağlubiyet çipi benim açımdan */
   UI.result.hs=hs;UI.result.as=as;
   UI.puanAc=false;

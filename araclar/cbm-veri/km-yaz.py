@@ -83,6 +83,21 @@ assert n == 1, 'LG_ORDER bulunamadı'
 S = re.sub(r"(Champion Battle Manager'in türetilmiş dünyasından \(Lukaku → Lakaka usulü\) kadro havuzları · sezon )\S+ · kaynak \S+", lambda mm: mm.group(1) + f"{K['sezon']} · kaynak {K['kaynak']}", S)
 open(F, 'w', encoding='utf-8').write(S)
 
+# 3b) kariyer geçmişi (ayrı dosya, gerekince yüklenir): anahtar lig:kulüp:forma no; kulüp adları KLUP tablosunda
+KAR = {}
+for k, v in K.get('KARIYER', {}).items():
+    lg, i, no = k.split(':')
+    yi = esle.get(lg, {}).get(i, i)
+    if f'{lg}:{yi}' in HAVUZ: KAR[f'{lg}:{yi}:{no}'] = v
+kar = {'KLUP': K.get('KLUP', []), 'K': KAR}
+open(f'{kok}/www/klasik/kariyer.js', 'w', encoding='utf-8').write('/* Kaptan Mecit · oyuncu kariyer geçmişi (Champion Battle Manager verisinden; kulüpler oyunun türetilmiş adlarıyla). Otomatik üretilir: araclar/cbm-veri/km-yaz.py */\nwindow.KARIYER=' + json.dumps(kar, ensure_ascii=False, separators=(',', ':')) + ';\n')
+json.dump(kar, open(f'{kok}/km3/veri/kariyer.json', 'w'), ensure_ascii=False, separators=(',', ':'))
+
+# 3c) Modern'in kadro havuzu (taktik.json 'havuz'; asistan buradan dizilişe göre 11 + yedek kurar)
+tp = f'{kok}/km3/veri/taktik.json'
+TK = json.load(open(tp)); TK['havuz'] = HAVUZ
+json.dump(TK, open(tp, 'w'), ensure_ascii=False, separators=(',', ':'))
+
 # 4) Modern fikstür
 fp = f'{kok}/km3/veri/fikstur.json'
 FX = json.load(open(fp)); FX['ligler'] = GFX; FX['sezon'] = K['sezon']

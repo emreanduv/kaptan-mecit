@@ -44,7 +44,12 @@ function enIyi11(liste) {
 }
 /* KM gücü (3–9): CBM kulüp gücü × lig itibarı, ligler arası karşılaştırılabilir */
 const kmGuc = (K, lk) => Math.max(3, Math.min(9, Math.round(K.guc * (0.55 + 0.45 * (ITIBAR[lk] ?? .6) / 1))));
-const LG = {}, KADRO = {}, HAVUZ = {};
+const LG = {}, KADRO = {}, HAVUZ = {}, KARIYER = {}, KLUP = [], KLUP_I = new Map();
+/* kariyer geçmişi (Champion 4.5.0'daki gibi): dunya.json oyuncu 'g' = [[başlangıç, bitiş(0=sürüyor), kulüp, maç, gol, kiralık?]], 'mi' = [A milli maç, gol] */
+const KAY = new Map();
+for (const l of Object.values(kaynak.ligler)) for (const c of l.kulupler) for (const o of c.oyuncular) if (o.k != null && (o.g || o.mi)) KAY.set(o.k, o);
+const klupAd = ref => { if (typeof ref === 'string') { const K = D.kulupler[ref]; return K ? K.ad : null; } const n = (kaynak.disKulup || [])[ref]; return n ? `${n.sehir} ${n.renkAd?.length ? n.renkAd.join('-') : 'Spor'}` : null; };
+const klupNo = ad => { if (!KLUP_I.has(ad)) { KLUP_I.set(ad, KLUP.length); KLUP.push(ad); } return KLUP_I.get(ad); };
 for (const lk of sira) {
   const L = D.ligler[lk];
   const ks = L.kulupler.map(id => D.kulupler[id]).sort((a, b) => b.guc - a.guc || a.ad.localeCompare(b.ad, 'tr'));
@@ -58,8 +63,11 @@ for (const lk of sira) {
     KADRO[lk + ':' + id] = { k: xi.map(o => [o.no, ad(o)]), y: yd.map(o => [o.no, ad(o), HARF[o.mevki] || 'O']) };
     const kls = os.filter(o => o.mevki === 'KL').sort((a, b) => b.ca - a.ca).slice(0, 2), saha = os.filter(o => o.mevki !== 'KL').sort((a, b) => b.ca - a.ca).slice(0, 20);
     HAVUZ[lk + ':' + id] = [...kls, ...saha].map(o => [o.no, ad(o), o.mevki, (o.ikinci || []).join(','), o.ca]);
+    for (const o of [...kls, ...saha]) { const k = KAY.get(o.anahtar); if (!k) continue;
+      const g = (k.g || []).map(x => { const a = klupAd(x[2]); return a ? [x[0], x[1], klupNo(a), x[3] || 0, x[4] || 0, x[5] ? 1 : 0] : null; }).filter(Boolean);
+      if (g.length || k.mi) KARIYER[lk + ':' + id + ':' + o.no] = k.mi ? [g, k.mi] : [g]; }
   }
 }
-fs.writeFileSync(CIKTI_K, JSON.stringify({ LG, KADRO, HAVUZ, sira, kaynak: kaynak.guncel, sezon: kaynak.sezon }));
+fs.writeFileSync(CIKTI_K, JSON.stringify({ LG, KADRO, HAVUZ, KARIYER, KLUP, sira, kaynak: kaynak.guncel, sezon: kaynak.sezon }));
 fs.rmSync(TMP, { recursive: true, force: true });
 console.log(sira.map(k => k + ':' + LG[k].t.length).join(' '), '| kulüp', Object.keys(KADRO).length, '| boyut', fs.statSync(CIKTI_K).size);
