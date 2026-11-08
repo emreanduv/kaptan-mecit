@@ -33,6 +33,7 @@ const SOZLUK := {
 	"Kartaca Ligi": "Carthage League", "Yeni Dünya Ligi": "New World League", "Kap Ligi": "Cape League",
 	"Arjantin": "Argentina", "Avusturya": "Austria", "Avustralya": "Australia", "Belçika": "Belgium", "Brezilya": "Brazil", "Çin": "China", "Kolombiya": "Colombia", "Cezayir": "Algeria", "Mısır": "Egypt",
 	"Yunanistan": "Greece", "Japonya": "Japan", "Güney Kore": "South Korea", "Fas": "Morocco", "Meksika": "Mexico", "Hollanda": "Netherlands", "Portekiz": "Portugal", "Katar": "Qatar", "Suudi Arabistan": "Saudi Arabia",
+	"MAÇ RAPORU": "MATCH REPORT", "Maç raporu": "Match report", "MAÇIN YILDIZI": "PLAYER OF THE MATCH", "GOLLER": "GOALS", "Gol yok.": "No goals.", "asist": "assist", "KARTLAR": "CARDS", "KIRMIZI": "RED", "SARI": "YELLOW", "İSTATİSTİK": "STATS", "NOTLAR": "RATINGS", "Topla oynama %": "Possession %", "İsabetli şut": "Shots on target", "Pas isabeti %": "Pass accuracy %", "Korner": "Corners", "Faul": "Fouls", "Kurtarış": "Saves", "Şut": "Shots",
 	"İskoçya": "Scotland", "Tunus": "Tunisia", "ABD": "USA", "Güney Afrika": "South Africa",
 	"WASD / oklar: koş · X: pas / oyuncu seç · Z / boşluk: şut · kay · C: kamera · M: menü   ·   Kol: sol çubuk koş · A pas · B şut · Y kamera":
 		"WASD / arrows: run · X: pass / switch player · Z / space: shoot · slide · C: camera · M: menu   ·   Pad: left stick run · A pass · B shoot · Y camera",

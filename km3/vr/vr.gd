@@ -200,7 +200,7 @@ func _sol_bas(ad: String) -> void:
 				ana.menu_goster(not ana.menu_acik)
 				if ana.menu_acik: _satir = 0; _mesaj.text = ""; menu3d_yerlestir()
 		"ax_button":
-			if ana.menu_acik and ana.yardim_acik: _yardim_alt.text = ana.mola.veri_sil()
+			if ana.menu_acik and ana.yardim_acik and ana.yardim_metin == "": _yardim_alt.text = ana.mola.veri_sil()
 			else: koltuga_gec(koltuk + 1)
 
 func _process(dt: float) -> void:
@@ -375,6 +375,7 @@ func _menu_ciz() -> void:
 	_onceki_mol = mol
 	var yd: bool = ana.yardim_acik
 	_yardim.visible = yd
+	if yd: _yardim.text = (ana.yardim_metin + "\n\nA / tetik ya da B: kapat") if ana.yardim_metin != "" else (Mola.YARDIM + "\n\nA / tetik ya da B: kapat   ·   sol X: Verilerimi sil")
 	_yardim_alt.visible = yd
 	if not yd: _yardim_alt.text = ""
 	_ipucu.visible = not yd; _mesaj.visible = not yd; _bas.visible = not yd; _imza.visible = not yd

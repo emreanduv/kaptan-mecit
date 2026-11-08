@@ -56,6 +56,10 @@ var mola_dugmeler: Array = []
 var mola_mesaj: Label
 var mola_satir := 0
 var yardim_acik := false
+var yardim_metin := ""     # boş: Nasıl oynanır; dolu: maç raporu
+var son_rapor := ""
+var _rapor_lig := false
+var _yardim_dugmeler: Array = []
 var yardim_panel: PanelContainer
 var dok: Dokunmatik
 var dokunmatik := false
@@ -615,6 +619,7 @@ func _arayuz() -> void:
 	var yvs := Button.new(); yvs.text = "Verilerimi sil"
 	yvs.pressed.connect(func(): yvs.text = mola.veri_sil())
 	var yh := HBoxContainer.new(); yh.add_theme_constant_override("separation", 10); yh.add_child(ys); yh.add_child(yvs); yh.add_child(yk)
+	_yardim_dugmeler = [ys, yvs]
 	yv.add_child(yl); yv.add_child(yh); yardim_panel.add_child(yv)
 	ui.add_child(_kaydirmali(yardim_panel))
 
@@ -703,9 +708,18 @@ func mola_bilgi(t: String) -> void:
 	mola_mesaj.text = t
 	if vr: vr.mola_bilgi(t)
 
-func yardim_goster(v: bool) -> void:
+func yardim_goster(v: bool, metin := "") -> void:
 	yardim_acik = v
+	yardim_metin = metin if v else ""
+	if _yardim_yazi: _yardim_yazi.text = metin if metin != "" else Mola.YARDIM
+	for b in _yardim_dugmeler: b.visible = metin == ""
 	yardim_panel.visible = v and vr == null
+	if not v and _rapor_lig:
+		# lig ekranından açılan maç raporu kapandı: lig ekranına dön
+		_rapor_lig = false; lig_acik = true
+		lig_ekran.visible = menu_acik and vr == null; lig_ekran.yenile()
+		if vr: vr.lig_acildi(true)
+		return
 	# Nasıl oynanır açıkken arkadaki menü / mola paneli gizlenir
 	var mol := menu_acik and M != null and not M.demo
 	menu.visible = menu_acik and not mol and not v
@@ -819,6 +833,7 @@ func lig_bas(i: int) -> void:
 	var r := lig.bas(i)
 	if r == "mac": lig_mac_basla()
 	elif r == "menu": lig_goster(false)
+	elif r == "rapor": rapor_goster()
 	else:
 		lig_ekran.satir = mini(lig_ekran.satir, lig.satirlar().size() - 1)
 		lig_ekran.yenile()
@@ -844,16 +859,29 @@ func _hizli_bitir() -> void:
 	_lig_bitis = 0.0
 	var e: int = 1 if M.kul_dep else 0
 	var skor: String = M.T[e].t.kisa + " " + str(M.T[e].score) + " - " + str(M.T[1 - e].score) + " " + M.T[1 - e].t.kisa
+	son_rapor = M.rapor_metni(e); lig.son_rapor = ""
 	maci_birak()
 	if vr: vr.mola_bilgi("MAÇ SONU  ·  " + skor)
 	afis_goster("MAÇ SONU", skor, 5.0)
+	rapor_goster()
+
+# maç raporu: Nasıl oynanır panelinde (ekran) / menü panelinde (VR); lig ekranından açılırsa kapanınca oraya dönülür
+func rapor_goster() -> void:
+	if son_rapor == "": return
+	if lig_acik:
+		_rapor_lig = true; lig_acik = false; lig_ekran.visible = false
+		if vr: vr.lig_acildi(false)
+	menu.visible = false
+	yardim_goster(true, son_rapor)
 
 func _lig_bitir() -> void:
 	if not lig_maci: return
 	lig_maci = false
+	son_rapor = M.rapor_metni(1 if M.kul_dep else 0); lig.son_rapor = son_rapor
 	lig.kullanici_sonuc(M.T[0].score, M.T[1].score, M.events)
 	_gosterim_kur()
 	lig_goster(true)
+	rapor_goster()
 
 func _gosterim_kur() -> void:
 	var lg: Dictionary = lig.lig_veri() if lig.var_mi() else veri.ligler[sec_lig.selected]

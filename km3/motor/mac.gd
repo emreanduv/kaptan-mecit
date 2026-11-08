@@ -127,6 +127,14 @@ var korner := [0, 0]
 var faul := [0, 0]
 var ofsayt := [0, 0]
 var kartlar: Array = []   # [takım, ad, "S"/"K"]
+# maç raporu (Champion Battle Manager 4.5.1'deki gibi): istatistik + oyuncu başına
+var ist := {"sut": [0, 0], "isabet": [0, 0], "pas": [0, 0], "pas_ok": [0, 0], "top": [0.0, 0.0], "kurtar": [0, 0]}
+var oy_ist := {}
+var asist_aday = null   # [pasör, alan, saat]
+func oy_k(p: Oy) -> Dictionary:
+	var k := str(p.team) + ":" + p.n
+	if not oy_ist.has(k): oy_ist[k] = {"n": p.n, "no": p.no, "team": p.team, "rol": p.role, "g": 0, "a": 0, "s": 0, "i": 0, "k": 0, "p": 0, "pk": 0, "f": 0, "gir": 0}
+	return oy_ist[k]
 var atilan: Array = []
 var avantaj_t := 0.0
 var B: Array = [[], []]          # yedek kulübeleri
@@ -204,6 +212,7 @@ func _init(ev: Dictionary, dep: Dictionary, sure_dk: float, zorluk: int, gosteri
 			p.dy = -1.0 if ti == 0 else 1.0
 			P.append(p)
 	for ti in 2: B[ti] = (T[ti].t.get("yedek", []) as Array).duplicate()
+	for q: Oy in P: oy_k(q)
 	kickoff(0)
 	var e: int = 1 if kul_dep else 0
 	olay("banner", T[e].t.kisa + " - " + T[1 - e].t.kisa, "BAŞLAMA VURUŞU")
@@ -364,6 +373,7 @@ func step(dt: float) -> void:
 		if P.has(p): move_player(p, dt)
 	separate()
 	mesafe_kurali()
+	if poss_team != null: ist.top[poss_team] += dt
 	ball_step(dt)
 	mesafe_kurali()
 	giris.pasE = false; giris.sutE = false; giris.pasS = 0.0; giris.sutG = -1.0
@@ -929,6 +939,7 @@ func think_gk(p: Oy, dt: float) -> void:
 # ---------- eylemler ----------
 func release(p: Oy, vx: float, vy: float, vz: float, intended: Oy = null) -> void:
 	var b := ball
+	if not demo and intended != null and intended.team == p.team: ist.pas[p.team] += 1; oy_k(p).p += 1
 	ofsayt_bak(p, intended)
 	b.owner = null; b.x = p.x + p.dx * .5; b.y = p.y + p.dy * .5; b.vx = vx; b.vy = vy; b.vz = vz; b.z = maxf(b.z, .05)
 	b.last = p; b.last_team = p.team; b.kicker = p; b.intended = intended; b.gk_tried = null; b.cross = false; b.shot = false
@@ -972,6 +983,7 @@ func do_pass(p: Oy, dx: float, dy: float, target: Oy = null) -> void:
 	release(p, ux * v, uy * v, vz, q); olay("vurus", .7)
 
 func do_shoot(p: Oy, aim_x: float, pow := 1.0) -> void:
+	if not demo: ist.sut[p.team] += 1; oy_k(p).s += 1
 	var gy := goal_y_of(p.team)
 	var f := fwd_of(p.team)
 	var Tt: Dictionary = T[p.team]
@@ -1129,6 +1141,9 @@ func ball_step(dt: float) -> void:
 			g.dive = 2  # görüntü: uçuş
 			kaleci_uc(g, b, ly)
 			if randf() < ps:
+				if b.shot and not demo:
+					ist.kurtar[g.team] += 1; ist.isabet[1 - g.team] += 1; oy_k(g).k += 1
+					if b.kicker != null and b.kicker.team != g.team: oy_k(b.kicker).i += 1
 				if sp < 21 and randf() < .55: take(g); olay("ooo")
 				elif randf() < .45:
 					var sx := -1.0 if b.x < PW / 2 else 1.0
@@ -1173,6 +1188,9 @@ func out_of_play(b: Top) -> bool:
 
 func take(p: Oy) -> void:
 	var b := ball
+	if not demo and b.last != null and b.last != p and b.last.team == p.team and b.intended != null:
+		ist.pas_ok[p.team] += 1; oy_k(b.last).pk += 1; asist_aday = [b.last, p, clock]
+	elif b.last != null and b.last.team != p.team: asist_aday = null
 	p.ayak = p.role == "G" and b.last_team == p.team and b.kicker != null and b.kicker != p and b.kicker.team == p.team and not b.cross   # geri pas
 	if b.ofs != null and not b.ofs.get("yakin", false) and b.ofs.q == p and p.team == b.ofs.team and not demo:
 		ofsayt_cal(p); return
@@ -1295,7 +1313,15 @@ func score_goal(ti: int, scorer: Oy, own: Oy) -> void:
 		var sq: Array = P.filter(func(p): return p.team == ti and (p.role == "F" or p.role == "O"))
 		who = sq[randi() % sq.size()]
 	var name: String = who.n if who != null else "Kendi kalesine (" + own.n + ")"
-	events.append({"min": maxi(1, minute()), "n": name, "team": ti})
+	var asist = null
+	if who != null and own == null and asist_aday != null and asist_aday[1] == who and asist_aday[0].team == ti and clock - float(asist_aday[2]) < 14.0: asist = asist_aday[0]
+	asist_aday = null
+	if not demo:
+		if own == null:
+			ist.isabet[ti] += 1
+			if who != null: oy_k(who).g += 1; oy_k(who).i += 1
+		if asist != null: oy_k(asist).a += 1
+	events.append({"min": maxi(1, minute()), "n": name, "team": ti, "as": asist.n if asist != null else ""})
 	gol_atan = who if (who != null and P.has(who)) else null
 	if gol_atan != null:
 		var gy := goal_y_of(ti)
@@ -1336,6 +1362,7 @@ func faul_yap(o: Oy, p: Oy, arkadan: bool, kayma: bool) -> void:
 	var ti := p.team
 	var b := ball
 	faul[o.team] += 1
+	oy_k(o).f += 1
 	var kutu := kutuda_mi(ti, p.x, p.y)
 	var dg := absf(goal_y_of(ti) - p.y)
 	var onunde := 0
@@ -1481,6 +1508,7 @@ func degistir(ti: int, p: Oy, b: Dictionary, neden: String) -> bool:
 	if ball.owner == p: ball.owner = null
 	var eski := p.n
 	p.n = b.n; p.no = int(b.no); p.ten = b.ten; p.sac = b.sac; p.st = 1.0; p.inj = false; p.stun = 0; p.slide = 0
+	oy_k(p).gir = maxi(1, minute())
 	B[ti].erase(b)
 	olay("degisiklik", p)
 	if state != "half": olay("banner", "DEĞİŞİKLİK", "%s · %d %s ↔ %s%s" % [T[ti].t.kisa, int(b.no), b.n, eski, (" · " + neden) if neden != "" else ""])
@@ -1604,3 +1632,55 @@ func gol_kutlama(dt: float) -> void:
 				continue
 		var h := form_target(p)
 		_kos(p, h, 1.6 if p.team != ti else 2.4, dt, .5)
+
+
+# ---------- maç raporu ----------
+func rapor() -> Dictionary:
+	var sc := [int(T[0].score), int(T[1].score)]
+	var kk := {}
+	for k in kartlar: kk[str(k[0]) + ":" + str(k[1])] = kk.get(str(k[0]) + ":" + str(k[1]), "") + str(k[2])
+	var r := RandomNumberGenerator.new(); r.seed = hash(str(T[0].t.id) + str(T[1].t.id) + str(sc) + str(int(clock)))
+	var liste := []
+	for key in oy_ist:
+		var o: Dictionary = oy_ist[key].duplicate()
+		var ti: int = o.team; var yedi: int = sc[1 - ti]; var res: int = signi(sc[ti] - yedi)
+		var n: float = 6.1 + res * .35 + o.g * 1.05 + o.a * .6 + mini(o.i, 4) * .12 + mini(o.pk, 12) * .04 - (.15 if o.p - o.pk > 4 else 0.0) - o.f * .08 + (r.randf() - .5) * .5
+		if o.rol == "G": n += mini(o.k, 6) * .3 - yedi * .3 + (.6 if yedi == 0 else 0.0)
+		elif o.rol == "D": n += (.45 if yedi == 0 else 0.0) - yedi * .15
+		var kart_: String = kk.get(key, "")
+		if kart_.contains("S"): n -= .3
+		if kart_.contains("K"): n -= 1.5
+		if int(o.gir) > 60: n = 6.0 + (n - 6.0) * .5
+		o.not_ = snappedf(clampf(n, 3.0, 10.0), .1); o.kart = kart_
+		liste.append(o)
+	liste.sort_custom(func(a, b): return a.not_ > b.not_ or (a.not_ == b.not_ and a.g > b.g))
+	var yildiz = null
+	for o in liste:
+		if sc[0] == sc[1] or o.team == (0 if sc[0] > sc[1] else 1): yildiz = o; break
+	var tt: float = maxf(ist.top[0] + ist.top[1], .001)
+	var top0: int = roundi(ist.top[0] / tt * 100.0)
+	var pasy := [0, 0]
+	for t in 2: pasy[t] = roundi(float(ist.pas_ok[t]) / ist.pas[t] * 100.0) if ist.pas[t] > 0 else 0
+	return {"sc": sc, "oy": liste, "yildiz": yildiz, "ist": {"Topla oynama %": [top0, 100 - top0], "Şut": ist.sut, "İsabetli şut": ist.isabet, "Pas isabeti %": pasy,
+		"Korner": korner, "Faul": faul, "Kurtarış": ist.kurtar}}
+
+# rapor yazısı (ekran ve VR paneli); ev: soldaki takım indisi
+func rapor_metni(ev := 0) -> String:
+	var R := rapor(); var dep := 1 - ev
+	var t := "MAÇ RAPORU\n%s  %d - %d  %s\n" % [T[ev].t.ad, R.sc[ev], R.sc[dep], T[dep].t.ad]
+	if R.yildiz != null: t += "\nMAÇIN YILDIZI:  %s  (%s)  ·  %.1f\n" % [R.yildiz.n, T[R.yildiz.team].t.kisa, R.yildiz.not_]
+	t += "\nGOLLER\n"
+	if events.is_empty(): t += "  Gol yok.\n"
+	for e in events: t += "  %d'  %s  %s%s\n" % [e.min, T[e.team].t.kisa, e.n, ("  (asist: %s)" % e.as) if str(e.get("as", "")) != "" else ""]
+	if not kartlar.is_empty():
+		t += "\nKARTLAR\n"
+		for k in kartlar: t += "  %s  %s  %s\n" % ["SARI" if k[2] == "S" else "KIRMIZI", T[k[0]].t.kisa, k[1]]
+	t += "\nİSTATİSTİK  (%s - %s)\n" % [T[ev].t.kisa, T[dep].t.kisa]
+	for ad in R.ist: t += "  %s:  %d - %d\n" % [ad, R.ist[ad][ev], R.ist[ad][dep]]
+	for ti in [ev, dep]:
+		t += "\nNOTLAR · %s\n" % T[ti].t.kisa
+		var sat := []
+		for o in R.oy:
+			if o.team == ti: sat.append("%d %s %.1f%s%s" % [o.no, o.n, o.not_, " G" + str(o.g) if o.g > 0 else "", " A" + str(o.a) if o.a > 0 else ""])
+		for i in range(0, sat.size(), 3): t += "  " + "   ·   ".join(sat.slice(i, i + 3)) + "\n"
+	return t

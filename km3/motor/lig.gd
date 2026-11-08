@@ -9,6 +9,7 @@ const SURUM := 1
 
 var veri: Dictionary            # takimlar.json
 var d: Dictionary = {}          # sezon durumu (boşsa sezon yok)
+var son_rapor := ""             # son lig maçının raporu (ana doldurur)
 var kur_lig := 0                # kurulum ekranında seçilen lig / takım
 var kur_takim := 0
 var mesaj := ""
@@ -45,6 +46,7 @@ func kaydet() -> void:
 	if f: f.store_string(JSON.stringify(d)); f.close()
 
 func sil() -> void:
+	son_rapor = ""
 	d = {}; son_hafta = []; mesaj = ""; gorunum = "tablo"
 	if FileAccess.file_exists(KAYIT): DirAccess.remove_absolute(ProjectSettings.globalize_path(KAYIT))
 
@@ -276,8 +278,9 @@ func sezon_adi() -> String:
 # ---------- menü satırları (ekran ve VR ortak) ----------
 func satirlar() -> Array:
 	if not var_mi(): return ["Lig", "Takımın", "SEZONA BAŞLA", "Ana menü"]
-	if bitti(): return ["YENİ SEZON", "Fikstür", "Gol krallığı", "Ana menü", "Ligi bırak"]
-	return ["MAÇA ÇIK", "Maçı simüle et", "Fikstür", "Gol krallığı", "Ana menü", "Ligi bırak"]
+	var r: Array = ["YENİ SEZON", "Fikstür", "Gol krallığı", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Fikstür", "Gol krallığı", "Ana menü", "Ligi bırak"]
+	if son_rapor != "": r.insert(r.find("Ana menü"), "Maç raporu")
+	return r
 
 func satir_metni(i: int, sec := false) -> String:
 	var s: String = satirlar()[i]
@@ -314,6 +317,7 @@ func bas(i: int) -> String:
 			var lg := int(d.lig); var tk := int(d.takim); var sz := int(d.sezon) + 1
 			yeni_sezon(lg, tk, sz)
 		"Ana menü": gorunum = "tablo"; return "menu"
+		"Maç raporu": return "rapor"
 		"Ligi bırak":
 			var simdi := Time.get_ticks_msec() / 1000.0
 			if simdi - _birak_onay > 4.0:
