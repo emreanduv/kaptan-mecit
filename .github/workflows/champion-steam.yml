@@ -22,7 +22,13 @@ jobs:
         with: { ref: "${{ inputs.ref }}" }
       - name: Yayın öncesi kontrol betiği (main dalından)
         uses: actions/checkout@v4
-        with: { ref: main, path: _ana, sparse-checkout: "araclar\nstore" }
+        with:
+          ref: main
+          path: _ana
+          sparse-checkout: |
+            araclar
+            store
+          sparse-checkout-cone-mode: false
       - name: Yayın öncesi kontrol
         run: bash _ana/araclar/yayin-kontrol-champion.sh "${{ inputs.ref }}" "${{ inputs.surum }}" www/index.html _ana/store/champion/SON-SURUM
       - uses: actions/setup-node@v4
