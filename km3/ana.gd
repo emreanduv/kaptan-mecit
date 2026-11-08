@@ -122,6 +122,7 @@ func _ready() -> void:
 		lig.sil(); lig.yeni_sezon(int(_arg.get("liglig", "0")), int(_arg.get("ligtakim", "0")))
 		for i in int(_arg.ligsezon): lig.haftayi_simule()
 	if _arg.has("ligfik"): lig.gorunum = "fikstur"
+	if _arg.has("liggol"): lig.gorunum = "goller"
 	if _arg.has("lig"): lig_goster(true)
 	if _arg.has("ligmac"): lig_mac_basla()
 	if _arg.has("mac"):
@@ -838,7 +839,7 @@ func _hizli_bitir() -> void:
 func _lig_bitir() -> void:
 	if not lig_maci: return
 	lig_maci = false
-	lig.kullanici_sonuc(M.T[0].score, M.T[1].score)
+	lig.kullanici_sonuc(M.T[0].score, M.T[1].score, M.events)
 	_gosterim_kur()
 	lig_goster(true)
 

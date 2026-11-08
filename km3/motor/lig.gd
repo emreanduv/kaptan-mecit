@@ -14,7 +14,8 @@ var kur_takim := 0
 var mesaj := ""
 var _birak_onay := 0.0
 var son_hafta: Array = []       # en son oynanan haftanın maçları (ekranda "Haftanın sonuçları")
-var gorunum := "tablo"          # sol panel: "tablo" (puan durumu) ya da "fikstur" (kulübün sezon fikstürü)
+var gorunum := "tablo"          # sol panel: "tablo" (puan durumu), "fikstur" (kulübün sezon fikstürü) ya da "goller" (gol krallığı)
+const GOL_AGIRLIK := {"F": 5.0, "O": 1.8, "D": .55, "G": 0.0}   # simüle maçta golü kimin attığı: mevkiye göre pay
 
 func _init(v: Dictionary) -> void:
 	veri = v
@@ -33,6 +34,9 @@ func yukle() -> void:
 	if li < 0 or li >= veri.ligler.size(): return
 	if (j.get("takimlar", []) as Array).size() != veri.ligler[li].takimlar.size(): return
 	d = j
+	if not d.has("golcu") or (d.golcu as Array).size() != (d.takimlar as Array).size():   # gol krallığından önceki kayıt
+		d.golcu = _golcu_kur(li); d.goller = {}
+	if not d.has("goller"): d.goller = {}
 	if int(d.hafta) > 0: son_hafta = d.fikstur[int(d.hafta) - 1]
 
 func kaydet() -> void:
@@ -56,15 +60,65 @@ func yeni_sezon(lig: int, tk: int, sezon := 1) -> void:
 	var n := L.size()
 	# güç: asistanın kurduğu ilk 11'in mevkiye uyumlu ortalama yeteneği (Taktik), yoksa kulübün güç puanından
 	var guc: Array = []
+	var golcu: Array = []
 	for t in L:
 		var k := Taktik.kadro_kur(t, veri.ligler[lig].id)
 		guc.append(snappedf(float(k.get("guc", 40.0 + 9.0 * float(t.str))), .01))
+		golcu.append(_golcu_listesi(k))
 	d = {"surum": SURUM, "lig": lig, "takim": tk, "sezon": sezon, "hafta": 0, "takimlar": range(n),
-		"guc": guc, "fikstur": gercek_fikstur(lig), "sampiyon": -1}
+		"guc": guc, "fikstur": gercek_fikstur(lig), "sampiyon": -1, "golcu": golcu, "goller": {}}
 	if d.fikstur.is_empty(): d.fikstur = fikstur_uret(n, randi())
 	son_hafta = []
 	mesaj = ""
 	kaydet()
+
+# gol krallığı: her kulübün ilk 11'i ve gol atma payı (forvet > orta saha > defans, kaleci atmaz) — [[ad, pay], ...]
+static func _golcu_listesi(k: Dictionary) -> Array:
+	var r: Array = []
+	for o in k.get("oy", []):
+		var w: float = GOL_AGIRLIK.get(str(o.get("rol", "O")), 1.0)
+		if w > 0.0: r.append([str(o.n), w])
+	return r
+
+func _golcu_kur(lig: int) -> Array:
+	var r: Array = []
+	for t in veri.ligler[lig].takimlar: r.append(_golcu_listesi(Taktik.kadro_kur(t, veri.ligler[lig].id)))
+	return r
+
+func _gol_yaz(ti: int, ad: String, n := 1) -> void:
+	var k := str(ti) + "|" + ad
+	d.goller[k] = int(d.goller.get(k, 0)) + n
+
+# simüle edilen maçta n golü kulübün oyuncularına paylarına göre dağıt
+func _gol_dagit(ti: int, n: int, rng: RandomNumberGenerator) -> void:
+	var G: Array = d.golcu[ti]
+	if G.is_empty(): return
+	var top := 0.0
+	for g in G: top += float(g[1])
+	for _k in n:
+		var x := rng.randf() * top
+		for g in G:
+			x -= float(g[1])
+			if x <= 0.0: _gol_yaz(ti, str(g[0])); break
+
+# gol krallığı (ekran ve VR): [sıra, oyuncu, kulüp kısa adı, kulüp, gol, biz mi] — eşit golde aynı sıra
+func gol_krallari(n := 20) -> Array:
+	var L: Array = []
+	for k in d.get("goller", {}):
+		var p := (k as String).split("|", true, 1)
+		L.append([int(p[0]), p[1], int(d.goller[k])])
+	L.sort_custom(func(a, b): return a[2] > b[2] if a[2] != b[2] else a[1] < b[1])
+	var r: Array = []
+	var sira := 0
+	for k in mini(n, L.size()):
+		if k == 0 or L[k][2] != L[k - 1][2]: sira = k + 1
+		r.append([sira, L[k][1], takim(L[k][0]).kisa, takim(L[k][0]).ad, L[k][2], L[k][0] == biz()])
+	return r
+
+func gol_krali_metni() -> String:
+	var g := gol_krallari(1)
+	if g.is_empty(): return ""
+	return "%s (%s) · %d gol" % [g[0][1], g[0][2], g[0][4]]
 
 # gerçek fikstür: ligin bu sezonki gerçek maç sırası (veri/fikstur.json; openfootball, yalnız eşleşme sırası —
 # kulüpler ve sonuçlar oyunun kendisidir). Eşleşme eksik/hatalıysa boş döner, çember yöntemine düşülür.
@@ -145,11 +199,22 @@ static func _poisson(l: float, rng: RandomNumberGenerator) -> int:
 	return k
 
 # kullanıcının maçı bitti: biz / rakip golleri (maç motorunda kullanıcı her zaman T[0]). Haftanın kalanını simüle et, haftayı ilerlet.
-func kullanici_sonuc(g_biz: int, g_rakip: int) -> void:
+# golcuk: maç motorunun gol olayları [{"n": ad, "team": 0 biz / 1 rakip}] — gol krallığına yazılır (kendi kalesine gol sayılmaz);
+# boşsa goller kadrolara simüle maçtaki gibi dağıtılır.
+func kullanici_sonuc(g_biz: int, g_rakip: int, golcuk: Array = []) -> void:
 	var mc := sonraki_mac()
 	if mc.is_empty(): return
 	if int(mc[0]) == biz(): mc[2] = g_biz; mc[3] = g_rakip
 	else: mc[2] = g_rakip; mc[3] = g_biz
+	var rk: int = int(mc[1]) if int(mc[0]) == biz() else int(mc[0])
+	if golcuk.is_empty():
+		var rng := RandomNumberGenerator.new(); rng.randomize()
+		_gol_dagit(biz(), g_biz, rng); _gol_dagit(rk, g_rakip, rng)
+	else:
+		for e in golcuk:
+			var ad := str(e.get("n", ""))
+			if ad == "" or ad.begins_with("Kendi kalesine"): continue
+			_gol_yaz(biz() if int(e.get("team", 0)) == 0 else rk, ad)
 	hafta_bitir()
 
 func hafta_bitir() -> void:
@@ -159,11 +224,13 @@ func hafta_bitir() -> void:
 		if int(mc[2]) < 0:
 			var s := sim_mac(int(mc[0]), int(mc[1]), rng)
 			mc[2] = s[0]; mc[3] = s[1]
+			_gol_dagit(int(mc[0]), s[0], rng); _gol_dagit(int(mc[1]), s[1], rng)
 	son_hafta = h
 	d.hafta = int(d.hafta) + 1
 	if bitti():
 		d.sampiyon = tablo()[0].i
 		mesaj = "Sezon bitti · Şampiyon: " + takim(int(d.sampiyon)).ad
+		if gol_krali_metni() != "": mesaj += " · Gol kralı: " + gol_krali_metni()
 	else:
 		mesaj = ""
 	kaydet()
@@ -209,8 +276,8 @@ func sezon_adi() -> String:
 # ---------- menü satırları (ekran ve VR ortak) ----------
 func satirlar() -> Array:
 	if not var_mi(): return ["Lig", "Takımın", "SEZONA BAŞLA", "Ana menü"]
-	if bitti(): return ["YENİ SEZON", "Fikstür", "Ana menü", "Ligi bırak"]
-	return ["MAÇA ÇIK", "Maçı simüle et", "Fikstür", "Ana menü", "Ligi bırak"]
+	if bitti(): return ["YENİ SEZON", "Fikstür", "Gol krallığı", "Ana menü", "Ligi bırak"]
+	return ["MAÇA ÇIK", "Maçı simüle et", "Fikstür", "Gol krallığı", "Ana menü", "Ligi bırak"]
 
 func satir_metni(i: int, sec := false) -> String:
 	var s: String = satirlar()[i]
@@ -224,7 +291,8 @@ func satir_metni(i: int, sec := false) -> String:
 			var mc := sonraki_mac()
 			return ok + "MAÇA ÇIK  ·  " + takim(int(mc[0])).kisa + " - " + takim(int(mc[1])).kisa
 		"YENİ SEZON": return ok + "YENİ SEZON  ·  " + str(int(d.sezon) + 1) + ". sezon"
-		"Fikstür": return ok + ("Fikstür" if gorunum == "tablo" else "Puan durumu")
+		"Fikstür": return ok + ("Puan durumu" if gorunum == "fikstur" else "Fikstür")
+		"Gol krallığı": return ok + ("Puan durumu" if gorunum == "goller" else "Gol krallığı")
 	return ok + s
 
 func kay(i: int, yon: int) -> void:
@@ -240,7 +308,8 @@ func bas(i: int) -> String:
 		"SEZONA BAŞLA": yeni_sezon(kur_lig, kur_takim)
 		"MAÇA ÇIK": return "mac"
 		"Maçı simüle et": haftayi_simule()
-		"Fikstür": gorunum = "fikstur" if gorunum == "tablo" else "tablo"
+		"Fikstür": gorunum = "tablo" if gorunum == "fikstur" else "fikstur"
+		"Gol krallığı": gorunum = "tablo" if gorunum == "goller" else "goller"
 		"YENİ SEZON":
 			var lg := int(d.lig); var tk := int(d.takim); var sz := int(d.sezon) + 1
 			yeni_sezon(lg, tk, sz)

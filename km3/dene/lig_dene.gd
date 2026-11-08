@@ -48,6 +48,12 @@ func _init() -> void:
 		var gol := 0; var mac := 0; var bera := 0
 		for h in L.d.fikstur:
 			for mc in h: gol += int(mc[2]) + int(mc[3]); mac += 1; bera += 1 if int(mc[2]) == int(mc[3]) else 0
+		# gol krallığı: dağıtılan gol sayısı = ligde atılan gol; kayıttan aynı liste
+		var kt := 0
+		for k in L.d.goller: kt += int(L.d.goller[k])
+		if kt != gol: hata += 1; print("  HATA gol krallığı toplamı ", kt, " != ", gol)
+		if JSON.stringify(L.gol_krallari()) != JSON.stringify(L2.gol_krallari()): hata += 1; print("  HATA gol krallığı kayıt")
+		print("   gol kralı: ", L.gol_krali_metni(), " · ilk 3: ", L.gol_krallari(3).map(func(r): return "%s %s %d" % [r[1], r[2], r[4]]))
 		var top: Dictionary = t1[0]; var son: Dictionary = t1[-1]
 		print("%s: %d takım, %d hafta, kurulum %d ms, en uzun ev/dep serisi %d, maç başı gol %.2f, beraberlik %%%d · şampiyon %s %dP (%d-%d-%d, %d:%d) · sonuncu %s %dP · güç %s" % [
 			veri.ligler[li].ad, n, L.hafta_sayisi(), kur_ms, seri, float(gol) / mac, 100 * bera / mac,

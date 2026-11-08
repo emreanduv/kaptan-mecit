@@ -296,7 +296,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG MODU", "Dil / Language"]
-const SURUM := "0.7.8"
+const SURUM := "0.7.9"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -452,6 +452,11 @@ func _lig_ciz() -> void:
 			var v := [str(x[0]), ("İ  " if x[1] else "D  ") + L.takim(int(x[2])).ad, "", "", "", "", skor, Lig.sonuc_harf(x)]
 			for j in v.size(): sutun[j] += "\n" + v[j]
 			if int(x[0]) == simdi and not L.bitti(): biz_sira = k - dv * yari + 1
+	elif L.var_mi() and L.gorunum == "goller":
+		sutun = ["#", "GOL KRALLIĞI", "", "", "", "", "", "Gol"]
+		for r in L.gol_krallari(18):
+			var v := [str(r[0]), r[1] + "  ·  " + r[2], "", "", "", "", "", str(r[4])]
+			for j in v.size(): sutun[j] += "\n" + v[j]
 	elif L.var_mi():
 		for r in L.tablo_satirlari():
 			var v := [str(r[0]), r[2], str(r[3]), str(r[4]), str(r[5]), str(r[6]), ("+" if int(r[9]) > 0 else "") + str(r[9]), str(r[10])]
@@ -474,7 +479,9 @@ func _lig_ciz() -> void:
 	# sonraki maç / sezon sonu
 	var alt := ""
 	if L.var_mi():
-		if L.bitti(): alt = "ŞAMPİYON: " + L.takim(int(L.d.sampiyon)).ad + "\nSenin takımın %d. bitirdi." % L.sira_biz()
+		if L.bitti():
+			alt = "ŞAMPİYON: " + L.takim(int(L.d.sampiyon)).ad + "\nSenin takımın %d. bitirdi." % L.sira_biz()
+			if L.gol_krali_metni() != "": alt += "\nGol kralı: " + L.gol_krali_metni()
 		else:
 			var mc := L.sonraki_mac()
 			alt = "SONRAKİ MAÇ\n" + L.takim(int(mc[0])).ad + "\n– " + L.takim(int(mc[1])).ad + "\n" + ("İç saha" if int(mc[0]) == L.biz() else "Deplasman") + "  ·  sen %d. sıradasın" % L.sira_biz()

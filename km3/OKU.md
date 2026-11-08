@@ -44,3 +44,9 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Lig ekranında **Fikstür** satırı (VR'da da): sol panel puan durumu ile kulübün sezon fikstürü arasında geçer. Menajer oyunlarındaki gibi iki devre yan yana (dik ekranda alt alta): hafta · İ/D · rakip (şu anki sırası) · skor · sonuç (G/B/M renkli); sıradaki maç vurgulu, başlıkta sezonun G/B/M dökümü. VR panelinde sıradaki maçın devresi gösterilir.
 - Kod: `Lig.gorunum`, `Lig.fikstur_biz()`, `Lig.sonuc_harf()`; `LigEkran._fikstur_panel()`; `vr._lig_ciz()`.
 - Deneme: `--ligsezon=12 --lig --ligfik --ekran=x.png` (`--vrsahte` ile VR paneli).
+
+## 0.7.9 — Gol krallığı
+- Lig ekranında **Gol krallığı** satırı (VR'da da): sol panel ligin en golcü 20 oyuncusunu gösterir (# · oyuncu · kulüp · gol; eşit golde aynı sıra, kendi oyuncuların vurgulu). Sezon sonunda şampiyonun yanında gol kralı da yazılır.
+- Kendi maçındaki goller maç motorunun gol olaylarından gelir (kendi kalesine gol sayılmaz, VAR iptali düşer); simüle edilen maçların golleri kulübün ilk 11'ine mevkiye göre paylaştırılır (forvet 5, orta saha 1,8, defans 0,55, kaleci 0).
+- Kayıtta `golcu` (kulüp başına [ad, pay]) ve `goller` ("kulüp|ad" → gol). Eski kayıtlar açılınca `golcu` kurulur, krallık o haftadan itibaren sayılır.
+- Kod: `Lig.gol_krallari()`, `Lig.gol_krali_metni()`, `LigEkran._goller_panel()`, `vr._lig_ciz()`. Deneme: `dene/lig_dene.gd` (dağıtılan gol = atılan gol, kayıt aynı liste), `--ligsezon=14 --lig --liggol --ekran=x.png` (`--vrsahte` ile VR).
