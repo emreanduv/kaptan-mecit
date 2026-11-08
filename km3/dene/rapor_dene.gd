@@ -5,6 +5,8 @@ func _init() -> void:
 	var t0 = Taktik.kadro_kur(v.ligler[0].takimlar[0], "tr"); var t1 = Taktik.kadro_kur(v.ligler[0].takimlar[1], "tr")
 	var M = Mac.new(t0, t1, 4, 1, false)
 	M.T[0].human = false   # iki takım da yapay zekâ
+	var s0: float = M.T[0].spd
+	print("KONUSMA ", M.konus_yap("once", 1), " spd ", s0, " -> ", M.T[0].spd)
 	for i in 60 * 60 * 8:
 		M.step(1.0 / 60.0)
 		if M.state == "over": break

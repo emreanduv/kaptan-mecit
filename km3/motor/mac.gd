@@ -130,6 +130,25 @@ var kartlar: Array = []   # [takım, ad, "S"/"K"]
 # maç raporu (Champion Battle Manager 4.5.1'deki gibi): istatistik + oyuncu başına
 var ist := {"sut": [0, 0], "isabet": [0, 0], "pas": [0, 0], "pas_ok": [0, 0], "top": [0.0, 0.0], "kurtar": [0, 0]}
 var oy_ist := {}
+var konus := {}         # takım konuşması: {"once"/"devre": sonuç, "sonuc": son metin}
+# an: "once" | "devre", sec: 0..2 (mola.gd KONUSMA sırası). Etki duruma bağlı; iyi karşılanırsa takım biraz daha hızlı ve isabetli.
+func konus_yap(an: String, sec: int) -> String:
+	var fark: float = float(T[0].t.str) - float(T[1].t.str); var sk: int = int(T[0].score) - int(T[1].score)
+	var q := 0
+	if an == "once":
+		q = [(1 if fark >= 1 else (-1 if fark <= -2 else 0)), (1 if fark <= 0 else 0), (1 if fark <= -1 else (-1 if fark >= 2 else 0))][sec]
+	else:
+		if sk > 0: q = [1, 0, -1][sec]
+		elif sk == 0: q = [0, 1, (0 if fark >= 1 else -1)][sec]
+		else: q = [-1, 1, (1 if fark >= 0 else 0)][sec]
+	var r := randf()
+	if r < .15: q = maxi(-1, q - 1)
+	elif r > .85: q = mini(1, q + 1)
+	T[0].spd += q * .022 + (.01 if an == "once" and sec == 2 else 0.0)
+	T[0].skill = clampf(T[0].skill + q * .025 - (.01 if an == "once" and sec == 2 else 0.0), .3, .98)
+	var metin := "Oyuncular konuşmayı çok iyi karşıladı" if q > 0 else ("Konuşma ters tepti, oyuncular gergin" if q < 0 else "Konuşma pek etki etmedi")
+	konus[an] = metin; konus.sonuc = metin
+	return metin
 var asist_aday = null   # [pasör, alan, saat]
 func oy_k(p: Oy) -> Dictionary:
 	var k := str(p.team) + ":" + p.n

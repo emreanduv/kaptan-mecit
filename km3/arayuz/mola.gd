@@ -3,7 +3,17 @@
 extends RefCounted
 class_name Mola
 
-const SATIRLAR := ["DEVAM ET", "Çıkan", "Giren", "DEĞİŞİKLİĞİ YAP", "Asistan değişiklikleri", "Kamera", "Nasıl oynanır", "MAÇI BIRAK"]
+const SATIRLAR := ["DEVAM ET", "Çıkan", "Giren", "DEĞİŞİKLİĞİ YAP", "Asistan değişiklikleri", "Kamera", "Takım konuşması", "Nasıl oynanır", "MAÇI BIRAK"]
+# takım konuşması (Champion Battle Manager 4.6'daki gibi): ilk yarının başında maç önü, devre arası / ikinci yarının başında devre arası
+const KONUSMA := {"once": ["Sakin olun, oyununuzu oynayın", "Size güveniyorum", "Hırslı olun, her topa basın"],
+	"devre": ["Aynen devam", "Daha fazlasını istiyorum", "Hayal kırıklığına uğradım"]}
+var konus_sec := 0
+func konus_an() -> String:
+	var M = ana.M
+	if M == null or M.demo: return ""
+	if M.half == 1 and M.minute() <= 10: return "" if M.konus.has("once") else "once"
+	if M.half == 2 and (M.state == "half" or M.minute() <= 55): return "" if M.konus.has("devre") else "devre"
+	return ""
 const MEVKI := {"G": "kaleci", "D": "defans", "O": "orta saha", "F": "forvet"}
 const ROL := {"G": "kaleci", "D": "defans", "O": "orta saha", "F": "forvet"}
 const BIZ := 0
@@ -55,12 +65,16 @@ func deger(i: int) -> String:
 			return "%d hak · %d ara kaldı" % [k.hak, maxi(0, k.ara)]
 		4: return "Açık" if M.asistan[BIZ] else "Kapalı (sakatlıkta yine girer)"
 		5: return ana.vr.KOLTUKLAR[ana.vr.koltuk] if ana.vr else ana.KAMERALAR[ana.kam_mod]
+		6:
+			var an := konus_an()
+			if an == "": return str(M.konus.get("sonuc", "şimdi değil (maç başında ve devre arasında)"))
+			return ("maç önü" if an == "once" else "devre arası") + ":  " + KONUSMA[an][posmod(konus_sec, 3)]
 	return ""
 
 func satir_metni(i: int, secili: bool) -> String:
 	var d := deger(i)
 	var ad: String = ("Koltuk" if ana.vr else "Kamera") if i == 5 else SATIRLAR[i]
-	if i in [1, 2, 4, 5]: return ("‹  " if secili else "") + ad + ":  " + d + ("  ›" if secili else "")
+	if i in [1, 2, 4, 5] or (i == 6 and konus_an() != ""): return ("‹  " if secili else "") + ad + ":  " + d + ("  ›" if secili else "")
 	return ("»  " if secili else "") + SATIRLAR[i] + (("   ·   " + d) if d != "" else "")
 
 func kay(i: int, d: int) -> void:
@@ -71,6 +85,7 @@ func kay(i: int, d: int) -> void:
 		5:
 			if ana.vr: ana.vr.koltuga_gec(ana.vr.koltuk + d)
 			else: ana._kamera(posmod(ana.kam_mod + d, ana.KAMERALAR.size()))
+		6: konus_sec += d
 
 func bas(i: int) -> void:
 	var M = ana.M
@@ -86,8 +101,13 @@ func bas(i: int) -> void:
 			else:
 				ana.mola_bilgi("Değişiklik şu an yapılamıyor")
 		4, 5: kay(i, 1)
-		6: ana.yardim_goster(not ana.yardim_acik)
-		7: ana.maci_birak()
+		6:
+			var an := konus_an()
+			if an == "": return
+			var t: String = M.konus_yap(an, posmod(konus_sec, 3))
+			ana.mola_bilgi(t); konus_sec = 0
+		7: ana.yardim_goster(not ana.yardim_acik)
+		8: ana.maci_birak()
 
 # ---------- rehber: ilk maçlarda, yeri gelince bir kez gösterilen ipuçları ----------
 const AYAR := "user://km3-ayar.cfg"
