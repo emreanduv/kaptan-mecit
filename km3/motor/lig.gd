@@ -15,6 +15,7 @@ var kupa := {}                  # kupa durumu (boşsa kupa yok); kayıt: user://
 var kur_kupa := 0
 var kur_kupa_takim := 0
 const KUPA_KAYIT := "user://km3-kupa.json"
+var _krng := RandomNumberGenerator.new()   # kupa simülasyonu: tek üreteç (web'de aynı milisaniyede yeni üreteçler aynı tohumu alıyordu)
 var kur_lig := 0                # kurulum ekranında seçilen lig / takım
 var kur_takim := 0
 var mesaj := ""
@@ -31,6 +32,7 @@ func _init(v: Dictionary) -> void:
 func var_mi() -> bool: return not d.is_empty()
 
 func yukle() -> void:
+	_krng.randomize()
 	kupa_yukle()
 	d = {}
 	if not FileAccess.file_exists(KAYIT): return
@@ -429,7 +431,9 @@ func kupa_tur_adi(i: int) -> String:
 	return "Final" if n == 2 else ("Yarı final" if n == 4 else ("Çeyrek final" if n == 8 else "Son " + str(n)))
 
 func kupa_basla(id: String, ben: Array) -> void:
-	var t := kupa_katilim(id); t.shuffle()
+	var t := kupa_katilim(id)
+	for i in range(t.size() - 1, 0, -1):
+		var j := _krng.randi() % (i + 1); var x = t[i]; t[i] = t[j]; t[j] = x
 	var ilk := []
 	for i in range(0, t.size(), 2): ilk.append({"a": t[i], "b": t[i + 1], "s": []})
 	kupa = {"id": id, "ben": ben, "tur": 0, "esle": [ilk], "bitti": false, "elendi": false}
@@ -456,7 +460,7 @@ func kupa_kazandi() -> bool:
 # [ev gol, dep gol, ev penaltı, dep penaltı] (berabere değilse penaltılar 0)
 func _kupa_sim(a: Array, b: Array) -> Array:
 	var A := kupa_takim(a); var B := kupa_takim(b)
-	var rng := RandomNumberGenerator.new(); rng.randomize()
+	var rng := _krng
 	var fa: float = float(A.get("str", 6)); var fb: float = float(B.get("str", 6))
 	var x := _poisson(clampf(1.4 + (fa - fb) * .16 + .15, .25, 4.0), rng); var y := _poisson(clampf(1.1 + (fb - fa) * .16, .2, 4.0), rng)
 	return [x, y] + _penalti(x, y, fa, fb, rng)
@@ -489,7 +493,7 @@ func kupa_sonuc(g_biz: int, g_rakip: int) -> String:
 	var m = kupa_benim_mac()
 	if m == null: return ""
 	var biz_a := _ayni(m.a, kupa.ben)
-	var rng := RandomNumberGenerator.new(); rng.randomize()
+	var rng := _krng
 	var A := kupa_takim(kupa.ben); var R := kupa_takim(m.b if biz_a else m.a)
 	var p := _penalti(g_biz, g_rakip, float(A.get("str", 6)), float(R.get("str", 6)), rng)
 	m.s = [g_biz, g_rakip, p[0], p[1]] if biz_a else [g_rakip, g_biz, p[1], p[0]]
