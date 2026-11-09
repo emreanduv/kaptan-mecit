@@ -14,6 +14,8 @@ Her oyun/uygulamada olması gerekenler:
 6. **Verilerimi sil:** Ayarlar'da iki dokunuşla onaylanan silme; gizlilik politikasında e-postayla silme talebi (30 gün) ve hangi verinin neden işlendiği (Meta DUC şartı).
 7. **ASO:** Kısa açıklama ve uzun açıklamanın ilk 2-3 satırı aranan kelimeleri taşır (oyunun türü + konusu + öne çıkan özellik); yenilikler metni her sürümde güncellenir; App Store notlarında emoji yok.
 8. **Mağaza başvurusu cevapları:** Kalıp metin değil, gerçek süreç ve testten sonra yapılan değişiklikler yazılır (örnek: malazgirt-akincilari `store/surum-1.6.md`).
+9. **Dil seçimi:** Oyun/uygulama açılınca ilk ekranda dil sorulur (Türkçe öne seçili, İngilizce yanında); Ayarlar'dan sonradan değiştirilebilir. Bu soru atlanmaz.
+10. **Varsayılan ayarlar sade ve oyuncu dostu:** otomatik ilerleme/oynatma gibi kendiliğinden işleyen seçenekler varsayılan olarak kapalı; tema aydınlık; yardımcıya devredilebilen işler (ör. basın toplantısı, kadro kurma) varsayılan olarak yardımcıda; otomatik kayıt açık (Champion Battle Manager örneği: Kariyer → Basın: yardımcım, Otomatik kayıt: haftada bir, Asistan kadroyu kursun: açık; Oyun → Tema: aydınlık, Otomatik devam: kapalı).
 
 Yayın sırası: incelemedeki/testteki mağazada gönderilen sürüme onay gelene kadar dokunulmaz; onay gelince güncel sürüm yüklenir. Yayında olan mağazaya güncel sürüm hemen gönderilir. Derlemeler her zaman bütün değişiklikleri içeren daldan (main) alınır.
 
