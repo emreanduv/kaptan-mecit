@@ -21,7 +21,7 @@ var kur_takim := 0
 var mesaj := ""
 var _birak_onay := 0.0
 var son_hafta: Array = []       # en son oynanan haftanın maçları (ekranda "Haftanın sonuçları")
-var gorunum := "tablo"          # sol panel: "tablo" (puan durumu), "fikstur" (kulübün sezon fikstürü) ya da "goller" (gol krallığı)
+var gorunum := "tablo"          # sol panel: "tablo" (puan durumu), "fikstur" (kulübün sezon fikstürü), "goller" (gol krallığı) ya da "tarih" (kulübün sezon sezon tarihçesi)
 const GOL_AGIRLIK := {"F": 5.0, "O": 1.8, "D": .55, "G": 0.0}   # simüle maçta golü kimin attığı: mevkiye göre pay
 
 func _init(v: Dictionary) -> void:
@@ -46,6 +46,7 @@ func yukle() -> void:
 	if not d.has("golcu") or (d.golcu as Array).size() != (d.takimlar as Array).size():   # gol krallığından önceki kayıt
 		d.golcu = _golcu_kur(li); d.goller = {}
 	if not d.has("goller"): d.goller = {}
+	if not d.has("tarih"): d.tarih = []      # tarihçeden önceki kayıt
 	if int(d.hafta) > 0: son_hafta = d.fikstur[int(d.hafta) - 1]
 
 func kaydet() -> void:
@@ -67,7 +68,7 @@ func biz() -> int: return int(d.takim)
 func hafta_sayisi() -> int: return (d.fikstur as Array).size()
 func bitti() -> bool: return int(d.hafta) >= hafta_sayisi()
 
-func yeni_sezon(lig: int, tk: int, sezon := 1) -> void:
+func yeni_sezon(lig: int, tk: int, sezon := 1, tarih: Array = []) -> void:
 	var L: Array = veri.ligler[lig].takimlar
 	var n := L.size()
 	# güç: asistanın kurduğu ilk 11'in mevkiye uyumlu ortalama yeteneği (Taktik), yoksa kulübün güç puanından
@@ -78,7 +79,7 @@ func yeni_sezon(lig: int, tk: int, sezon := 1) -> void:
 		guc.append(snappedf(float(k.get("guc", 40.0 + 9.0 * float(t.str))), .01))
 		golcu.append(_golcu_listesi(k))
 	d = {"surum": SURUM, "lig": lig, "takim": tk, "sezon": sezon, "hafta": 0, "takimlar": range(n),
-		"guc": guc, "fikstur": gercek_fikstur(lig), "sampiyon": -1, "golcu": golcu, "goller": {}}
+		"guc": guc, "fikstur": gercek_fikstur(lig), "sampiyon": -1, "golcu": golcu, "goller": {}, "tarih": tarih}
 	if d.fikstur.is_empty(): d.fikstur = fikstur_uret(n, randi())
 	son_hafta = []
 	mesaj = ""
@@ -243,6 +244,7 @@ func hafta_bitir() -> void:
 		d.sampiyon = tablo()[0].i
 		mesaj = "Sezon bitti · Şampiyon: " + takim(int(d.sampiyon)).ad
 		if gol_krali_metni() != "": mesaj += " · Gol kralı: " + gol_krali_metni()
+		_tarihe_yaz()
 	else:
 		mesaj = ""
 	kaydet()
@@ -289,7 +291,7 @@ func sezon_adi() -> String:
 func satirlar() -> Array:
 	if kip == "kupa": return kupa_satirlari()
 	if not var_mi(): return ["Lig", "Takımın", "SEZONA BAŞLA", "Kupalar", "Ana menü"]
-	var r: Array = ["YENİ SEZON", "Fikstür", "Gol krallığı", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Fikstür", "Gol krallığı", "Ana menü", "Ligi bırak"]
+	var r: Array = ["YENİ SEZON", "Fikstür", "Gol krallığı", "Tarihçe", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Fikstür", "Gol krallığı", "Tarihçe", "Ana menü", "Ligi bırak"]
 	if son_rapor != "": r.insert(r.find("Ana menü"), "Maç raporu")
 	r.insert(r.find("Ana menü"), "Kupalar")
 	return r
@@ -309,6 +311,7 @@ func satir_metni(i: int, sec := false) -> String:
 		"YENİ SEZON": return ok + "YENİ SEZON  ·  " + str(int(d.sezon) + 1) + ". sezon"
 		"Fikstür": return ok + ("Puan durumu" if gorunum == "fikstur" else "Fikstür")
 		"Gol krallığı": return ok + ("Puan durumu" if gorunum == "goller" else "Gol krallığı")
+		"Tarihçe": return ok + ("Puan durumu" if gorunum == "tarih" else "Tarihçe")
 	return ok + s
 
 func kay(i: int, yon: int) -> void:
@@ -331,9 +334,8 @@ func bas(i: int) -> String:
 		"Maçı simüle et": haftayi_simule()
 		"Fikstür": gorunum = "tablo" if gorunum == "fikstur" else "fikstur"
 		"Gol krallığı": gorunum = "tablo" if gorunum == "goller" else "goller"
-		"YENİ SEZON":
-			var lg := int(d.lig); var tk := int(d.takim); var sz := int(d.sezon) + 1
-			yeni_sezon(lg, tk, sz)
+		"Tarihçe": gorunum = "tablo" if gorunum == "tarih" else "tarih"
+		"YENİ SEZON": sonraki_sezon()
 		"Ana menü": gorunum = "tablo"; return "menu"
 		"Maç raporu": return "rapor"
 		"Kupalar": kip = "kupa"; mesaj = ""
@@ -344,6 +346,56 @@ func bas(i: int) -> String:
 			else:
 				_birak_onay = 0.0; kur_lig = int(d.lig); kur_takim = int(d.takim); sil()
 	return ""
+
+# ---------- tarihçe: kulübün sezon sezon karnesi (menajer oyunlarındaki kulüp geçmişi) ----------
+# Biten her sezon d.tarih'e yazılır; "YENİ SEZON" tarihçeyi yeni sezona taşır, "Ligi bırak" / "Verilerimi sil" siler.
+func _tarihe_yaz() -> void:
+	if not d.has("tarih"): d.tarih = []
+	for x in d.tarih:
+		if int(x.s) == int(d.sezon): return       # aynı sezon iki kez yazılmaz
+	var b: Dictionary = {}
+	for r in tablo():
+		if r.i == biz(): b = r
+	d.tarih.append({"s": int(d.sezon), "sira": sira_biz(), "n": (d.takimlar as Array).size(), "P": b.P, "G": b.G, "B": b.B, "M": b.M,
+		"A": b.A, "Y": b.Y, "sam": int(d.sampiyon), "kral": gol_krali_metni()})
+
+func sonraki_sezon() -> void:
+	if not var_mi(): return
+	if bitti(): _tarihe_yaz()
+	yeni_sezon(int(d.lig), int(d.takim), int(d.sezon) + 1, d.get("tarih", []))
+
+static func sezon_adi_no(no: int) -> String:
+	var y := 2026 + no - 1
+	return "%d/%02d" % [y, (y + 1) % 100]
+
+# tarihçe satırları (ekran ve VR), yeniden eskiye; süren sezon en üstte:
+# [sezon adı, sıra, takım sayısı, O, G, B, M, Av, P, şampiyon kısa, şampiyon ad, gol kralı, biz şampiyon mu, sürüyor mu]
+func tarih_satirlari() -> Array:
+	var r: Array = []
+	if not var_mi(): return r
+	if not bitti():
+		var b: Dictionary = {}
+		for x in tablo():
+			if x.i == biz(): b = x
+		r.append([sezon_adi(), sira_biz(), (d.takimlar as Array).size(), b.O, b.G, b.B, b.M, b.Av, b.P, "", "", "", false, true])
+	var T: Array = d.get("tarih", []).duplicate()
+	T.reverse()
+	for x in T:
+		var o := int(x.G) + int(x.B) + int(x.M)
+		var sam := int(x.sam)
+		r.append([sezon_adi_no(int(x.s)), int(x.sira), int(x.n), o, int(x.G), int(x.B), int(x.M), int(x.A) - int(x.Y), int(x.P),
+			takim(sam).kisa if sam >= 0 else "", takim(sam).ad if sam >= 0 else "", str(x.get("kral", "")), sam == biz(), false])
+	return r
+
+# tarihçe özeti: "3 sezon · 1 şampiyonluk · en iyi 1."
+func tarih_ozet() -> String:
+	var T: Array = d.get("tarih", []) if var_mi() else []
+	if T.is_empty(): return "İlk sezonun sürüyor"
+	var sam := 0; var eniyi := 99
+	for x in T:
+		if int(x.sam) == biz(): sam += 1
+		eniyi = mini(eniyi, int(x.sira))
+	return "%d sezon · %d şampiyonluk · en iyi sıra %d." % [T.size(), sam, eniyi]
 
 # tablo satırları (ekran ve VR): [sıra, kısa ad, ad, O, G, B, M, A, Y, Av, P, biz mi]
 func tablo_satirlari() -> Array:

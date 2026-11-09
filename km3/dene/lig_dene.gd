@@ -60,6 +60,15 @@ func _init() -> void:
 			L.takim(top.i).kisa, top.P, top.G, top.B, top.M, top.A, top.Y, L.takim(son.i).kisa, son.P, str(L.d.guc.slice(0, 4))])
 		if li == 0:
 			for r in L.tablo_satirlari().slice(0, 4): print("   ", r)
+		# tarihçe: biten sezon yazılır, yeni sezona taşınır, kayıttan geri gelir
+		var sira := L.sira_biz()
+		L.sonraki_sezon()
+		for _k in 3: L.haftayi_simule()
+		var TS := L.tarih_satirlari()
+		if (L.d.tarih as Array).size() != 1 or int(L.d.sezon) != 2 or TS.size() != 2 or int(TS[1][1]) != sira or not TS[0][13]:
+			hata += 1; print("  HATA tarihçe ", TS)
+		if JSON.stringify(Lig.new(veri).tarih_satirlari()) != JSON.stringify(TS): hata += 1; print("  HATA tarihçe kayıt")
+		if li == 0: print("   tarihçe: ", L.tarih_ozet(), " · ", TS)
 		L.sil()
 		if FileAccess.file_exists(Lig.KAYIT): hata += 1; print("  HATA silinmedi")
 	print("LİG DENEMESİ: ", "TAMAM" if hata == 0 else str(hata) + " HATA")

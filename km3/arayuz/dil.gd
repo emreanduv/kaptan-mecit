@@ -103,6 +103,9 @@ const SOZLUK := {
 	"Fikstür": "Fixtures", "FİKSTÜR": "FIXTURES", "Puan durumu": "Table", "1. DEVRE": "FIRST HALF", "2. DEVRE": "SECOND HALF", "SIRADA": "NEXT", "Skor": "Score",
 	"Ana menü": "Main menu", "dk": "min", "Oyun seçimi": "Choose game",
 	"Gol krallığı": "Top scorers", "GOL KRALLIĞI": "TOP SCORERS", "Gol kralı:": "Top scorer:", "Oyuncu": "Player", "Kulüp": "Club", "Gol": "Goals", "gol": "goals",
+	"Tarihçe": "History", "TARİHÇE": "HISTORY", "Sezon": "Season", "Sıra": "Pos.", "Şampiyon": "Champions", "Gol kralı": "Top scorer", "sürüyor": "in progress",
+	"İlk sezonun sürüyor": "Your first season is under way", "şampiyonluk": "titles", "en iyi sıra": "best finish", "sezon": "seasons",
+	"Sezon bitince karnesi buraya yazılır: sıra, puan, şampiyon ve gol kralı.": "When a season ends its record appears here: position, points, champions and top scorer.",
 	"Henüz gol yok. İlk hafta oynanınca liste dolar.": "No goals yet. The list fills up after the first week.",
 }
 

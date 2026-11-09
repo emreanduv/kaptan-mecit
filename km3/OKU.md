@@ -51,3 +51,9 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Kayıtta `golcu` (kulüp başına [ad, pay]) ve `goller` ("kulüp|ad" → gol). Eski kayıtlar açılınca `golcu` kurulur, krallık o haftadan itibaren sayılır.
 - Kod: `Lig.gol_krallari()`, `Lig.gol_krali_metni()`, `LigEkran._goller_panel()`, `vr._lig_ciz()`. Deneme: `dene/lig_dene.gd` (dağıtılan gol = atılan gol, kayıt aynı liste), `--ligsezon=14 --lig --liggol --ekran=x.png` (`--vrsahte` ile VR).
 - Seçili satır işareti `▶` web fontunda kutu görünüyordu → lig ve mola satırlarında `»` (VR ana menüsü değişmedi).
+
+## 0.9.1 — Lig tarihçesi
+- Lig ekranında **Tarihçe** satırı (VR'da da): kulübün sezon sezon karnesi, menajer oyunlarındaki kulüp geçmişi gibi — sezon · sıra · O G B M Av P · şampiyon · gol kralı; süren sezon en üstte vurgulu, şampiyon olunan sezon altın. Başlıkta özet: "n sezon · k şampiyonluk · en iyi sıra x."
+- Biten sezon `d.tarih`'e yazılır (aynı sezon iki kez yazılmaz); "YENİ SEZON" (`Lig.sonraki_sezon()`) tarihçeyi taşır; "Ligi bırak" ve "Verilerimi sil" siler. Eski kayıtlar açılınca boş tarihçeyle sürer.
+- VR lig menüsünde satırlar çoğalınca (Tarihçe, Kupalar, Maç raporu) satır aralığı ve yazı küçülür; alttaki ipucu yazısının üstüne taşmaz.
+- Kod: `Lig.tarih_satirlari()`, `Lig.tarih_ozet()`, `LigEkran._tarih_panel()`, `vr._lig_ciz()`. Deneme: `dene/lig_dene.gd` (28 ligde tarihçe + kayıt), `--ligsezon=90 --lig --ligtarih --ekran=x.png` (hafta sayısı sezonu aşınca yeni sezona geçer; `--vrsahte` ile VR).

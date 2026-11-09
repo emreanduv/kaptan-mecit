@@ -307,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language"]
-const SURUM := "0.9.0"
+const SURUM := "0.9.1"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -465,6 +465,14 @@ func _lig_ciz() -> void:
 			var v := [str(x[0]), ("İ  " if x[1] else "D  ") + L.takim(int(x[2])).ad, "", "", "", "", skor, Lig.sonuc_harf(x)]
 			for j in v.size(): sutun[j] += "\n" + v[j]
 			if int(x[0]) == simdi and not L.bitti(): biz_sira = k - dv * yari + 1
+	elif L.var_mi() and L.gorunum == "tarih":
+		if L.mesaj == "": _mesaj.text = "TARİHÇE  ·  " + L.tarih_ozet()
+		sutun = ["", "TARİHÇE", "Sıra", "G", "B", "M", "Av", "P"]
+		for x in L.tarih_satirlari().slice(0, 18):
+			var sam: String = "sürüyor" if x[13] else ("★ " if x[12] else "") + "Şampiyon: " + x[9]
+			var v := ["", x[0] + "  ·  " + sam, "%d." % int(x[1]), str(x[4]), str(x[5]), str(x[6]), ("+" if int(x[7]) > 0 else "") + str(x[7]), str(x[8])]
+			for j in v.size(): sutun[j] += "\n" + v[j]
+			if x[13]: biz_sira = 1
 	elif L.var_mi() and L.gorunum == "goller":
 		sutun = ["#", "GOL KRALLIĞI", "", "", "", "", "", "Gol"]
 		for r in L.gol_krallari(18):
@@ -517,8 +525,9 @@ func _lig_eylemler(L: Lig) -> void:
 		if not l.visible: continue
 		var sec := i == _satir
 		l.text = L.satir_metni(i, sec)
-		l.font_size = 38
-		l.position = Vector3(.45, -.08 - i * .07, .001)
+		var adim := minf(.07, .30 / maxf(1.0, n - 1.0))     # satır çoğalınca (Tarihçe, Kupalar, Maç raporu) alttaki yazıların üstüne taşmasın
+		l.font_size = 38 if adim >= .07 else int(clampf(adim / .07 * 44.0, 28.0, 36.0))
+		l.position = Vector3(.45, -.08 - i * adim, .001)
 		l.modulate = Color("#f3d35a") if sec else (Color("#e5722f") if L.satirlar()[i] in ["MAÇA ÇIK", "SEZONA BAŞLA", "YENİ SEZON", "KUPAYA BAŞLA"] else Color.WHITE)
 
 # kupa (lig ekranının kupa kipi): eşleşmeler tablo sütunlarında, özet altta
