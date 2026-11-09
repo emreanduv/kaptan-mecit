@@ -55,8 +55,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= \
             archive 2>&1 | tee $RUNNER_TEMP/a2.log | grep -E "error:|ARCHIVE" | sort -u | head -20
           A=$(ls -d $RUNNER_TEMP/C.xcarchive/Products/Applications/*.app)
-          codesign --force --sign - --entitlements App/App.entitlements "$A"
-          codesign -d --entitlements - "$A" 2>&1 | head -30
+          if [ -f App/App.entitlements ]; then codesign --force --sign - --entitlements App/App.entitlements "$A"; codesign -d --entitlements - "$A" 2>&1 | head -30; fi
       - name: Dağıtım imzasıyla dışa aktar (yükleme yok)
         shell: bash
         run: |
