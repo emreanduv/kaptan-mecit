@@ -1,0 +1,79 @@
+name: Champion iOS imza denemesi (mağazaya yüklemez)
+# iCloud gibi yeni bir yetenek eklenince imzalamanın çalıştığını mağazaya hiçbir şey göndermeden denemek için.
+# Arşivler, yetkileri (entitlements) uygular, App Store dağıtım imzasıyla yerel .ipa çıkarır ve imzadaki yetkileri yazdırır.
+on:
+  workflow_dispatch:
+    inputs:
+      ref: { description: "Dal", default: "champion-4" }
+env:
+  ASC_KEY_ID: DJSHKK6T3P
+  ASC_ISSUER_ID: f4943ef8-df6f-42c8-a561-58554097ea35
+  APPLE_TEAM_ID: 4UFRQ97N4C
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.ref }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Xcode 26 seç
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$X" ]; then sudo xcode-select -s "$X"; fi
+          xcodebuild -version
+      - run: npm ci
+      - run: npx cap sync ios
+      - name: App Store Connect anahtarı
+        env: { P8: "${{ secrets.ASC_KEY_P8 }}" }
+        run: |
+          mkdir -p ~/private_keys
+          printf '%s' "$P8" > ~/private_keys/AuthKey_${{ env.ASC_KEY_ID }}.p8
+      - name: Arşivle (imzalı, otomatik imza)
+        working-directory: ios/App
+        shell: bash
+        run: |
+          set -o pipefail
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath $RUNNER_TEMP/C.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_${{ env.ASC_KEY_ID }}.p8 \
+            -authenticationKeyID ${{ env.ASC_KEY_ID }} \
+            -authenticationKeyIssuerID ${{ env.ASC_ISSUER_ID }} \
+            DEVELOPMENT_TEAM=${{ env.APPLE_TEAM_ID }} CODE_SIGN_STYLE=Automatic \
+            archive 2>&1 | tee $RUNNER_TEMP/a1.log | grep -E "error|warning: .*(entitle|iCloud|profile|capabilit)|ARCHIVE" | sort -u | head -40 || true
+          if grep -q "ARCHIVE SUCCEEDED" $RUNNER_TEMP/a1.log; then echo "IMZALI_ARSIV=1" >> $GITHUB_ENV; fi
+      - name: Arşivle (imzasız, sonra yetkilerle geçici imza)
+        if: env.IMZALI_ARSIV != '1'
+        working-directory: ios/App
+        shell: bash
+        run: |
+          set -o pipefail
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath $RUNNER_TEMP/C.xcarchive \
+            DEVELOPMENT_TEAM=${{ env.APPLE_TEAM_ID }} CODE_SIGN_STYLE=Automatic \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= \
+            archive 2>&1 | tee $RUNNER_TEMP/a2.log | grep -E "error:|ARCHIVE" | sort -u | head -20
+          A=$(ls -d $RUNNER_TEMP/C.xcarchive/Products/Applications/*.app)
+          codesign --force --sign - --entitlements App/App.entitlements "$A"
+          codesign -d --entitlements - "$A" 2>&1 | head -30
+      - name: Dağıtım imzasıyla dışa aktar (yükleme yok)
+        shell: bash
+        run: |
+          cat > $RUNNER_TEMP/export.plist <<PL
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>export</string>
+            <key>teamID</key><string>${{ env.APPLE_TEAM_ID }}</string>
+            <key>signingStyle</key><string>automatic</string>
+          </dict></plist>
+          PL
+          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/C.xcarchive \
+            -exportOptionsPlist $RUNNER_TEMP/export.plist -exportPath $RUNNER_TEMP/export \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_${{ env.ASC_KEY_ID }}.p8 \
+            -authenticationKeyID ${{ env.ASC_KEY_ID }} \
+            -authenticationKeyIssuerID ${{ env.ASC_ISSUER_ID }} 2>&1 | tail -30
+          cd $RUNNER_TEMP/export && unzip -q -o *.ipa && codesign -d --entitlements - Payload/*.app 2>&1 | head -40
