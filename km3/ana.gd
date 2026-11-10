@@ -380,8 +380,8 @@ func _unhandled_input(e: InputEvent) -> void:
 			KEY_ESCAPE, KEY_M: lig_goster(false); return
 	if e is InputEventKey and e.pressed and mola_panel.visible:
 		match e.keycode:
-			KEY_UP, KEY_W: mola_satir = posmod(mola_satir - 1, Mola.SATIRLAR.size()); return
-			KEY_DOWN, KEY_S: mola_satir = posmod(mola_satir + 1, Mola.SATIRLAR.size()); return
+			KEY_UP, KEY_W: mola_satir = Mola.SIRA[posmod(Mola.SIRA.find(mola_satir) - 1, Mola.SIRA.size())]; return
+			KEY_DOWN, KEY_S: mola_satir = Mola.SIRA[posmod(Mola.SIRA.find(mola_satir) + 1, Mola.SIRA.size())]; return
 			KEY_LEFT, KEY_A: mola.kay(mola_satir, -1); return
 			KEY_RIGHT, KEY_D: mola.kay(mola_satir, 1); return
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE: mola.bas(mola_satir); return
@@ -616,17 +616,20 @@ func _arayuz() -> void:
 	mola_panel = PanelContainer.new(); mola_panel.visible = false
 	mola_panel.add_theme_stylebox_override("panel", _kutu(Color("#f5ecd8"), 16))
 	mola_panel.custom_minimum_size = Vector2(760, 0)
-	var ov := VBoxContainer.new(); ov.add_theme_constant_override("separation", 8)
+	var ov := VBoxContainer.new(); ov.add_theme_constant_override("separation", 5)
 	var ob := PanelContainer.new(); ob.add_theme_stylebox_override("panel", _kutu(Color("#1f3b3c"), 12))
 	mola_baslik = Label.new(); mola_baslik.add_theme_font_size_override("font_size", 26); mola_baslik.add_theme_color_override("font_color", Color.WHITE)
 	ob.add_child(mola_baslik); ov.add_child(ob)
 	for i in Mola.SATIRLAR.size():
-		var b := Button.new(); b.alignment = HORIZONTAL_ALIGNMENT_LEFT; b.add_theme_font_size_override("font_size", 18)
+		var b := Button.new(); b.alignment = HORIZONTAL_ALIGNMENT_LEFT; b.add_theme_font_size_override("font_size", 17)
 		b.add_theme_stylebox_override("normal", _kutu(Color(1, 1, 1, .55), 8)); b.add_theme_stylebox_override("hover", _kutu(Color(1, 1, 1, .9), 8))
-		b.add_theme_stylebox_override("pressed", _kutu(Color("#f3d35a"), 8))
-		b.add_theme_color_override("font_color", Color("#1d2b2c")); b.add_theme_color_override("font_hover_color", Color("#1d2b2c"))
+		b.add_theme_stylebox_override("pressed", _kutu(Color("#f3d35a"), 8)); b.add_theme_stylebox_override("focus", _kutu(Color(1, 1, 1, .9), 8))
+		b.add_theme_stylebox_override("hover_pressed", _kutu(Color("#f3d35a"), 8))
+		# her durumda koyu yazı (dokununca/odakta beyaz zeminde yazı kayboluyordu)
+		for k in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]: b.add_theme_color_override(k, Color("#1d2b2c"))
 		b.pressed.connect(func(): mola_satir = i; mola.bas(i))
-		ov.add_child(b); mola_dugmeler.append(b)
+		mola_dugmeler.append(b)
+	for i in Mola.SIRA: ov.add_child(mola_dugmeler[i])   # ekranda sıra: Kontrol, Kamera'nın hemen altında
 	mola_mesaj = Label.new(); mola_mesaj.add_theme_font_size_override("font_size", 15); mola_mesaj.add_theme_color_override("font_color", Color("#5b6466"))
 	mola_mesaj.text = "Oklar: satır ve değer  ·  Enter: seç  ·  M / Esc: maça dön"
 	ov.add_child(mola_mesaj)

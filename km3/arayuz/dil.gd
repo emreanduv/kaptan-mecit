@@ -81,7 +81,7 @@ const SOZLUK := {
 	"ŞUT'u ne kadar tutarsan şut o kadar sert  ·  PAS'ı basılı tutup bırak: ara pas": "Hold SHOOT longer for a harder shot  ·  hold and release PASS: through ball",
 	# mola
 	"MOLA": "PAUSE", "DEVAM ET": "RESUME", "Çıkan": "Off", "Giren": "On", "DEĞİŞİKLİĞİ YAP": "MAKE THE SUBSTITUTION", "Asistan değişiklikleri": "Assistant substitutions",
-	"MAÇI BIRAK": "QUIT MATCH", "Açık": "On", "Kapalı (sakatlıkta yine girer)": "Off (still steps in for injuries)", "kondisyon": "fitness", "SAKAT": "INJURED",
+	"MAÇI BIRAK": "QUIT MATCH", "Kontrol": "Controls", "Klasik kumanda": "Classic pad", "Dokunmatik çubuk": "Touch stick", "oyun kolu": "controller", "Açık": "On", "Kapalı (sakatlıkta yine girer)": "Off (still steps in for injuries)", "kondisyon": "fitness", "SAKAT": "INJURED",
 	"kaleci": "goalkeeper", "defans": "defender", "orta saha": "midfielder", "forvet": "forward", "kulübede kimse kalmadı": "nobody left on the bench",
 	"hak kalmadı": "no substitutions left", "şu an yapılamaz": "not possible now", "hak kaldı": "left", "hak": "subs", "ara kaldı": "windows left",
 	"oyuna girdi,": "comes on,", "çıktı": "goes off", "Değişiklik şu an yapılamıyor": "Substitution not possible right now",

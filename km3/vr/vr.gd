@@ -307,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language"]
-const SURUM := "0.9.3"
+const SURUM := "0.9.4"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D

@@ -357,7 +357,7 @@ let UI={screen:'home',qlg:'tr',qh:'gs',qa:'fb',clg:'tr',cteam:null,tab:'tablo',q
 
 /* ===================== REHBER · PUAN · PAYLAŞ · BİZE YAZ · VERİLERİMİ SİL (test ekibinin önerileri, Malazgirt Akıncıları 1.6 ile aynı paket) =====================
    Hiçbir veri toplanmaz: puan ve paylaşım telefonun/mağazanın kendi ekranlarıyla yapılır; ilerleme yalnız bu cihazda (km.rehber, km.puan). */
-const KM_SURUM='1.6.3',KM_IOS_ID=''; /* App Store'da yayımlanınca uygulama numarası yazılır (ör. '67…'); boşken iOS'ta mağaza araması açılır */
+const KM_SURUM='1.6.4',KM_IOS_ID=''; /* App Store'da yayımlanınca uygulama numarası yazılır (ör. '67…'); boşken iOS'ta mağaza araması açılır */
 const KM_GOMULU=/[?&](mac|vr)=1/.test(window.__KM_Q||location.search); /* Champion Battle maç modu ya da VR motoru: rehber/puan gösterilmez */
 const KM_KABUK=!KM_GOMULU&&/\/klasik\//.test(location.pathname); /* mobil uygulamada Klasik / Modern seçicisinin içinden açıldı */
 const kmOku=(k,v)=>{try{return JSON.parse(localStorage.getItem(k))??v}catch(e){return v}},kmYaz=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};

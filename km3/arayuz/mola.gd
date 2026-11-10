@@ -4,6 +4,7 @@ extends RefCounted
 class_name Mola
 
 const SATIRLAR := ["DEVAM ET", "Çıkan", "Giren", "DEĞİŞİKLİĞİ YAP", "Asistan değişiklikleri", "Kamera", "Takım konuşması", "Nasıl oynanır", "MAÇI BIRAK", "Kontrol"]
+const SIRA := [0, 1, 2, 3, 4, 5, 9, 6, 7, 8]   # ekrandaki sıra (Kontrol, Kamera'nın altında; MAÇI BIRAK en sonda)
 # takım konuşması (Champion Battle Manager 4.6'daki gibi): ilk yarının başında maç önü, devre arası / ikinci yarının başında devre arası
 const KONUSMA := {"once": ["Sakin olun, oyununuzu oynayın", "Size güveniyorum", "Hırslı olun, her topa basın"],
 	"devre": ["Aynen devam", "Daha fazlasını istiyorum", "Hayal kırıklığına uğradım"]}
