@@ -250,12 +250,12 @@
       const ust = Math.max(6, s.ust), gh = vh - ust - Math.max(6, s.alt), gw = vw - sol - sag;
       Object.assign(g.style, { left: sol + 'px', top: ust + 'px', width: gw + 'px', height: gh + 'px', right: 'auto', bottom: 'auto' });
       const ort = vh / 2;
-      yer(ad, { left: s.sol + S / 2 + 'px', top: Math.max(10, s.ust + 6) + 'px', transform: 'translateX(-50%)' });
+      yer(ad, { left: s.sol + S / 2 + 'px', top: Math.max(10, s.ust + 6) + 'px', transform: 'translateX(-50%) scale(.8)' });
       yer(hac, { left: s.sol + (S - 126) / 2 + 'px', top: ort - 63 + 'px' });
       yer(A, { right: s.sag + 10 + 'px', top: ort - 78 + 'px' });
       yer(B, { right: s.sag + S - 76 + 'px', top: ort - 8 + 'px' });
       yer(menu, { left: s.sol + S / 2 + 'px', bottom: Math.max(10, s.alt + 6) + 'px', transform: 'translateX(-50%)' });
-      yer(imza, { right: s.sag + S / 2 + 'px', bottom: Math.max(12, s.alt + 8) + 'px', transform: 'translateX(50%)' });
+      yer(imza, { right: s.sag + S / 2 + 'px', bottom: Math.max(12, s.alt + 8) + 'px', transform: 'translateX(50%) scale(.75)' });
     }
     yenile();
   }
