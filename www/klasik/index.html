@@ -357,7 +357,7 @@ let UI={screen:'home',qlg:'tr',qh:'gs',qa:'fb',clg:'tr',cteam:null,tab:'tablo',q
 
 /* ===================== REHBER · PUAN · PAYLAŞ · BİZE YAZ · VERİLERİMİ SİL (test ekibinin önerileri, Malazgirt Akıncıları 1.6 ile aynı paket) =====================
    Hiçbir veri toplanmaz: puan ve paylaşım telefonun/mağazanın kendi ekranlarıyla yapılır; ilerleme yalnız bu cihazda (km.rehber, km.puan). */
-const KM_SURUM='1.6.0',KM_IOS_ID=''; /* App Store'da yayımlanınca uygulama numarası yazılır (ör. '67…'); boşken iOS'ta mağaza araması açılır */
+const KM_SURUM='1.6.1',KM_IOS_ID=''; /* App Store'da yayımlanınca uygulama numarası yazılır (ör. '67…'); boşken iOS'ta mağaza araması açılır */
 const KM_GOMULU=/[?&](mac|vr)=1/.test(window.__KM_Q||location.search); /* Champion Battle maç modu ya da VR motoru: rehber/puan gösterilmez */
 const KM_KABUK=!KM_GOMULU&&/\/klasik\//.test(location.pathname); /* mobil uygulamada Klasik / Modern seçicisinin içinden açıldı */
 const kmOku=(k,v)=>{try{return JSON.parse(localStorage.getItem(k))??v}catch(e){return v}},kmYaz=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
@@ -581,7 +581,7 @@ function howtoScreen(){return `<section class="screen">${topbar('NASIL OYNANIR?'
    <p class="credit">Bir Mr. Anduv! yapımıdır.</p></section>`}
 function settingsScreen(){
   const seg=(k,opts)=>`<div class="chips">${opts.map(([v,l])=>`<button class="chip ${S.set[k]===v?'on':''}" data-act="set" data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div>`;
-  return `<section class="screen">${topbar('AYARLAR')}<div class="card"><h3>MAÇ SÜRESİ</h3>${seg('dur',[[2,'2 dk'],[4,'4 dk'],[6,'6 dk'],[8,'8 dk']])}<h3>ZORLUK</h3>${seg('diff',[[0,'Kolay'],[1,'Orta'],[2,'Zor']])}<h3>KAMERA</h3>${seg('cam',[[0,'Klasik'],[1,'Dinamik'],[2,'Tele'],[3,'Stadyum'],[4,'TV']])}<h3>SES</h3>${seg('snd',[[1,'Açık'],[0,'Kapalı']])}<h3>OYUNCU DEĞİŞİKLİĞİ</h3>${seg('asist',[[1,'🤖 Asistan yapsın'],[0,'Ben yaparım']])}<p class="dim" style="margin:0;font-size:13px">5 değişiklik hakkı, en fazla 3 arada (devre arası sayılmaz). Asistan yorgunluğa, sakatlığa ve skora bakarak değiştirir; maçta II menüsünden sen de değiştirebilirsin.</p></div>
+  return `<section class="screen">${topbar('AYARLAR')}<div class="card"><h3>MAÇ SÜRESİ</h3>${seg('dur',[[2,'2 dk'],[4,'4 dk'],[6,'6 dk'],[8,'8 dk']])}<h3>ZORLUK</h3>${seg('diff',[[0,'Kolay'],[1,'Orta'],[2,'Zor']])}<h3>KAMERA</h3>${seg('cam',[[0,'Klasik'],[1,'Dinamik'],[2,'Tele'],[3,'Stadyum'],[4,'TV']])}<h3>SES</h3>${seg('snd',[[1,'Açık'],[0,'Kapalı']])}<h3>KONTROL</h3>${(S.set.kumanda??=0,'')}${seg('kumanda',[[0,'Dokunmatik çubuk'],[1,'🎮 Klasik kumanda']])}<p class="dim" style="margin:0;font-size:13px">Klasik kumanda: maç ekranı üstte, yön haçı ve A (şut) / B (pas) altta. Bluetooth oyun kolu ve klavye her zaman çalışır.</p><h3>OYUNCU DEĞİŞİKLİĞİ</h3>${seg('asist',[[1,'🤖 Asistan yapsın'],[0,'Ben yaparım']])}<p class="dim" style="margin:0;font-size:13px">5 değişiklik hakkı, en fazla 3 arada (devre arası sayılmaz). Asistan yorgunluğa, sakatlığa ve skora bakarak değiştirir; maçta II menüsünden sen de değiştirebilirsin.</p></div>
    <div class="card"><h3>OYUN</h3><button class="alt dark" data-act="howtoS">❓ NASIL OYNANIR?</button>${kmMobil()?'<button class="alt dark" data-act="puanVer">★ PUAN VER</button>':''}<button class="alt dark" data-act="paylas">📣 ARKADAŞINA ÖNER</button></div>
    <div class="card"><h3>GÖRÜŞ VE ÖNERİ</h3><p class="dim" style="font-size:13px">Bir hata gördün ya da aklına bir fikir geldi mi? Sürüm bilgisiyle hazır bir e-posta açılır.</p><button class="alt dark" data-act="bizeYaz">✉️ BİZE YAZ</button></div>
    <div class="card"><h3>VERİLER</h3><p class="dim" style="font-size:13px">Oyun hiçbir veri toplamaz. Kariyerin, ayarların ve rehber ilerlemen yalnız bu cihazda durur.</p>${UI.silOnay?'<p style="font-weight:800;color:var(--red)">Kariyerin ve ayarların bu cihazdan silinecek. Emin misin?</p><div class="row"><button class="alt" data-act="veriSilEvet">EVET, SİL</button><button class="alt ghost" data-act="veriSilVazgec">VAZGEÇ</button></div>':'<button class="alt" data-act="veriSil">🗑 VERİLERİMİ SİL</button>'}</div>
@@ -705,7 +705,7 @@ function kickoff(ti){
 }
 const Q2=3; /* Klasik görünüm: alt piksel konumlandırma katsayısı */
 function resize2D(){
-  const W=innerWidth,H=innerHeight;let aspect=H/W;if(aspect<.42)aspect=.42;if(aspect>2.3)aspect=2.3;
+  const W=oyunW(),H=oyunH();let aspect=H/W;if(aspect<.42)aspect=.42;if(aspect>2.3)aspect=2.3;
   if(aspect>=1.35){IW=168;IH=Math.round(IW*aspect)}else{IH=240;IW=Math.round(IH/aspect)} /* yatay ekranda (bilgisayar, Pardus) geniş görünüm */
   cv.width=IW*Q2;cv.height=IH*Q2;
   let cw=W,ch=W*aspect;if(ch>H){ch=H;cw=H/aspect}
@@ -842,6 +842,7 @@ btn($('#bPas'),'pas');btn($('#bSut'),'sut');
 $('#pauseBtn').addEventListener('click',()=>togglePause());
 function readInput(){if(window.__bot){window.__bot(M);return}dolumKontrol();let x=joyV.x,y=joyV.y;
   if(keys.ArrowLeft||keys.KeyA)x=-1;if(keys.ArrowRight||keys.KeyD)x=1;if(keys.ArrowUp||keys.KeyW)y=-1;if(keys.ArrowDown||keys.KeyS)y=1;
+  const K=window.__kmKum;if(K&&(K.x||K.y)){x=K.x;y=K.y} /* klasik kumanda / oyun kolu (kumanda.js) */
   const d=Math.hypot(x,y);if(d<.18){x=0;y=0}else if(d>1){x/=d;y/=d}
   if(camMode()!==0){const f=BC.f,r=BC.r,wx=x*r[0]-y*f[0],wy=x*r[1]-y*f[1];x=wx;y=wy} /* ekrana göre: sağ = kameranın sağı, yukarı = kameranın baktığı yön */
   M.input.x=x;M.input.y=y}
@@ -1700,8 +1701,11 @@ function setCam(v){S.set.cam=v;persist();if(M){M.camMode=v;M.tv=null;M.bc=null;r
 function resize(){
   if(M&&M.camMode==null)M.camMode=S.set.cam||0;
   if(camMode()===0){cv.style.left=cv.style.top=cv.style.transform=cv.style.imageRendering='';resize2D();return}
-  bcResize(innerWidth,innerHeight);
+  bcResize(oyunW(),oyunH());
 }
+/* maç alanının boyu: klasik kumandada #game bir kutu (kumanda.js), yoksa tam ekran */
+function oyunW(){const g=document.getElementById('game');return (g&&g.clientWidth)||innerWidth}
+function oyunH(){const g=document.getElementById('game');return (g&&g.clientHeight)||innerHeight}
 function buildPitch(){if(camMode()===0)return buildPitch2D();bcImg=null;M.bc=null;buildBC()}
 function camera(dt){if(camMode()===0)return camera2D(dt);cameraBC(dt)}
 function draw(){ledTick();if(camMode()===0)draw2D();else drawBC()}
@@ -2045,5 +2049,6 @@ if(/[?&#]demo/.test(location.href)){startMatch(team('tr','gs'),team('tr','fb'),n
 window.__RL={get M(){return M},startMatch,team,S:()=>S,step,draw,endMatch};
 </script>
 <script>window.SesKurtarici&&SesKurtarici.yenidenKur(()=>{SND.ctx=null});</script>
+<script src="kumanda.js"></script>
 </body>
 </html>
