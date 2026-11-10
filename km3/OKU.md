@@ -64,3 +64,8 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Lig ekranı sağda **YÖNETİM** paneli (hedef, şu anki sıra, güven çubuğu, açıklama); sezon sonunda "Yönetim: Hedef tuttu / Beklentinin üstü / Hedefin altında". Tarihçede **Yönetim** sütunu (süren sezonda hedef, biten sezonda sonuç). VR panelinde sonraki maçın altında güven, sezon sonunda sonuç; VR'da sezon sonu mesajı alt satırdan taşmıyor, uzun başlık küçülür.
 - Kayıtta `d.hedef` ({k, s}), tarihçede `hd`/`hs`. Eski kayıtlar açılınca hedef kurulur; eski tarihçe satırlarında Yönetim boş kalır. "Ligi bırak" / "Verilerimi sil" hepsini siler (aynı dosya).
 - Kod: `Lig._hedef_kur()`, `hedef_adi/sira/aciklama()`, `hedef_sonuc()`, `beklenen_puan()`, `guven()`, `guven_adi()`, `yuzde()` (TR %72, EN 72%), `LigEkran._yonetim_panel()`, `vr._lig_ciz()`. Deneme: `dene/lig_dene.gd` (28 ligde hedef/güven/kayıt/eski kayıt), `--ligsezon=22 --ligtakim=8 --lig --ekran=x.png` (`--vrsahte`, `--dil=en`).
+
+## 0.9.3 — Klasik kumanda
+- Molada yeni satır **Kontrol**: Dokunmatik çubuk / Klasik kumanda (`user://km3-ayar.cfg` → `kontrol/klasik`). Klasik kumandada iki yanda panel: solda sabit yön haçı (8 yön, çaprazlar dahil) ve MENÜ, sağda A (ŞUT) / B (PAS) — basılı tutunca güç halkası dolar. Tabela ve imza panellerin içine kaçmaz (`ana._yerlesim`). Kod: `arayuz/dokunmatik.gd` (`klasik`, `_k`, `_input_klasik`, `_ciz_klasik`).
+- Oyun kolu zaten vardı (sol çubuk koş, A pas, B/X şut, Y kamera, Start mola); her modda çalışır.
+- Deneme: `km3-ayar.cfg`'ye `[kontrol] klasik=true` yaz, `--mac --ileri=60 --dokun --ekran=x.png`.

@@ -63,6 +63,12 @@ var _yardim_dugmeler: Array = []
 var yardim_panel: PanelContainer
 var dok: Dokunmatik
 var dokunmatik := false
+var klasik := false     # Klasik kumanda (Gameboy modu): yön haçı solda, A/B sağda, oyun ortada (molada Kontrol satırı)
+func klasik_degistir() -> void:
+	klasik = not klasik
+	var c := ConfigFile.new(); c.load(Mola.AYAR); c.set_value("kontrol", "klasik", klasik); c.save(Mola.AYAR)
+	if dok: dok.klasik = klasik; dok.queue_redraw()
+	_yerlesim()
 
 # lig modu
 var lig: Lig
@@ -528,6 +534,9 @@ func _arayuz() -> void:
 	if dokunmatik:
 		bilgi.visible = false
 		dok = Dokunmatik.new(); dok.visible = false; ui.add_child(dok)
+		var kc := ConfigFile.new()
+		if kc.load(Mola.AYAR) == OK: klasik = bool(kc.get_value("kontrol", "klasik", false))
+		dok.klasik = klasik
 		dok.mola_istendi.connect(func(): if M and not M.demo: menu_goster(true))
 	# menü
 	menu = PanelContainer.new()
@@ -691,6 +700,9 @@ func _yerlesim() -> void:
 	var alt: float = float(c.get("b", 0.0)) * mantik.y / ch
 	var sol: float = float(c.get("l", 0.0)) * mantik.x / cw
 	var sag: float = float(c.get("r", 0.0)) * mantik.x / cw
+	var sag0 := sag
+	if dok and dok.klasik and dokunmatik:     # klasik kumandada tabela ve imza iki yandaki panellerin içine kaçmasın
+		var pg: float = dok.panel(mantik.x); sol += pg; sag += pg
 	if _tp: _tp.position = Vector2(18 + sol, 16 + ust)
 	if _imza:
 		_imza.offset_right = -14 - sag; _imza.offset_left = _imza.offset_right - _imza.get_combined_minimum_size().x
@@ -703,7 +715,7 @@ func _yerlesim() -> void:
 	if _yardim_yazi:
 		_yardim_yazi.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if dikey else TextServer.AUTOWRAP_OFF
 		_yardim_yazi.custom_minimum_size.x = mantik.x - 60 if dikey else 0.0
-	if dok: dok.ust = ust; dok.alt = alt; dok.sag = sag; dok.queue_redraw()
+	if dok: dok.ust = ust; dok.alt = alt; dok.sag = sag0; dok.queue_redraw()
 	if lig_ekran: lig_ekran.dikey = dikey; lig_ekran.ust = ust; if lig_ekran.visible: lig_ekran.yenile()
 func _dil_yaz() -> void:
 	if dil_dugme: dil_dugme.text = "Dil / Language: " + Dil.ad()

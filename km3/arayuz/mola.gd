@@ -3,7 +3,7 @@
 extends RefCounted
 class_name Mola
 
-const SATIRLAR := ["DEVAM ET", "Çıkan", "Giren", "DEĞİŞİKLİĞİ YAP", "Asistan değişiklikleri", "Kamera", "Takım konuşması", "Nasıl oynanır", "MAÇI BIRAK"]
+const SATIRLAR := ["DEVAM ET", "Çıkan", "Giren", "DEĞİŞİKLİĞİ YAP", "Asistan değişiklikleri", "Kamera", "Takım konuşması", "Nasıl oynanır", "MAÇI BIRAK", "Kontrol"]
 # takım konuşması (Champion Battle Manager 4.6'daki gibi): ilk yarının başında maç önü, devre arası / ikinci yarının başında devre arası
 const KONUSMA := {"once": ["Sakin olun, oyununuzu oynayın", "Size güveniyorum", "Hırslı olun, her topa basın"],
 	"devre": ["Aynen devam", "Daha fazlasını istiyorum", "Hayal kırıklığına uğradım"]}
@@ -65,6 +65,7 @@ func deger(i: int) -> String:
 			return "%d hak · %d ara kaldı" % [k.hak, maxi(0, k.ara)]
 		4: return "Açık" if M.asistan[BIZ] else "Kapalı (sakatlıkta yine girer)"
 		5: return ana.vr.KOLTUKLAR[ana.vr.koltuk] if ana.vr else ana.KAMERALAR[ana.kam_mod]
+		9: return "oyun kolu" if ana.vr else ("Klasik kumanda" if ana.klasik else "Dokunmatik çubuk")
 		6:
 			var an := konus_an()
 			if an == "": return str(M.konus.get("sonuc", "şimdi değil (maç başında ve devre arasında)"))
@@ -74,7 +75,7 @@ func deger(i: int) -> String:
 func satir_metni(i: int, secili: bool) -> String:
 	var d := deger(i)
 	var ad: String = ("Koltuk" if ana.vr else "Kamera") if i == 5 else SATIRLAR[i]
-	if i in [1, 2, 4, 5] or (i == 6 and konus_an() != ""): return ("‹  " if secili else "") + ad + ":  " + d + ("  ›" if secili else "")
+	if i in [1, 2, 4, 5, 9] or (i == 6 and konus_an() != ""): return ("‹  " if secili else "") + ad + ":  " + d + ("  ›" if secili else "")
 	return ("»  " if secili else "") + SATIRLAR[i] + (("   ·   " + d) if d != "" else "")
 
 func kay(i: int, d: int) -> void:
@@ -86,6 +87,7 @@ func kay(i: int, d: int) -> void:
 			if ana.vr: ana.vr.koltuga_gec(ana.vr.koltuk + d)
 			else: ana._kamera(posmod(ana.kam_mod + d, ana.KAMERALAR.size()))
 		6: konus_sec += d
+		9: if ana.vr == null: ana.klasik_degistir()
 
 func bas(i: int) -> void:
 	var M = ana.M
@@ -108,6 +110,7 @@ func bas(i: int) -> void:
 			ana.mola_bilgi(t); konus_sec = 0
 		7: ana.yardim_goster(not ana.yardim_acik)
 		8: ana.maci_birak()
+		9: kay(i, 1)
 
 # ---------- rehber: ilk maçlarda, yeri gelince bir kez gösterilen ipuçları ----------
 const AYAR := "user://km3-ayar.cfg"
