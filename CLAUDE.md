@@ -56,3 +56,11 @@ Klasik kumanda her oyuna konmaz: yalnız yakıştığı oyunlarda (yön + iki tu
 - Odak çerçevesi kamera kaymasını ve düğmenin kendi boyunu hesaba katar. Menülerde yön tuşları gezer, A basar, B geri, MENÜ mola. Bluetooth oyun kolu (Gamepad API) ve klavye her modda çalışır.
 - Ayar varsayılan olarak kapalı, Ayarlar'dan açılır; ipucu kartı. Klasik kumanda kapalıyken oyunun desteklemediği yönde "telefonu çevir ya da klasik kumandayı aç" perdesi.
 - Her oyunun kabuğu kendi temasında (renk, yazı, logo).
+
+### Mr. Anduv! evreni ve kaynak kuralları (Emre'nin kuralı, 11 Kasım 2026)
+Bütün oyun ve uygulamalar tek bir evrende yaşar: **Türk / Türk-İslam kaynağı → oyun, çizim, çizgi film → yeniden kaynağa dönen içerik.** Merkezde para değil karakter ve hikâye durur; her ürün ötekinin kapısıdır.
+- **Tek kaynak:** emreanduv/emreanduv-tamga-yolu `evren/EVREN.md` (zaman çizgisi, ortak karakterler, kaynaklar, saygı kuralları). Hayvan/yaratık listesi aynı repoda `src/veri.js` → `YARATIK` (ad, renk, Bitig yazısı; çizimler `src/cizimler*.js`). Yeni karakter, yaratık ya da hikâye önce evren kitabına yazılır, sonra oyuna girer.
+- **Ortak karakterler** (Dede Korkut, Temür ve Bozbörü, Tulpar, Keloğlan, Tepegöz, Yelbegen, Karakoncolos, Albastı…) her oyunda aynı ad, görünüş ve kişilikle yer alır. Yeni içerikte "bu karakter başka hangi oyunda yaşayabilir?" diye bakılır.
+- **Kaynak:** Yazılı kaynağı olan destan, yazıt, eser, halk inancı, gerçek tarih ve yerli hayvan/yer. Uydurma "eski Türk inancı" yok; tarihî bilgi doğrulanır.
+- **Saygı:** Peygamberimiz, ehl-i beyt ve sahabe tasvir edilmez (yüz, beden, ses taklidi yok). Kutsal varlık, mekân ve eşya (Burak, Kâbe, Kur'an, mescit) dövüşmez, yakalanmaz, satılmaz, hasar görmez; gerekirse adı anılmadan ışık ya da his olarak yer alır (örnek: Tamga Yolu 1923. basamak gecesindeki ışık). Ayet/hadis uydurulmaz, değiştirilmez. Tanrı ve kutsal sayılan varlıklar beden olarak çizilmez. Efsane efsane, tarih tarih olarak sunulur; tarihî kişiler karikatürleştirilmez; karşı taraf aşağılanmaz. Dış efsaneler yalnız konuk/rakip olarak, saygıyla.
+- **Tema yazıyla söylenmez, hissettirilir.** İmza her yerde: 1923 ve "Bir Mr. Anduv! yapımıdır.".
