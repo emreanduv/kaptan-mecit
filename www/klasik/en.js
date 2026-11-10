@@ -14,7 +14,7 @@
 
   var D=[
   // ana menü ve ekranlar
-  ['Bir Mr. Anduv! yapımıdır.','Made by Mr. Anduv!'],['Tüm kulüp ve oyuncu adları kurmacadır.','All club and player names are fictional.'],['Sürüm','Version'],
+  ['Tüm kulüp ve oyuncu adları kurmacadır.','All club and player names are fictional.'],['Sürüm','Version'],
   ['HIZLI MAÇ','QUICK MATCH'],['Hızlı Maç','Quick Match'],['İki takım seç, sahaya çık','Pick two teams and kick off'],
   ['LİG KARİYERİ','LEAGUE CAREER'],['Lig kariyeri','League career'],['YENİ KARİYER','NEW CAREER'],['AYARLAR','SETTINGS'],['Ayarlar','Settings'],
   ['NASIL OYNANIR?','HOW TO PLAY?'],['ARKADAŞINA ÖNER','RECOMMEND TO A FRIEND'],['Arkadaşına öner','Recommend to a friend'],
