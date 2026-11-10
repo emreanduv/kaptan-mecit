@@ -1403,7 +1403,7 @@ function thinkGK(p,dt){
 }
 
 /* ---------- Eylemler ---------- */
-function release(p,vx,vy,vz,intended){const b=M.ball;if(M.ist&&intended&&intended.team===p.team){M.ist.pas[p.team]++;kmOy(p).p++}kmOfsaytBak(p,intended);b.owner=null;b.x=p.x+p.dx*.5;b.y=p.y+p.dy*.5;b.vx=vx;b.vy=vy;b.vz=vz;b.z=Math.max(b.z,.05);b.last=p;b.lastTeam=p.team;b.kicker=p;b.intended=intended||null;b.gkTried=false;b.cross=false;p.cd=.35;p.hold=0;b.atis=!!(M.setPiece&&M.setPiece.tac&&M.setPiece.p===p);M.setPiece=null}
+function release(p,vx,vy,vz,intended){const b=M.ball;if(M.ist&&intended&&intended.team===p.team){M.ist.pas[p.team]++;kmOy(p).p++}kmOfsaytBak(p,intended);b.owner=null;b.x=p.x+p.dx*.5;b.y=p.y+p.dy*.5;if(M.setPiece&&M.setPiece.p===p){b.x=clamp(b.x,.2,PW-.2);b.y=clamp(b.y,.2,PL-.2)} /* duran toptan (taç, korner) top sahanın içinden oyuna girer; dışarıda kalırsa hemen yine auta çıkıp taç bir bize bir rakibe geçiyordu */b.vx=vx;b.vy=vy;b.vz=vz;b.z=Math.max(b.z,.05);b.last=p;b.lastTeam=p.team;b.kicker=p;b.intended=intended||null;b.gkTried=false;b.cross=false;p.cd=.35;p.hold=0;b.atis=!!(M.setPiece&&M.setPiece.tac&&M.setPiece.p===p);M.setPiece=null}
 function doPass(p,dx,dy,target){
   const q=target||bestPass(p,dx,dy,true);
   if(!q){const n=Math.hypot(dx,dy)||1;release(p,dx/n*14,dy/n*14,.5);SND.kick(.6);return}
@@ -1461,7 +1461,7 @@ function movePlayer(p,dt){
 /* duran top kuralı: topu kullanan oyuncu topa dokunmadan rakipler 9,15 m uzakta bekler, topa müdahale edemez; santrada rakip kendi yarısındadır */
 const DURAN_MESAFE=9.15;
 function duranBekliyor(){return !!(M.setPiece&&M.ball.owner&&M.ball.owner===M.setPiece.p)}
-function mesafeKurali(){if(!duranBekliyor()||M.setPiece.pen)return;const b=M.ball,ti=M.setPiece.p.team,ko=!!M.setPiece.ko;
+function mesafeKurali(){if(!duranBekliyor()||M.setPiece.pen)return;const b=M.ball,ti=M.setPiece.p.team,ko=!!M.setPiece.ko;if(M.setPiece.nokta&&!M.setPiece.yol){const tp=M.setPiece.p;tp.x=M.setPiece.nokta[0];tp.y=M.setPiece.nokta[1];tp.vx=tp.vy=0} /* topu kullanacak oyuncu yerinde durur: taçta çizginin dışına kayıp topu sahanın dışında tutmasın */
   const bj=M.setPiece.baraj;if(bj)for(const[q,x,y,fx,fy]of bj){q.x=x;q.y=y;q.vx=q.vy=0;q.dx=fx;q.dy=fy;q.slide=0;const ex=x-b.x,ey=y-b.y,ed=Math.hypot(ex,ey)||1;if(ed<DURAN_MESAFE){q.x=b.x+ex/ed*DURAN_MESAFE;q.y=b.y+ey/ed*DURAN_MESAFE}}
   for(const q of M.P){if(q.team===ti||bj&&bj.some(e=>e[0]===q))continue;q.slide=0;
     if(ko){if(fwdOf(q.team)===-1)q.y=Math.max(q.y,PL/2+.3);else q.y=Math.min(q.y,PL/2-.3)}
@@ -1537,7 +1537,7 @@ function restart(ti,x,y,pickRole){
   /* rakipler 9,15 m uzaklaşsın */
   for(const q of M.P){if(q.team===ti)continue;const d=Math.hypot(q.x-x,q.y-y);if(d<DURAN_MESAFE){const ux=(q.x-x)/(d||1),uy=(q.y-y)/(d||1);q.x=clamp(x+ux*DURAN_MESAFE,.5,PW-.5);q.y=clamp(y+uy*DURAN_MESAFE,.5,PL-.5)}}
   const cx=PW/2,cy=y<PL/2?Math.max(y,10):Math.min(y,PL-10);const dx=cx-hx,dy=cy-hy,d=Math.hypot(dx,dy)||1;
-  b.owner=p;p.hold=0;p.cd=0;b.lastTeam=ti;M.setPiece={p,t:0,yol:{tx:hx,ty:hy,fx:dx/d,fy:dy/d,bekle:0}};
+  b.owner=p;p.hold=0;p.cd=0;b.lastTeam=ti;M.setPiece={p,t:0,nokta:[hx,hy],yol:{tx:hx,ty:hy,fx:dx/d,fy:dy/d,bekle:0}};
   if(p.team===0&&!M.demo)M.ctrl=p;
   M.state='pre';M.stateT=.55;mesafeKurali();
 }

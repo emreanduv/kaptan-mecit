@@ -65,6 +65,11 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Kayıtta `d.hedef` ({k, s}), tarihçede `hd`/`hs`. Eski kayıtlar açılınca hedef kurulur; eski tarihçe satırlarında Yönetim boş kalır. "Ligi bırak" / "Verilerimi sil" hepsini siler (aynı dosya).
 - Kod: `Lig._hedef_kur()`, `hedef_adi/sira/aciklama()`, `hedef_sonuc()`, `beklenen_puan()`, `guven()`, `guven_adi()`, `yuzde()` (TR %72, EN 72%), `LigEkran._yonetim_panel()`, `vr._lig_ciz()`. Deneme: `dene/lig_dene.gd` (28 ligde hedef/güven/kayıt/eski kayıt), `--ligsezon=22 --ligtakim=8 --lig --ekran=x.png` (`--vrsahte`, `--dil=en`).
 
+## 0.9.7 — Taç döngüsü düzeltildi
+- Emre (11 Kas 2026): taçta top içeri girmiyor, taç hakkı bir bize bir rakibe geçiyordu. Sebep: taçı kullanacak oyuncu koşarak geliyor, yerine varınca hızı sıfırlanmadığı için çizginin dışına kayıyor (−0,7 m) ve sahaya sırtını dönüyordu; atışta top da çizginin dışından bırakılıyor, ilk adımda yeniden auta çıkıp taç rakibe geçiyordu (eski motorla tam maçlarda 15 taçtan 8'i).
+- Düzeltme (`motor/mac.gd`): yerine varınca hız sıfır; `set_piece.nokta` ile oyuncu duran top boyunca yerinde durur (`mesafe_kurali`); duran toptan bırakılan top sahanın içinden (≥0,2 m) oyuna girer (`release`). Klasik'e de aynı güvence (`www/klasik/index.html`).
+- Deneme: `dene/tac_kos.gd` (taç, koşarak gelen oyuncu, iki kenar, 7 nokta, insan/yapay zekâ: 56 taç, 0 döngü, top çizginin dışında 0 m), `dene/tac_pingpong.gd` (tam maçlar: dokunulmadan yeniden taç 0).
+
 ## 0.9.6 — Klasik kumanda kaldırıldı
 - Emre'nin kararı (11 Kas 2026): futbolda dokunmatik daha iyi. `ana.klasik` her zaman false, molada Kontrol satırı gizli (`Mola.SIRA`, satır 9 işlem yapmaz), VR molası 9 satır. `dokunmatik.gd` içindeki klasik çizim kodu duruyor ama kullanılmıyor.
 

@@ -351,12 +351,12 @@ func step(dt: float) -> void:
 				q.x += ddx / dd * s; q.y += ddy / dd * s; q.anim += s; q.dx = ddx / dd; q.dy = ddy / dd
 				q.vx = ddx / dd * v; q.vy = ddy / dd * v
 			else:
-				q.x = yol.tx; q.y = yol.ty; q.dx = yol.fx; q.dy = yol.fy
+				q.x = yol.tx; q.y = yol.ty; q.dx = yol.fx; q.dy = yol.fy; q.vx = 0; q.vy = 0
 			if state_t <= 0 and dd > .3:
 				yol.bekle += dt
 				if yol.bekle < 6: state_t = .05
 			if state_t <= 0:
-				q.x = yol.tx; q.y = yol.ty; q.dx = yol.fx; q.dy = yol.fy; set_piece.erase("yol")
+				q.x = yol.tx; q.y = yol.ty; q.dx = yol.fx; q.dy = yol.fy; q.vx = 0; q.vy = 0; set_piece.erase("yol")
 		if state_t <= 0:
 			var f := after
 			after = Callable()
@@ -961,6 +961,10 @@ func release(p: Oy, vx: float, vy: float, vz: float, intended: Oy = null) -> voi
 	if not demo and intended != null and intended.team == p.team: ist.pas[p.team] += 1; oy_k(p).p += 1
 	ofsayt_bak(p, intended)
 	b.owner = null; b.x = p.x + p.dx * .5; b.y = p.y + p.dy * .5; b.vx = vx; b.vy = vy; b.vz = vz; b.z = maxf(b.z, .05)
+	# duran toptan (taç, korner) top sahanın içinden oyuna girer: dışarıda bırakılırsa hemen yeniden auta çıkıp
+	# taç hakkı bir bize bir rakibe geçiyordu
+	if set_piece != null and set_piece.p == p:
+		b.x = clampf(b.x, .2, PW - .2); b.y = clampf(b.y, .2, PL - .2)
 	b.last = p; b.last_team = p.team; b.kicker = p; b.intended = intended; b.gk_tried = null; b.cross = false; b.shot = false
 	b.atis = set_piece != null and set_piece.get("tac", false) and set_piece.p == p
 	p.cd = .35; p.hold = 0; set_piece = null
@@ -1229,6 +1233,11 @@ func mesafe_kurali() -> void:
 	if not duran_top_bekliyor(): return
 	var b := ball
 	var ti: int = set_piece.p.team
+	# topu kullanacak oyuncu yerine vardıysa yerinde durur (taçta çizginin dışına kayıp topu sahanın dışında tutmasın)
+	var nk = set_piece.get("nokta")
+	if nk != null and not set_piece.has("yol"):
+		var tp: Oy = set_piece.p
+		tp.x = nk[0]; tp.y = nk[1]; tp.vx = 0; tp.vy = 0
 	var ko: bool = set_piece.get("ko", false)
 	var bj: Array = set_piece.get("baraj", [])
 	var bj_oy := []
@@ -1305,7 +1314,7 @@ func restart(ti: int, x: float, y: float, pick_role := "") -> void:
 	var dx := cx - hx; var dy := cy - hy; var d := hyp(dx, dy)
 	if d == 0: d = 1
 	b.owner = p; p.hold = 0; p.cd = 0; b.last_team = ti
-	set_piece = {"p": p, "t": 0.0, "yol": {"tx": hx, "ty": hy, "fx": dx / d, "fy": dy / d, "bekle": 0.0}}
+	set_piece = {"p": p, "t": 0.0, "nokta": [hx, hy], "yol": {"tx": hx, "ty": hy, "fx": dx / d, "fy": dy / d, "bekle": 0.0}}
 	if p.team == 0 and not demo: ctrl = p
 	state = "pre"; state_t = .55
 	mesafe_kurali()
