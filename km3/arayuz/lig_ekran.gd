@@ -187,11 +187,11 @@ func _tarih_panel() -> Control:
 	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 0); p.add_child(v)
 	var biz: Dictionary = lig.takim(lig.biz())
 	v.add_child(_serit("TARİHÇE  ·  %s  ·  %s" % [biz.ad, lig.tarih_ozet()]))
-	v.add_child(_tarih_satir(["Sezon", "Sıra", "O", "G", "B", "M", "Av", "P", "Şampiyon", "Gol kralı"], 0, true, false, false))
+	v.add_child(_tarih_satir(["Sezon", "Sıra", "O", "G", "B", "M", "Av", "P", "Şampiyon", "Gol kralı", "Yönetim"], 0, true, false, false))
 	var k := 0
 	for x in lig.tarih_satirlari():
 		var sam: String = "sürüyor" if x[13] else x[10]
-		var vals := [x[0], "%d." % int(x[1]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), ("+" if int(x[7]) > 0 else "") + str(x[7]), str(x[8]), sam, x[11]]
+		var vals := [x[0], "%d." % int(x[1]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), ("+" if int(x[7]) > 0 else "") + str(x[7]), str(x[8]), sam, x[11], ("Hedef: " + x[14]) if x[13] else x[14]]
 		v.add_child(_tarih_satir(vals, k, false, x[12], x[13])); k += 1
 	if lig.tarih_satirlari().size() <= 1:
 		v.add_child(_ic(_etiket("Sezon bitince karnesi buraya yazılır: sıra, puan, şampiyon ve gol kralı.", 15, SOLUK)))
@@ -208,12 +208,14 @@ func _tarih_satir(vals: Array, k: int, baslik: bool, sampiyon: bool, suruyor: bo
 		if not baslik:
 			if i == 1 and sampiyon: renk = ALTIN
 			elif i == 7: renk = ALTIN
+			elif i == 10: renk = KIRMIZI if str(vals[i]) == "Hedefin altında" else (YESIL if str(vals[i]) in ["Hedef tuttu", "Beklentinin üstü"] else SOLUK)
 			elif i >= 8: renk = ALTIN if (i == 8 and sampiyon) else SOLUK
 		var l := _etiket(str(vals[i]), 14 if baslik else 15, renk)
 		if i >= 8:
 			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL; l.clip_text = true
 			l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 			if i == 9: l.size_flags_stretch_ratio = 1.4
+			elif i == 10: l.size_flags_stretch_ratio = 1.1
 		else:
 			l.custom_minimum_size = Vector2(TARIH_GEN[i], 0)
 			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if i == 0 else HORIZONTAL_ALIGNMENT_CENTER
@@ -337,6 +339,9 @@ func _sag_panel() -> Control:
 			var s: Dictionary = lig.takim(int(lig.d.sampiyon))
 			var l := _etiket("ŞAMPİYON:  " + s.ad, 20, ALTIN); l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; mv.add_child(_ic(l))
 			mv.add_child(_ic(_etiket("Senin takımın %d. bitirdi." % lig.sira_biz(), 16, YAZI)))
+			var hs := Lig.hedef_sonuc(lig.sira_biz(), lig.hedef_sira())
+			var yl := _etiket("Yönetim: " + hs + "  (hedef: " + lig.hedef_adi() + ")", 16, KIRMIZI if hs == "Hedefin altında" else YESIL)
+			yl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; mv.add_child(_ic(yl))
 			if lig.gol_krali_metni() != "":
 				var gk := _etiket("Gol kralı:  " + lig.gol_krali_metni(), 16, ALTIN); gk.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; mv.add_child(_ic(gk))
 		else:
@@ -351,6 +356,7 @@ func _sag_panel() -> Control:
 				if r[1] == lig.takim(rk).kisa: rs = r[0]
 			mv.add_child(_ic(_etiket("%s  ·  rakip %d. sırada, güç %d" % [ic_dis, rs, int(lig.takim(rk).str)], 15, SOLUK)))
 		v.add_child(mp)
+		if not lig.bitti(): v.add_child(_yonetim_panel())
 		if not lig.son_hafta.is_empty():
 			var sp := PanelContainer.new(); sp.add_theme_stylebox_override("panel", _kutu(PANEL, 6, 0))
 			var sv := VBoxContainer.new(); sv.add_theme_constant_override("separation", 0); sp.add_child(sv)
@@ -378,6 +384,29 @@ func _sag_panel() -> Control:
 		l2.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; iv.add_child(_ic(l2))
 		v.add_child(ip)
 	return v
+
+# yönetim beklentisi: hedef, şu anki sıra ve güven çubuğu (FM'deki yönetim kurulu güveni)
+func _yonetim_panel() -> Control:
+	var p := PanelContainer.new(); p.add_theme_stylebox_override("panel", _kutu(PANEL, 6, 0))
+	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 4); p.add_child(v)
+	var g := lig.guven()
+	v.add_child(_serit("YÖNETİM  ·  " + Lig.guven_adi(g)))
+	var sira := lig.sira_biz(); var hs := lig.hedef_sira()
+	var h := _etiket("Hedef: %s  ·  şu an %d." % [lig.hedef_adi(), sira], 16, YAZI); h.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(_ic(h))
+	var cubuk := HBoxContainer.new(); cubuk.add_theme_constant_override("separation", 8)
+	var zemin := PanelContainer.new(); zemin.size_flags_horizontal = Control.SIZE_EXPAND_FILL; zemin.custom_minimum_size = Vector2(0, 12)
+	zemin.add_theme_stylebox_override("panel", _kutu(SERIT, 4, 0))
+	var dolu := ColorRect.new(); dolu.color = YESIL if g >= 60 else (ALTIN if g >= 40 else KIRMIZI)
+	dolu.size_flags_horizontal = Control.SIZE_EXPAND_FILL; dolu.size_flags_stretch_ratio = g
+	var bos := Control.new(); bos.size_flags_horizontal = Control.SIZE_EXPAND_FILL; bos.size_flags_stretch_ratio = 100 - g
+	var ic := HBoxContainer.new(); ic.add_theme_constant_override("separation", 0); ic.add_child(dolu); ic.add_child(bos); zemin.add_child(ic)
+	cubuk.add_child(zemin); cubuk.add_child(_etiket(Lig.yuzde(g), 15, SOLUK))
+	v.add_child(_ic(cubuk))
+	var not_ := "Yönetim senden " + lig.hedef_aciklama() + " bekliyor."
+	if int(lig.d.hafta) * 2 >= lig.hafta_sayisi(): not_ += ("  Şu an hedefin gerisindesin." if sira > hs else "  Şu an hedefi tutturuyorsun.")
+	var nl := _etiket(not_, 14, SOLUK); nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; v.add_child(_ic(nl))
+	return p
 
 func _serit(t: String) -> Control:
 	var p := PanelContainer.new(); var st := _kutu(SERIT, 0, 0)

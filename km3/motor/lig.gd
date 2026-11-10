@@ -47,6 +47,7 @@ func yukle() -> void:
 		d.golcu = _golcu_kur(li); d.goller = {}
 	if not d.has("goller"): d.goller = {}
 	if not d.has("tarih"): d.tarih = []      # tarihçeden önceki kayıt
+	if not d.has("hedef"): d.hedef = _hedef_kur()   # yönetim beklentisinden önceki kayıt
 	if int(d.hafta) > 0: son_hafta = d.fikstur[int(d.hafta) - 1]
 
 func kaydet() -> void:
@@ -81,6 +82,7 @@ func yeni_sezon(lig: int, tk: int, sezon := 1, tarih: Array = []) -> void:
 	d = {"surum": SURUM, "lig": lig, "takim": tk, "sezon": sezon, "hafta": 0, "takimlar": range(n),
 		"guc": guc, "fikstur": gercek_fikstur(lig), "sampiyon": -1, "golcu": golcu, "goller": {}, "tarih": tarih}
 	if d.fikstur.is_empty(): d.fikstur = fikstur_uret(n, randi())
+	d.hedef = _hedef_kur()
 	son_hafta = []
 	mesaj = ""
 	kaydet()
@@ -244,6 +246,7 @@ func hafta_bitir() -> void:
 		d.sampiyon = tablo()[0].i
 		mesaj = "Sezon bitti · Şampiyon: " + takim(int(d.sampiyon)).ad
 		if gol_krali_metni() != "": mesaj += " · Gol kralı: " + gol_krali_metni()
+		mesaj += " · Yönetim: " + hedef_sonuc(sira_biz(), hedef_sira())
 		_tarihe_yaz()
 	else:
 		mesaj = ""
@@ -357,19 +360,109 @@ func _tarihe_yaz() -> void:
 	for r in tablo():
 		if r.i == biz(): b = r
 	d.tarih.append({"s": int(d.sezon), "sira": sira_biz(), "n": (d.takimlar as Array).size(), "P": b.P, "G": b.G, "B": b.B, "M": b.M,
-		"A": b.A, "Y": b.Y, "sam": int(d.sampiyon), "kral": gol_krali_metni()})
+		"A": b.A, "Y": b.Y, "sam": int(d.sampiyon), "kral": gol_krali_metni(), "hd": hedef_adi(), "hs": hedef_sira()})
 
 func sonraki_sezon() -> void:
 	if not var_mi(): return
 	if bitti(): _tarihe_yaz()
 	yeni_sezon(int(d.lig), int(d.takim), int(d.sezon) + 1, d.get("tarih", []))
 
+# ---------- yönetim beklentisi (FM'deki yönetim kurulu hedefi ve güveni) ----------
+# Sezon başında kulübün güç sırasına göre hedef konur; güven, oynanan maçlarda alınan puanın
+# güce göre beklenen puandan farkıyla oynar. Sezon sonunda hedef tuttu mu yazılır (tarihçede de).
+const HEDEFLER := [["Şampiyonluk", "ligi kazanmak"], ["İlk üç", "ilk üçte bitirmek"], ["İlk altı", "ilk altıda bitirmek"],
+	["Orta sıra", "ilk yarının hemen altında ya da üstünde bitirmek"], ["Ligde kalmak", "son üçe düşmemek"]]
+
+func _guc_sirasi() -> int:
+	var g: float = d.guc[biz()]
+	var r := 1
+	for i in (d.guc as Array).size():
+		if i != biz() and float(d.guc[i]) > g: r += 1
+	return r
+
+func _hedef_kur() -> Dictionary:
+	var n: int = (d.takimlar as Array).size()
+	var r := _guc_sirasi()
+	var k := 0; var s := 1
+	if r == 1: k = 0; s = 1
+	elif r <= 3: k = 1; s = 3
+	elif r <= 6: k = 2; s = 6
+	elif r <= n - 5: k = 3; s = ceili(n * .6)
+	else: k = 4; s = n - 3
+	return {"k": k, "s": clampi(s, 1, n)}
+
+func hedef_adi() -> String: return HEDEFLER[int(d.hedef.k)][0] if var_mi() else ""
+func hedef_sira() -> int: return int(d.hedef.s) if var_mi() else 0
+func hedef_aciklama() -> String: return HEDEFLER[int(d.hedef.k)][1] if var_mi() else ""
+
+static func hedef_sonuc(sira: int, hs: int) -> String:
+	if hs <= 0: return ""
+	if sira > hs: return "Hedefin altında"
+	if hs > 1 and sira <= maxi(1, hs - 3): return "Beklentinin üstü"
+	return "Hedef tuttu"
+
+# güce göre beklenen puan (sim_mac'in Poisson modeliyle: 3 × galibiyet + beraberlik olasılığı)
+func beklenen_puan(e: int, dp: int, ev_biz: bool) -> float:
+	var ge: float = d.guc[e]; var gd: float = d.guc[dp]
+	var le := 1.42 * exp(.016 * (ge - gd)); var ld := 1.12 * exp(.016 * (gd - ge))
+	var pe: Array = []; var pd: Array = []
+	for k in 11:
+		pe.append(exp(-le) * pow(le, k) / _fakt(k)); pd.append(exp(-ld) * pow(ld, k) / _fakt(k))
+	var g := 0.0; var b := 0.0; var m := 0.0
+	for x in 11:
+		for y in 11:
+			var p: float = pe[x] * pd[y]
+			if x > y: g += p
+			elif x == y: b += p
+			else: m += p
+	return 3.0 * (g if ev_biz else m) + b
+
+static func _fakt(k: int) -> float:
+	var f := 1.0
+	for i in range(2, k + 1): f *= i
+	return f
+
+# yönetim güveni (5–99): 60'tan başlar, beklenenden fazla alınan her puan +3, eksik her puan −3;
+# sezonun ikinci yarısında hedefin gerisindeysen sıra farkı başına −2, önündeysen +1
+func guven() -> int:
+	if not var_mi(): return 0
+	var fark := 0.0
+	for w in mini(int(d.hafta), hafta_sayisi()):
+		for mc in d.fikstur[w]:
+			var ev := int(mc[0]) == biz()
+			if not ev and int(mc[1]) != biz(): continue
+			if int(mc[2]) < 0: continue
+			var a := int(mc[2]) if ev else int(mc[3]); var y := int(mc[3]) if ev else int(mc[2])
+			var p := 3 if a > y else (1 if a == y else 0)
+			fark += p - beklenen_puan(int(mc[0]), int(mc[1]), ev)
+	var g := 60.0 + 3.0 * fark
+	if int(d.hafta) * 2 >= hafta_sayisi():
+		var sf := hedef_sira() - sira_biz()
+		g += sf * (1.0 if sf > 0 else 2.0)
+	return clampi(roundi(g), 5, 99)
+
+static func yuzde(g: int) -> String: return ("%d%%" % g) if Dil.en else ("%%%d" % g)   # TR: %72, EN: 72%
+
+static func guven_adi(g: int) -> String:
+	if g >= 80: return "Çok memnun"
+	if g >= 60: return "Memnun"
+	if g >= 40: return "Kararsız"
+	if g >= 20: return "Huzursuz"
+	return "Çok huzursuz"
+
+# kısa durum: "Hedef: İlk üç · şu an 2. · Memnun (%72)"
+func yonetim_metni() -> String:
+	if not var_mi(): return ""
+	var g := guven()
+	return "Hedef: %s · şu an %d. · %s (%s)" % [hedef_adi(), sira_biz(), guven_adi(g), yuzde(g)]
+
 static func sezon_adi_no(no: int) -> String:
 	var y := 2026 + no - 1
 	return "%d/%02d" % [y, (y + 1) % 100]
 
 # tarihçe satırları (ekran ve VR), yeniden eskiye; süren sezon en üstte:
-# [sezon adı, sıra, takım sayısı, O, G, B, M, Av, P, şampiyon kısa, şampiyon ad, gol kralı, biz şampiyon mu, sürüyor mu]
+# [sezon adı, sıra, takım sayısı, O, G, B, M, Av, P, şampiyon kısa, şampiyon ad, gol kralı, biz şampiyon mu, sürüyor mu,
+#  yönetim: süren sezonda hedefin adı, biten sezonda hedef sonucu (eski kayıtta "")]
 func tarih_satirlari() -> Array:
 	var r: Array = []
 	if not var_mi(): return r
@@ -377,14 +470,15 @@ func tarih_satirlari() -> Array:
 		var b: Dictionary = {}
 		for x in tablo():
 			if x.i == biz(): b = x
-		r.append([sezon_adi(), sira_biz(), (d.takimlar as Array).size(), b.O, b.G, b.B, b.M, b.Av, b.P, "", "", "", false, true])
+		r.append([sezon_adi(), sira_biz(), (d.takimlar as Array).size(), b.O, b.G, b.B, b.M, b.Av, b.P, "", "", "", false, true, hedef_adi()])
 	var T: Array = d.get("tarih", []).duplicate()
 	T.reverse()
 	for x in T:
 		var o := int(x.G) + int(x.B) + int(x.M)
 		var sam := int(x.sam)
 		r.append([sezon_adi_no(int(x.s)), int(x.sira), int(x.n), o, int(x.G), int(x.B), int(x.M), int(x.A) - int(x.Y), int(x.P),
-			takim(sam).kisa if sam >= 0 else "", takim(sam).ad if sam >= 0 else "", str(x.get("kral", "")), sam == biz(), false])
+			takim(sam).kisa if sam >= 0 else "", takim(sam).ad if sam >= 0 else "", str(x.get("kral", "")), sam == biz(), false,
+			hedef_sonuc(int(x.sira), int(x.hs)) if x.has("hs") else ""])
 	return r
 
 # tarihçe özeti: "3 sezon · 1 şampiyonluk · en iyi 1."

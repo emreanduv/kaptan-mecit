@@ -307,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language"]
-const SURUM := "0.9.1"
+const SURUM := "0.9.2"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -447,6 +447,8 @@ func _lig_ciz() -> void:
 	_bas.text = "LİG  ·  " + lg.ad + ("  ·  " + L.sezon_adi() + ("  ·  Sezon bitti" if L.bitti() else "  ·  Hafta %d/%d" % [int(L.d.hafta) + 1, L.hafta_sayisi()]) if L.var_mi() else "  ·  Yeni sezon")
 	_ipucu.text = "Çubuk yukarı/aşağı: satır  ·  sola/sağa: değiştir  ·  A ya da tetik: seç  ·  B: ana menü"
 	_mesaj.text = L.mesaj
+	if L.var_mi() and L.bitti() and L.kip != "kupa" and L.mesaj.begins_with("Sezon bitti"): _mesaj.text = ""   # şampiyon, gol kralı ve yönetim sağdaki yazıda; alt satıra sığmıyordu
+	if Dil.cevir(_bas.text).length() > 50: _bas.font_size = 50     # İngilizcede "Season over" başlığı panelden taşıyordu
 	if L.kip == "kupa": _kupa_ciz(L); return
 	# tablo
 	var sutun: Array = []
@@ -469,7 +471,7 @@ func _lig_ciz() -> void:
 		if L.mesaj == "": _mesaj.text = "TARİHÇE  ·  " + L.tarih_ozet()
 		sutun = ["", "TARİHÇE", "Sıra", "G", "B", "M", "Av", "P"]
 		for x in L.tarih_satirlari().slice(0, 18):
-			var sam: String = "sürüyor" if x[13] else ("★ " if x[12] else "") + "Şampiyon: " + x[9]
+			var sam: String = ("sürüyor  ·  hedef: " + x[14]) if x[13] else ("★ " if x[12] else "") + "Şampiyon: " + x[9] + (("  ·  " + x[14]) if x[14] != "" else "")
 			var v := ["", x[0] + "  ·  " + sam, "%d." % int(x[1]), str(x[4]), str(x[5]), str(x[6]), ("+" if int(x[7]) > 0 else "") + str(x[7]), str(x[8])]
 			for j in v.size(): sutun[j] += "\n" + v[j]
 			if x[13]: biz_sira = 1
@@ -502,14 +504,17 @@ func _lig_ciz() -> void:
 	if L.var_mi():
 		if L.bitti():
 			alt = "ŞAMPİYON: " + L.takim(int(L.d.sampiyon)).ad + "\nSenin takımın %d. bitirdi." % L.sira_biz()
+			alt += "\nYönetim: " + Lig.hedef_sonuc(L.sira_biz(), L.hedef_sira())
 			if L.gol_krali_metni() != "": alt += "\nGol kralı: " + L.gol_krali_metni()
 		else:
 			var mc := L.sonraki_mac()
 			alt = "SONRAKİ MAÇ\n" + L.takim(int(mc[0])).ad + "\n– " + L.takim(int(mc[1])).ad + "\n" + ("İç saha" if int(mc[0]) == L.biz() else "Deplasman") + "  ·  sen %d. sıradasın" % L.sira_biz()
+			var g := L.guven()
+			alt += "\nYönetim: %s (%s)" % [Lig.guven_adi(g), Lig.yuzde(g)]
 		if not L.son_hafta.is_empty():
 			for mc in L.son_hafta:
 				if int(mc[0]) == L.biz() or int(mc[1]) == L.biz():
-					alt += "\n\nGeçen hafta: %s %d-%d %s" % [L.takim(int(mc[0])).kisa, int(mc[2]), int(mc[3]), L.takim(int(mc[1])).kisa]
+					alt += ("\n" if L.bitti() == false else "\n\n") + "Geçen hafta: %s %d-%d %s" % [L.takim(int(mc[0])).kisa, int(mc[2]), int(mc[3]), L.takim(int(mc[1])).kisa]
 	else:
 		alt = "Ligini ve kulübünü seç. Her hafta kendi maçını oynarsın; diğer maçlar aynı anda sonuçlanır."
 	_lig_alt.text = alt

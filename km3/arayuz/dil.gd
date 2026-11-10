@@ -107,6 +107,16 @@ const SOZLUK := {
 	"İlk sezonun sürüyor": "Your first season is under way", "şampiyonluk": "titles", "en iyi sıra": "best finish", "sezon": "seasons",
 	"Sezon bitince karnesi buraya yazılır: sıra, puan, şampiyon ve gol kralı.": "When a season ends its record appears here: position, points, champions and top scorer.",
 	"Henüz gol yok. İlk hafta oynanınca liste dolar.": "No goals yet. The list fills up after the first week.",
+	"Yönetim senden ligi kazanmak bekliyor.": "The board expects you to win the league.",
+	"Yönetim senden ilk üçte bitirmek bekliyor.": "The board expects a top-three finish.",
+	"Yönetim senden ilk altıda bitirmek bekliyor.": "The board expects a top-six finish.",
+	"Yönetim senden ilk yarının hemen altında ya da üstünde bitirmek bekliyor.": "The board expects a mid-table finish.",
+	"Yönetim senden son üçe düşmemek bekliyor.": "The board expects you to avoid the bottom three.",
+	"Şu an hedefin gerisindesin.": "You are currently behind target.", "Şu an hedefi tutturuyorsun.": "You are currently on target.",
+	"YÖNETİM": "BOARD", "Yönetim": "Board", "Hedef:": "Target:", "hedef:": "target:", "Hedef": "Target", "şu an": "now",
+	"Şampiyonluk": "Title", "İlk üç": "Top three", "İlk altı": "Top six", "Orta sıra": "Mid-table", "Ligde kalmak": "Survival",
+	"Hedefin altında": "Below target", "Beklentinin üstü": "Exceeded expectations", "Hedef tuttu": "Target met",
+	"Çok memnun": "Delighted", "Memnun": "Pleased", "Kararsız": "Undecided", "Çok huzursuz": "Very unsettled", "Huzursuz": "Unsettled",
 }
 
 const YARDIM_EN := """HOW TO PLAY

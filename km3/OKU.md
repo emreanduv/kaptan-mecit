@@ -57,3 +57,10 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Biten sezon `d.tarih`'e yazılır (aynı sezon iki kez yazılmaz); "YENİ SEZON" (`Lig.sonraki_sezon()`) tarihçeyi taşır; "Ligi bırak" ve "Verilerimi sil" siler. Eski kayıtlar açılınca boş tarihçeyle sürer.
 - VR lig menüsünde satırlar çoğalınca (Tarihçe, Kupalar, Maç raporu) satır aralığı ve yazı küçülür; alttaki ipucu yazısının üstüne taşmaz.
 - Kod: `Lig.tarih_satirlari()`, `Lig.tarih_ozet()`, `LigEkran._tarih_panel()`, `vr._lig_ciz()`. Deneme: `dene/lig_dene.gd` (28 ligde tarihçe + kayıt), `--ligsezon=90 --lig --ligtarih --ekran=x.png` (hafta sayısı sezonu aşınca yeni sezona geçer; `--vrsahte` ile VR).
+
+## 0.9.2 — Yönetim beklentisi
+- Menajer oyunlarındaki yönetim kurulu gibi: sezon başında kulübün güç sırasına göre **hedef** konur (1. → Şampiyonluk, 2–3 → İlk üç, 4–6 → İlk altı, n−5'e kadar → Orta sıra (ilk %60), altı → Ligde kalmak (son üçe düşmemek)).
+- **Yönetim güveni** (%5–99): 60'tan başlar; oynanan her maçta alınan puan ile güce göre beklenen puan (sim_mac'in Poisson modeliyle 3×G + B olasılığı) farkının 3 katı eklenir; sezonun ikinci yarısında hedefin gerisindeki her sıra −2, önündeki +1. Durum: Çok memnun / Memnun / Kararsız / Huzursuz / Çok huzursuz.
+- Lig ekranı sağda **YÖNETİM** paneli (hedef, şu anki sıra, güven çubuğu, açıklama); sezon sonunda "Yönetim: Hedef tuttu / Beklentinin üstü / Hedefin altında". Tarihçede **Yönetim** sütunu (süren sezonda hedef, biten sezonda sonuç). VR panelinde sonraki maçın altında güven, sezon sonunda sonuç; VR'da sezon sonu mesajı alt satırdan taşmıyor, uzun başlık küçülür.
+- Kayıtta `d.hedef` ({k, s}), tarihçede `hd`/`hs`. Eski kayıtlar açılınca hedef kurulur; eski tarihçe satırlarında Yönetim boş kalır. "Ligi bırak" / "Verilerimi sil" hepsini siler (aynı dosya).
+- Kod: `Lig._hedef_kur()`, `hedef_adi/sira/aciklama()`, `hedef_sonuc()`, `beklenen_puan()`, `guven()`, `guven_adi()`, `yuzde()` (TR %72, EN 72%), `LigEkran._yonetim_panel()`, `vr._lig_ciz()`. Deneme: `dene/lig_dene.gd` (28 ligde hedef/güven/kayıt/eski kayıt), `--ligsezon=22 --ligtakim=8 --lig --ekran=x.png` (`--vrsahte`, `--dil=en`).

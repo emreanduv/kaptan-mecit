@@ -35,6 +35,11 @@ func _init() -> void:
 					if mc[0] == x or mc[1] == x:
 						var e := 1 if mc[0] == x else 0
 						s = s + 1 if e == onceki else 1; onceki = e; seri = maxi(seri, s)
+		# yönetim beklentisi: hedef geçerli sırada, güven 5–99, beklenen puan 0–3
+		var hs0 := L.hedef_sira()
+		if hs0 < 1 or hs0 > n or L.hedef_adi() == "" or L.guven() != 60: hata += 1; print("  HATA hedef ", L.d.hedef, " güven ", L.guven())
+		var bp := L.beklenen_puan(0, 1, true) + L.beklenen_puan(0, 1, false)
+		if bp < 2.0 or bp > 3.0: hata += 1; print("  HATA beklenen puan toplamı ", bp)   # G+B+M=1 → 3G+B + 3M+B ∈ [2,3]
 		var oynanan := 0
 		while not L.bitti():
 			var mc := L.sonraki_mac()
@@ -54,6 +59,10 @@ func _init() -> void:
 		if kt != gol: hata += 1; print("  HATA gol krallığı toplamı ", kt, " != ", gol)
 		if JSON.stringify(L.gol_krallari()) != JSON.stringify(L2.gol_krallari()): hata += 1; print("  HATA gol krallığı kayıt")
 		print("   gol kralı: ", L.gol_krali_metni(), " · ilk 3: ", L.gol_krallari(3).map(func(r): return "%s %s %d" % [r[1], r[2], r[4]]))
+		var gv := L.guven()
+		if gv < 5 or gv > 99: hata += 1; print("  HATA güven ", gv)
+		if L.guven() != Lig.new(veri).guven(): hata += 1; print("  HATA güven kayıt")
+		print("   yönetim: güç sırası %d → %s (%d.) · bitirdi %d. · %s · güven %d" % [L._guc_sirasi(), L.hedef_adi(), L.hedef_sira(), L.sira_biz(), Lig.hedef_sonuc(L.sira_biz(), L.hedef_sira()), gv])
 		var top: Dictionary = t1[0]; var son: Dictionary = t1[-1]
 		print("%s: %d takım, %d hafta, kurulum %d ms, en uzun ev/dep serisi %d, maç başı gol %.2f, beraberlik %%%d · şampiyon %s %dP (%d-%d-%d, %d:%d) · sonuncu %s %dP · güç %s" % [
 			veri.ligler[li].ad, n, L.hafta_sayisi(), kur_ms, seri, float(gol) / mac, 100 * bera / mac,
@@ -68,6 +77,10 @@ func _init() -> void:
 		if (L.d.tarih as Array).size() != 1 or int(L.d.sezon) != 2 or TS.size() != 2 or int(TS[1][1]) != sira or not TS[0][13]:
 			hata += 1; print("  HATA tarihçe ", TS)
 		if JSON.stringify(Lig.new(veri).tarih_satirlari()) != JSON.stringify(TS): hata += 1; print("  HATA tarihçe kayıt")
+		if TS[1][14] != Lig.hedef_sonuc(sira, int(L.d.tarih[0].hs)) or TS[1][14] == "" or TS[0][14] != L.hedef_adi(): hata += 1; print("  HATA tarihçe yönetim ", TS[1])
+		# eski kayıt (hedefsiz) açılınca hedef kurulur
+		L.d.erase("hedef"); L.kaydet()
+		if Lig.new(veri).hedef_sira() < 1: hata += 1; print("  HATA eski kayıtta hedef yok")
 		if li == 0: print("   tarihçe: ", L.tarih_ozet(), " · ", TS)
 		L.sil()
 		if FileAccess.file_exists(Lig.KAYIT): hata += 1; print("  HATA silinmedi")
