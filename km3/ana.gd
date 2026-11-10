@@ -536,6 +536,7 @@ func _arayuz() -> void:
 		dok = Dokunmatik.new(); dok.visible = false; ui.add_child(dok)
 		var kc := ConfigFile.new()
 		if kc.load(Mola.AYAR) == OK: klasik = bool(kc.get_value("kontrol", "klasik", false))
+		if _arg.has("klasik"): klasik = true
 		dok.klasik = klasik
 		dok.mola_istendi.connect(func(): if M and not M.demo: menu_goster(true))
 	# menü
@@ -708,6 +709,7 @@ func _yerlesim() -> void:
 		var pg: float = dok.panel(mantik.x); sol += pg; sag += pg
 	if _tp: _tp.position = Vector2(18 + sol, 16 + ust)
 	if _imza:
+		_imza.visible = not (dok and dok.klasik and dokunmatik)   # klasik kumandada imza sağ panelde zaten yazılı
 		_imza.offset_right = -14 - sag; _imza.offset_left = _imza.offset_right - _imza.get_combined_minimum_size().x
 		_imza.offset_top = 16 + ust; _imza.offset_bottom = _imza.offset_top + _imza.get_combined_minimum_size().y
 	if _ak: _ak.offset_top = 110 + ust; _ak.offset_bottom = 260 + ust

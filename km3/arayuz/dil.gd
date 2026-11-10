@@ -66,6 +66,7 @@ const SOZLUK := {
 	# rehber ipuçları
 	"KOŞ": "RUN", "Sol çubuk: baktığın yöne koş": "Left stick: run where you look", "WASD / oklar ya da sol çubuk: koş": "WASD / arrows or left stick: run",
 	"Ekranın soluna parmağını koy ve kaydır: koş": "Put your finger on the left of the screen and slide: run",
+	"Yön haçı: koş (çaprazlar dahil)": "D-pad: run (diagonals too)", "Sağda A: şut  ·  B: pas": "On the right A: shoot  ·  B: pass", "A'yı ne kadar tutarsan şut o kadar sert  ·  B'yi basılı tutup bırak: ara pas": "Hold A longer for a harder shot  ·  hold and release B: through ball", "Rakibin üstüne koş, A: kayarak müdahale": "Run at the opponent, A: slide tackle", "MENÜ: mola, oyuncu değişikliği ve Nasıl oynanır": "MENU: pause, substitutions and How to play", "MENÜ": "MENU",
 	"PAS VE ŞUT": "PASS AND SHOOT", "A ya da tetik: pas  ·  B ya da kavrama: şut": "A or trigger: pass  ·  B or grip: shoot", "X: pas  ·  Z / boşluk: şut": "X: pass  ·  Z / space: shoot",
 	"Sağ altta PAS ve ŞUT": "PASS and SHOOT at the bottom right", "TOPU KAP": "WIN THE BALL",
 	"Topu kapmak için rakibin üstüne koş, şut tuşu: kayarak müdahale": "Run at the opponent to win the ball; shoot button: slide tackle",
@@ -127,6 +128,7 @@ the pass button switches to the player closest to the ball.
 VR (Quest):  left stick run  ·  A / trigger pass  ·  B / grip shoot and slide
 tackle  ·  right stick or X: seat  ·  menu button: pause
 Touch:  run with your finger on the left of the screen  ·  PASS / SHOOT at the bottom right  ·  II at the top: pause
+Classic pad (Controls in pause):  D-pad run  ·  A shoot  ·  B pass  ·  MENU pause
 Keyboard:  WASD / arrows run  ·  X pass  ·  Z / space shoot  ·  C camera  ·  M pause
 Gamepad:  left stick run  ·  A pass  ·  B shoot  ·  Y camera  ·  Start pause
 Hold shoot longer for a harder shot; hold and release pass for a

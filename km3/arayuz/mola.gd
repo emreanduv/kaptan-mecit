@@ -116,12 +116,12 @@ func bas(i: int) -> void:
 # ---------- rehber: ilk maçlarda, yeri gelince bir kez gösterilen ipuçları ----------
 const AYAR := "user://km3-ayar.cfg"
 const IPUCU := {
-	"kos": ["KOŞ", "Sol çubuk: baktığın yöne koş", "WASD / oklar ya da sol çubuk: koş", "Ekranın soluna parmağını koy ve kaydır: koş"],
-	"pas": ["PAS VE ŞUT", "A ya da tetik: pas  ·  B ya da kavrama: şut", "X: pas  ·  Z / boşluk: şut", "Sağ altta PAS ve ŞUT"],
-	"guc": ["BASILI TUT", "Şut tuşunu ne kadar tutarsan şut o kadar sert  ·  pası basılı tutup bırak: ara pas", "Z'yi ne kadar tutarsan şut o kadar sert  ·  X'i basılı tutup bırak: ara pas", "ŞUT'u ne kadar tutarsan şut o kadar sert  ·  PAS'ı basılı tutup bırak: ara pas"],
-	"kap": ["TOPU KAP", "Topu kapmak için rakibin üstüne koş, şut tuşu: kayarak müdahale", "Rakibin üstüne koş, Z / boşluk: kayarak müdahale", "Rakibin üstüne koş, ŞUT: kayarak müdahale"],
-	"koltuk": ["KOLTUK", "Sağ çubuk sola/sağa ya da X: başka bir koltuğa geç", "C: kamerayı değiştir", "Kamerayı molada değiştirebilirsin"],
-	"mola": ["MOLA", "Menü düğmesi: mola, oyuncu değişikliği ve Nasıl oynanır", "M / Esc: mola, oyuncu değişikliği ve Nasıl oynanır", "Üstteki II: mola, oyuncu değişikliği ve Nasıl oynanır"],
+	"kos": ["KOŞ", "Sol çubuk: baktığın yöne koş", "WASD / oklar ya da sol çubuk: koş", "Ekranın soluna parmağını koy ve kaydır: koş", "Yön haçı: koş (çaprazlar dahil)"],
+	"pas": ["PAS VE ŞUT", "A ya da tetik: pas  ·  B ya da kavrama: şut", "X: pas  ·  Z / boşluk: şut", "Sağ altta PAS ve ŞUT", "Sağda A: şut  ·  B: pas"],
+	"guc": ["BASILI TUT", "Şut tuşunu ne kadar tutarsan şut o kadar sert  ·  pası basılı tutup bırak: ara pas", "Z'yi ne kadar tutarsan şut o kadar sert  ·  X'i basılı tutup bırak: ara pas", "ŞUT'u ne kadar tutarsan şut o kadar sert  ·  PAS'ı basılı tutup bırak: ara pas", "A'yı ne kadar tutarsan şut o kadar sert  ·  B'yi basılı tutup bırak: ara pas"],
+	"kap": ["TOPU KAP", "Topu kapmak için rakibin üstüne koş, şut tuşu: kayarak müdahale", "Rakibin üstüne koş, Z / boşluk: kayarak müdahale", "Rakibin üstüne koş, ŞUT: kayarak müdahale", "Rakibin üstüne koş, A: kayarak müdahale"],
+	"koltuk": ["KOLTUK", "Sağ çubuk sola/sağa ya da X: başka bir koltuğa geç", "C: kamerayı değiştir", "Kamerayı molada değiştirebilirsin", "Kamerayı molada değiştirebilirsin"],
+	"mola": ["MOLA", "Menü düğmesi: mola, oyuncu değişikliği ve Nasıl oynanır", "M / Esc: mola, oyuncu değişikliği ve Nasıl oynanır", "Üstteki II: mola, oyuncu değişikliği ve Nasıl oynanır", "MENÜ: mola, oyuncu değişikliği ve Nasıl oynanır"],
 }
 var _gorulen := {}
 var _sira: Array = []
@@ -172,7 +172,7 @@ func rehber(dt: float, kip: int) -> void:     # kip: 0 ekran, 1 VR, 2 dokunmatik
 	if _bekle > 0 or _sira.is_empty(): return
 	var ad: String = _sira.pop_front()
 	var t: Array = IPUCU[ad]
-	ana.afis_goster(t[0], [t[2], t[1], t[3]][kip], 4.0)
+	ana.afis_goster(t[0], (t[4] if kip == 2 and ana.klasik else [t[2], t[1], t[3]][kip]), 4.0)
 	_gorulen[ad] = true; _kaydet()
 	_bekle = 6.0
 
@@ -184,6 +184,7 @@ pas tuşu, topa en yakın oyuncuna geçer.
 VR (Quest):  sol çubuk koş  ·  A / tetik pas  ·  B / kavrama şut ve kayarak
 müdahale  ·  sağ çubuk ya da X: koltuk  ·  menü düğmesi: mola
 Dokunmatik:  ekranın solunda parmakla koş  ·  sağ altta PAS / ŞUT  ·  üstte II mola
+Klasik kumanda (molada Kontrol):  yön haçı koş  ·  A şut  ·  B pas  ·  MENÜ mola
 Ekran:  WASD / oklar koş  ·  X pas  ·  Z / boşluk şut  ·  C kamera  ·  M mola
 Oyun kolu:  sol çubuk koş  ·  A pas  ·  B şut  ·  Y kamera  ·  Start mola
 Şut tuşunu ne kadar tutarsan şut o kadar sert; pas tuşunu basılı tutup

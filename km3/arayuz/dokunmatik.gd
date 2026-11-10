@@ -26,8 +26,8 @@ var klasik := false              # Klasik kumanda: iki yanda panel, solda sabit 
 func panel(w: float) -> float: return clampf(w * .15, 170.0, 230.0)
 func _k() -> Dictionary:
 	var s := size; var P := panel(s.x)
-	return {"P": P, "hac": Vector2(sag + P * .5, s.y * .55), "yh": P * .38,
-		"sut": [Vector2(s.x - sag - P * .28, s.y * .40), P * .2], "pas": [Vector2(s.x - sag - P * .70, s.y * .62), P * .2],
+	return {"P": P, "hac": Vector2(sag + P * .5, s.y * .55), "yh": P * .41,
+		"sut": [Vector2(s.x - sag - P * .31, s.y * .40), P * .235], "pas": [Vector2(s.x - sag - P * .69, s.y * .63), P * .235],
 		"menu": Rect2(sag + P * .5 - 58, s.y - alt - 58, 116, 40)}
 func _hac_yaz(p: Vector2) -> void:
 	var d: Vector2 = p - (_k().hac as Vector2)
@@ -76,7 +76,7 @@ func _ciz_klasik() -> void:
 	for yon in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
 		var uc: Vector2 = c + yon * (h - 14); var dik := Vector2(-yon.y, yon.x)
 		var acik := vec != Vector2.ZERO and vec.dot(yon) > .5
-		draw_colored_polygon(PackedVector2Array([uc, uc - yon * 14 + dik * 9, uc - yon * 14 - dik * 9]), Color.WHITE if acik else altin)
+		draw_colored_polygon(PackedVector2Array([uc, uc - yon * h * .2 + dik * h * .13, uc - yon * h * .2 - dik * h * .13]), Color.WHITE if acik else altin)
 	# A / B
 	for ad in ["sut", "pas"]:
 		var bc: Vector2 = K[ad][0]; var r: float = K[ad][1]
@@ -86,8 +86,8 @@ func _ciz_klasik() -> void:
 		draw_arc(bc, r, 0, TAU, 48, Color.WHITE, 3.0, true)
 		if guc[ad] > 0: draw_arc(bc, r + 7, -PI / 2, -PI / 2 + TAU * guc[ad], 48, Color("#ffd23f"), 6.0, true)
 		var t1 := "A" if ad == "sut" else "B"; var t2 := Dil.cevir("ŞUT" if ad == "sut" else "PAS")
-		var w1 := yazi.get_string_size(t1, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x; var w2 := yazi.get_string_size(t2, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
-		draw_string(yazi, bc + Vector2(-w1 / 2, 4), t1, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
+		var w1 := yazi.get_string_size(t1, HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x; var w2 := yazi.get_string_size(t2, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+		draw_string(yazi, bc + Vector2(-w1 / 2, 4), t1, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color.WHITE)
 		draw_string(yazi, bc + Vector2(-w2 / 2, 20), t2, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color.WHITE)
 	# MENÜ ve imza
 	var mr: Rect2 = K.menu
