@@ -128,7 +128,6 @@ the pass button switches to the player closest to the ball.
 VR (Quest):  left stick run  ·  A / trigger pass  ·  B / grip shoot and slide
 tackle  ·  right stick or X: seat  ·  menu button: pause
 Touch:  run with your finger on the left of the screen  ·  PASS / SHOOT at the bottom right  ·  II at the top: pause
-Classic pad (Controls in pause):  D-pad run  ·  A shoot  ·  B pass  ·  MENU pause
 Keyboard:  WASD / arrows run  ·  X pass  ·  Z / space shoot  ·  C camera  ·  M pause
 Gamepad:  left stick run  ·  A pass  ·  B shoot  ·  Y camera  ·  Start pause
 Hold shoot longer for a harder shot; hold and release pass for a

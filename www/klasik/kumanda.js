@@ -11,7 +11,7 @@
   if (window.__kmKumanda) return;
   const $ = (s) => document.querySelector(s);
   const KUM = window.__kmKum = { x: 0, y: 0 };
-  const gbAcik = () => { try { return S && S.set && S.set.kumanda === 1; } catch (e) { return false; } };
+  const gbAcik = () => false;   /* Emre, 11 Kas 2026: futbolda dokunmatik daha iyi; ekran kumandası kapalı, yalnız Bluetooth oyun kolu ve klavye */
 
   const YON = ['yukari', 'asagi', 'sol', 'sag'];
   const TUSLAR = [...YON, 'a', 'b', 'menu'];

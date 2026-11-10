@@ -4,7 +4,7 @@ extends RefCounted
 class_name Mola
 
 const SATIRLAR := ["DEVAM ET", "Çıkan", "Giren", "DEĞİŞİKLİĞİ YAP", "Asistan değişiklikleri", "Kamera", "Takım konuşması", "Nasıl oynanır", "MAÇI BIRAK", "Kontrol"]
-const SIRA := [0, 1, 2, 3, 4, 5, 9, 6, 7, 8]   # ekrandaki sıra (Kontrol, Kamera'nın altında; MAÇI BIRAK en sonda)
+const SIRA := [0, 1, 2, 3, 4, 5, 6, 7, 8]   # ekrandaki sıra; 9 (Kontrol) gizli: Emre, 11 Kas 2026 — futbolda dokunmatik daha iyi, klasik kumanda yok
 # takım konuşması (Champion Battle Manager 4.6'daki gibi): ilk yarının başında maç önü, devre arası / ikinci yarının başında devre arası
 const KONUSMA := {"once": ["Sakin olun, oyununuzu oynayın", "Size güveniyorum", "Hırslı olun, her topa basın"],
 	"devre": ["Aynen devam", "Daha fazlasını istiyorum", "Hayal kırıklığına uğradım"]}
@@ -88,7 +88,7 @@ func kay(i: int, d: int) -> void:
 			if ana.vr: ana.vr.koltuga_gec(ana.vr.koltuk + d)
 			else: ana._kamera(posmod(ana.kam_mod + d, ana.KAMERALAR.size()))
 		6: konus_sec += d
-		9: if ana.vr == null: ana.klasik_degistir()
+		9: pass     # klasik kumanda kaldırıldı
 
 func bas(i: int) -> void:
 	var M = ana.M
@@ -184,7 +184,6 @@ pas tuşu, topa en yakın oyuncuna geçer.
 VR (Quest):  sol çubuk koş  ·  A / tetik pas  ·  B / kavrama şut ve kayarak
 müdahale  ·  sağ çubuk ya da X: koltuk  ·  menü düğmesi: mola
 Dokunmatik:  ekranın solunda parmakla koş  ·  sağ altta PAS / ŞUT  ·  üstte II mola
-Klasik kumanda (molada Kontrol):  yön haçı koş  ·  A şut  ·  B pas  ·  MENÜ mola
 Ekran:  WASD / oklar koş  ·  X pas  ·  Z / boşluk şut  ·  C kamera  ·  M mola
 Oyun kolu:  sol çubuk koş  ·  A pas  ·  B şut  ·  Y kamera  ·  Start mola
 Şut tuşunu ne kadar tutarsan şut o kadar sert; pas tuşunu basılı tutup

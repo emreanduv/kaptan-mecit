@@ -535,8 +535,7 @@ func _arayuz() -> void:
 		bilgi.visible = false
 		dok = Dokunmatik.new(); dok.visible = false; ui.add_child(dok)
 		var kc := ConfigFile.new()
-		if kc.load(Mola.AYAR) == OK: klasik = bool(kc.get_value("kontrol", "klasik", false))
-		if _arg.has("klasik"): klasik = true
+		klasik = false     # klasik kumanda kaldırıldı (11 Kas 2026); eski ayar yok sayılır
 		dok.klasik = klasik
 		dok.mola_istendi.connect(func(): if M and not M.demo: menu_goster(true))
 	# menü
@@ -630,7 +629,7 @@ func _arayuz() -> void:
 		for k in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]: b.add_theme_color_override(k, Color("#1d2b2c"))
 		b.pressed.connect(func(): mola_satir = i; mola.bas(i))
 		mola_dugmeler.append(b)
-	for i in Mola.SIRA: ov.add_child(mola_dugmeler[i])   # ekranda sıra: Kontrol, Kamera'nın hemen altında
+	for i in Mola.SIRA: ov.add_child(mola_dugmeler[i])   # ekranda sıra (Kontrol satırı gizli)
 	mola_mesaj = Label.new(); mola_mesaj.add_theme_font_size_override("font_size", 15); mola_mesaj.add_theme_color_override("font_color", Color("#5b6466"))
 	mola_mesaj.text = "Oklar: satır ve değer  ·  Enter: seç  ·  M / Esc: maça dön"
 	ov.add_child(mola_mesaj)

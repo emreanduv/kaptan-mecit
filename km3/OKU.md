@@ -65,6 +65,9 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Kayıtta `d.hedef` ({k, s}), tarihçede `hd`/`hs`. Eski kayıtlar açılınca hedef kurulur; eski tarihçe satırlarında Yönetim boş kalır. "Ligi bırak" / "Verilerimi sil" hepsini siler (aynı dosya).
 - Kod: `Lig._hedef_kur()`, `hedef_adi/sira/aciklama()`, `hedef_sonuc()`, `beklenen_puan()`, `guven()`, `guven_adi()`, `yuzde()` (TR %72, EN 72%), `LigEkran._yonetim_panel()`, `vr._lig_ciz()`. Deneme: `dene/lig_dene.gd` (28 ligde hedef/güven/kayıt/eski kayıt), `--ligsezon=22 --ligtakim=8 --lig --ekran=x.png` (`--vrsahte`, `--dil=en`).
 
+## 0.9.6 — Klasik kumanda kaldırıldı
+- Emre'nin kararı (11 Kas 2026): futbolda dokunmatik daha iyi. `ana.klasik` her zaman false, molada Kontrol satırı gizli (`Mola.SIRA`, satır 9 işlem yapmaz), VR molası 9 satır. `dokunmatik.gd` içindeki klasik çizim kodu duruyor ama kullanılmıyor.
+
 ## 0.9.5 — Klasik kumanda büyüdü
 - `dokunmatik._k()`: yh = P*.41, düğme r = P*.235; ok uçları haçla orantılı. Klasik kumandada üstteki imza gizli (`ana._yerlesim`), panelde yazılı. `Mola.IPUCU` 5. sütun: klasik kumanda ipuçları. Deneme: `--klasik`.
 

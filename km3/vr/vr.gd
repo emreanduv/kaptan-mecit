@@ -307,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language"]
-const SURUM := "0.9.5"
+const SURUM := "0.9.6"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -354,7 +354,7 @@ func _secici(i: int) -> Secici:
 
 func _satir_sayisi() -> int:
 	if ana.lig_acik: return ana.lig.satirlar().size()
-	return Mola.SATIRLAR.size() if ana.mola_mi() else SATIRLAR.size()
+	return Mola.SIRA.size() if ana.mola_mi() else SATIRLAR.size()
 
 func _deger(d: int) -> void:
 	if ana.lig_acik: ana.lig_kay(_satir, d); return
