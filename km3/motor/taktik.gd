@@ -111,9 +111,9 @@ static func kadro_kur(takim: Dictionary, lig: String, dz := "") -> Dictionary:
 		var o = en.xi[i]
 		var e: Dictionary = eski.get(o.n, {})
 		oy.append({"no": o.no, "n": o.n, "st": 1.0, "ten": e.get("ten", _renk(o.n, 0)), "sac": e.get("sac", _renk(o.n, 1)),
-			"rol": yer[i][2], "yer": yer[i][3], "fx": yer[i][0], "fy": yer[i][1], "dz": true})
+			"rol": yer[i][2], "yer": yer[i][3], "fx": yer[i][0], "fy": yer[i][1], "dz": true, "mk": str(o.m), "ca": float(o.ca)})
 	var yed: Array = []
-	for o in en.yedek: yed.append({"no": o.no, "n": o.n, "mevki": DZ_HARF.get(o.m, "O"), "ten": _renk(o.n, 0), "sac": _renk(o.n, 1)})
+	for o in en.yedek: yed.append({"no": o.no, "n": o.n, "mevki": DZ_HARF.get(o.m, "O"), "ten": _renk(o.n, 0), "sac": _renk(o.n, 1), "mk": str(o.m), "ca": float(o.ca)})
 	var t := takim.duplicate()
 	t.oy = oy; t.yedek = yed; t.dzAd = ed; t.lig = lig
 	t.guc = snappedf(float(en.puan) / 11.0, .01)     # lig modunun hızlı simülasyonu için

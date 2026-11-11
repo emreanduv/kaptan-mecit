@@ -21,7 +21,8 @@ var kur_takim := 0
 var mesaj := ""
 var _birak_onay := 0.0
 var son_hafta: Array = []       # en son oynanan haftanın maçları (ekranda "Haftanın sonuçları")
-var gorunum := "tablo"          # sol panel: "tablo" (puan durumu), "fikstur" (kulübün sezon fikstürü), "goller" (gol krallığı) ya da "tarih" (kulübün sezon sezon tarihçesi)
+var diz := ""                   # kullanıcının ana menüde seçtiği diziliş ("" = Otomatik); kadro görünümü maçtaki ilk 11'i gösterir
+var gorunum := "tablo"          # sol panel: "kadro" (kulübün kadrosu), "tablo" (puan durumu), "fikstur" (kulübün sezon fikstürü), "goller" (gol krallığı) ya da "tarih" (kulübün sezon sezon tarihçesi)
 const GOL_AGIRLIK := {"F": 5.0, "O": 1.8, "D": .55, "G": 0.0}   # simüle maçta golü kimin attığı: mevkiye göre pay
 
 func _init(v: Dictionary) -> void:
@@ -294,7 +295,7 @@ func sezon_adi() -> String:
 func satirlar() -> Array:
 	if kip == "kupa": return kupa_satirlari()
 	if not var_mi(): return ["Lig", "Takımın", "SEZONA BAŞLA", "Kupalar", "Ana menü"]
-	var r: Array = ["YENİ SEZON", "Fikstür", "Gol krallığı", "Tarihçe", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Fikstür", "Gol krallığı", "Tarihçe", "Ana menü", "Ligi bırak"]
+	var r: Array = ["YENİ SEZON", "Kadro", "Fikstür", "Gol krallığı", "Tarihçe", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Kadro", "Fikstür", "Gol krallığı", "Tarihçe", "Ana menü", "Ligi bırak"]
 	if son_rapor != "": r.insert(r.find("Ana menü"), "Maç raporu")
 	r.insert(r.find("Ana menü"), "Kupalar")
 	return r
@@ -312,6 +313,7 @@ func satir_metni(i: int, sec := false) -> String:
 			var mc := sonraki_mac()
 			return ok + "MAÇA ÇIK  ·  " + takim(int(mc[0])).kisa + " - " + takim(int(mc[1])).kisa
 		"YENİ SEZON": return ok + "YENİ SEZON  ·  " + str(int(d.sezon) + 1) + ". sezon"
+		"Kadro": return ok + ("Puan durumu" if gorunum == "kadro" else "Kadro")
 		"Fikstür": return ok + ("Puan durumu" if gorunum == "fikstur" else "Fikstür")
 		"Gol krallığı": return ok + ("Puan durumu" if gorunum == "goller" else "Gol krallığı")
 		"Tarihçe": return ok + ("Puan durumu" if gorunum == "tarih" else "Tarihçe")
@@ -335,6 +337,7 @@ func bas(i: int) -> String:
 		"SEZONA BAŞLA": yeni_sezon(kur_lig, kur_takim)
 		"MAÇA ÇIK": return "mac"
 		"Maçı simüle et": haftayi_simule()
+		"Kadro": gorunum = "tablo" if gorunum == "kadro" else "kadro"
 		"Fikstür": gorunum = "tablo" if gorunum == "fikstur" else "fikstur"
 		"Gol krallığı": gorunum = "tablo" if gorunum == "goller" else "goller"
 		"Tarihçe": gorunum = "tablo" if gorunum == "tarih" else "tarih"
@@ -349,6 +352,44 @@ func bas(i: int) -> String:
 			else:
 				_birak_onay = 0.0; kur_lig = int(d.lig); kur_takim = int(d.takim); sil()
 	return ""
+
+# ---------- kadro: menajer oyunlarının kadro ekranı (no · mevki · oyuncu · yetenek · lig golü · ilk 11 / yedek) ----------
+# Asistan kadroyu ana menüde seçilen dizilişe göre kurar (maçtaki kadroyla aynı); goller bu sezonun lig golleri.
+const MEVKI_EN := {"KL": "GK", "SĞB": "RB", "STP": "CB", "SLB": "LB", "DOS": "DM", "MOS": "CM", "SĞO": "RM", "SLO": "LM", "OOS": "AM", "SĞK": "RW", "SLK": "LW", "SF": "ST"}
+const MEVKI_SIRA := ["KL", "SĞB", "STP", "SLB", "DOS", "MOS", "SĞO", "SLO", "OOS", "SĞK", "SLK", "SF"]
+static func mevki_adi(m: String) -> String: return MEVKI_EN.get(m, m) if Dil.en else m
+
+# [[no, mevki kodu, oyuncu, yetenek (0-100), lig golü, ilk 11 mi], ...] — ilk 11 mevki sırasıyla, sonra yedekler
+var _kadro_on := {}   # önbellek: asistanın 34 dizilişi denemesi her çizimde tekrarlanmasın
+func _kadro() -> Dictionary:
+	var anahtar := "%d|%d|%s" % [int(d.lig), biz(), diz]
+	if _kadro_on.get("a", "") != anahtar: _kadro_on = {"a": anahtar, "k": Taktik.kadro_kur(takim(biz()), str(lig_veri().id), diz)}
+	return _kadro_on.k
+
+func kadro_satirlari() -> Array:
+	if not var_mi(): return []
+	var k := _kadro()
+	var r: Array = []
+	for grup in [[k.get("oy", []), true], [k.get("yedek", []), false]]:
+		var G: Array = []
+		for o in grup[0]:
+			G.append([int(o.get("no", 0)), str(o.get("mk", "")), str(o.n), yetenek(float(o.get("ca", 0.0))), int(d.goller.get(str(biz()) + "|" + str(o.n), 0)), grup[1]])
+		G.sort_custom(func(a, b): return MEVKI_SIRA.find(a[1]) < MEVKI_SIRA.find(b[1]) if a[1] != b[1] else a[3] > b[3])
+		r.append_array(G)
+	return r
+
+# kadro başlığı: diziliş ve ilk 11'in ortalama yeteneği
+func kadro_ozet() -> String:
+	var K := kadro_satirlari()
+	if K.is_empty(): return ""
+	var t := 0; var n := 0
+	for x in K:
+		if x[5]: t += int(x[3]); n += 1
+	var dz := str(_kadro().get("dzAd", diz))
+	return "%s  ·  ilk 11 ort. %d" % [dz, roundi(float(t) / maxf(1, n))]
+
+# Champion'ın yetenek puanı (24–167) → 0-100
+static func yetenek(ca: float) -> int: return clampi(roundi(ca / 1.7), 1, 99)
 
 # ---------- tarihçe: kulübün sezon sezon karnesi (menajer oyunlarındaki kulüp geçmişi) ----------
 # Biten her sezon d.tarih'e yazılır; "YENİ SEZON" tarihçeyi yeni sezona taşır, "Ligi bırak" / "Verilerimi sil" siler.

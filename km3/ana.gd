@@ -137,6 +137,7 @@ func _ready() -> void:
 	if _arg.has("ligtarih"): lig.gorunum = "tarih"
 	if _arg.has("ligfik"): lig.gorunum = "fikstur"
 	if _arg.has("liggol"): lig.gorunum = "goller"
+	if _arg.has("ligkadro"): lig.gorunum = "kadro"
 	if _arg.has("lig"): lig_goster(true)
 	if _arg.has("ligmac"): lig_mac_basla()
 	if _arg.has("mac"):
@@ -851,6 +852,7 @@ void fragment(){
 # ---------- lig modu ----------
 func lig_goster(v: bool) -> void:
 	if v and not lig.var_mi(): lig.kur_lig = sec_lig.selected; lig.kur_takim = sec_ev.selected
+	if v: lig.diz = "" if sec_dz.selected <= 0 else sec_dz.metin()
 	if v: lig_ekran.satir = 0; lig_ekran.yenile()
 	else: lig.mesaj = ""
 	lig_acik = v

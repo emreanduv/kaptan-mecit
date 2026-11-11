@@ -65,6 +65,12 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Kayıtta `d.hedef` ({k, s}), tarihçede `hd`/`hs`. Eski kayıtlar açılınca hedef kurulur; eski tarihçe satırlarında Yönetim boş kalır. "Ligi bırak" / "Verilerimi sil" hepsini siler (aynı dosya).
 - Kod: `Lig._hedef_kur()`, `hedef_adi/sira/aciklama()`, `hedef_sonuc()`, `beklenen_puan()`, `guven()`, `guven_adi()`, `yuzde()` (TR %72, EN 72%), `LigEkran._yonetim_panel()`, `vr._lig_ciz()`. Deneme: `dene/lig_dene.gd` (28 ligde hedef/güven/kayıt/eski kayıt), `--ligsezon=22 --ligtakim=8 --lig --ekran=x.png` (`--vrsahte`, `--dil=en`).
 
+## 0.9.8 — Kadro
+- Lig ekranında **Kadro** satırı (VR'da da), menajer oyunlarının kadro ekranı gibi: no · mevki · oyuncu · yetenek (renkli çubuk + 0-100 puan) · bu sezonki lig golü. Üstte asistanın kurduğu ilk 11 (mevki sırasıyla), altta yedekler; başlıkta diziliş ve ilk 11 ortalaması. Kadro ana menüde seçilen dizilişe göre kurulur (maçtaki kadroyla aynı; Otomatik'te asistanın seçtiği).
+- Mevkiler Türkçe (KL, SĞB, STP, SLB, DOS, MOS, SĞO, SLO, OOS, SĞK, SLK, SF), İngilizcede GK, RB, CB, LB, DM, CM, RM, LM, AM, RW, LW, ST. Yetenek: Champion'ın yetenek puanı / 1,7.
+- Oyuncu adları İngilizce çeviriden geçmez (kadro ve gol krallığı; "D. Gol" → "D. Goals" oluyordu).
+- Kod: `Taktik.kadro_kur` oyunculara `mk` (mevki) ve `ca` ekler; `Lig.kadro_satirlari()`, `kadro_ozet()`, `mevki_adi()`, `yetenek()`, `Lig.diz` (ana menüdeki diziliş); `LigEkran._kadro_panel()`; `vr._lig_ciz()`. Deneme: `dene/lig_dene.gd` (28 ligde ilk 11, yetenek aralığı, gol toplamı), `--ligsezon=12 --lig --ligkadro --ekran=x.png` (`--vrsahte`, `--dil=en`).
+
 ## 0.9.7 — Taç döngüsü düzeltildi
 - Emre (11 Kas 2026): taçta top içeri girmiyor, taç hakkı bir bize bir rakibe geçiyordu. Sebep: taçı kullanacak oyuncu koşarak geliyor, yerine varınca hızı sıfırlanmadığı için çizginin dışına kayıyor (−0,7 m) ve sahaya sırtını dönüyordu; atışta top da çizginin dışından bırakılıyor, ilk adımda yeniden auta çıkıp taç rakibe geçiyordu (eski motorla tam maçlarda 15 taçtan 8'i).
 - Düzeltme (`motor/mac.gd`): yerine varınca hız sıfır; `set_piece.nokta` ile oyuncu duran top boyunca yerinde durur (`mesafe_kurali`); duran toptan bırakılan top sahanın içinden (≥0,2 m) oyuna girer (`release`). Klasik'e de aynı güvence (`www/klasik/index.html`).

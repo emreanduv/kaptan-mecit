@@ -51,6 +51,7 @@ func yenile() -> void:
 	if lig.kip == "kupa": pass
 	elif lig.var_mi() and lig.gorunum == "fikstur": sol = _fikstur_panel()
 	elif lig.var_mi() and lig.gorunum == "goller": sol = _goller_panel()
+	elif lig.var_mi() and lig.gorunum == "kadro": sol = _kadro_panel()
 	elif lig.var_mi() and lig.gorunum == "tarih": sol = _tarih_panel()
 	if dikey:
 		hb.add_child(_sag_panel()); hb.add_child(sol)
@@ -68,7 +69,7 @@ func ciz() -> void:
 		b.text = lig.satir_metni(i, sec)
 		if S[i] in ["Lig", "Takımın", "Kupa"]: b.text = b.text.trim_prefix("‹  ").trim_suffix("  ›")   # okları yandaki düğmeler gösterir
 		var ana_eylem: bool = S[i] in ["MAÇA ÇIK", "SEZONA BAŞLA", "YENİ SEZON"]
-		if ((S[i] == "Fikstür" and lig.gorunum == "fikstur") or (S[i] == "Gol krallığı" and lig.gorunum == "goller") or (S[i] == "Tarihçe" and lig.gorunum == "tarih")) and not sec:   # açık görünüm sekmesi
+		if ((S[i] == "Kadro" and lig.gorunum == "kadro") or (S[i] == "Fikstür" and lig.gorunum == "fikstur") or (S[i] == "Gol krallığı" and lig.gorunum == "goller") or (S[i] == "Tarihçe" and lig.gorunum == "tarih")) and not sec:   # açık görünüm sekmesi
 			b.add_theme_stylebox_override("normal", _kutu(Color("#3d4a5c"), 6, 7)); b.add_theme_color_override("font_color", ALTIN); continue
 		var c := ALTIN if sec else (Color("#e5722f") if ana_eylem else SERIT)
 		b.add_theme_stylebox_override("normal", _kutu(c, 6, 7))
@@ -179,6 +180,52 @@ func _goller_panel() -> Control:
 		v.add_child(_gol_satir([str(r[0]), r[1], r[3], str(r[4])], k, false, r[5])); k += 1
 	return p
 
+# kadro: menajer oyunlarının kadro ekranı — no · mevki · oyuncu · yetenek (çubuk) · lig golü; ilk 11 üstte, yedekler altta
+func _kadro_panel() -> Control:
+	var p := PanelContainer.new(); p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	p.add_theme_stylebox_override("panel", _kutu(PANEL, 6, 0))
+	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 0); p.add_child(v)
+	var biz: Dictionary = lig.takim(lig.biz())
+	v.add_child(_serit("KADRO  ·  %s  ·  %s" % [biz.ad, lig.kadro_ozet()]))
+	v.add_child(_kadro_satir(["No", "Mevki", "Oyuncu", "Yetenek", "Gol"], 0, true, 0))
+	var k := 0; var yedek_yazildi := false
+	for x in lig.kadro_satirlari():
+		if not x[5] and not yedek_yazildi:
+			yedek_yazildi = true
+			var ys := _etiket("YEDEKLER", 13, SOLUK); ys.custom_minimum_size = Vector2(0, 22)
+			v.add_child(_ic(ys))
+		v.add_child(_kadro_satir([str(x[0]), Lig.mevki_adi(x[1]), x[2], str(x[3]), str(x[4])], k, false, int(x[3]))); k += 1
+	return p
+
+func _kadro_satir(vals: Array, k: int, baslik: bool, yet: int) -> Control:
+	var p := PanelContainer.new()
+	var c := SERIT if baslik else (SATIR_A if k % 2 == 0 else SATIR_B)
+	var st := _kutu(c, 0, 0); st.content_margin_top = 3; st.content_margin_bottom = 3; st.content_margin_left = 8; st.content_margin_right = 8
+	p.add_theme_stylebox_override("panel", st)
+	var hb := HBoxContainer.new(); hb.add_theme_constant_override("separation", 8); p.add_child(hb)
+	for i in vals.size():
+		var renk := ALTIN if baslik else (SOLUK if i <= 1 else YAZI)
+		if not baslik and i == 4 and int(vals[i]) > 0: renk = ALTIN
+		var l := _etiket(str(vals[i]), 14 if baslik else 15, renk)
+		if i == 2:
+			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL; l.clip_text = true
+			l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			if not baslik: l.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED   # oyuncu adı çevrilmez ("D. Gol" → "D. Goals" olmasın)
+			hb.add_child(l); continue
+		if i == 3 and not baslik:
+			# yetenek: menajer oyunlarındaki gibi çubuk + sayı (yeşil iyi, sarı orta, kırmızı zayıf)
+			var kutu := HBoxContainer.new(); kutu.add_theme_constant_override("separation", 6); kutu.custom_minimum_size = Vector2(120, 0)
+			var arka := Panel.new(); arka.custom_minimum_size = Vector2(80, 10); arka.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			arka.add_theme_stylebox_override("panel", _kutu(Color("#1c2026"), 3, 0))
+			var dolu := Panel.new(); dolu.position = Vector2.ZERO; dolu.size = Vector2(80.0 * clampf(yet / 100.0, .03, 1.0), 10)
+			dolu.add_theme_stylebox_override("panel", _kutu(YESIL if yet >= 70 else (ALTIN if yet >= 50 else KIRMIZI), 3, 0))
+			arka.add_child(dolu); kutu.add_child(arka)
+			l.custom_minimum_size = Vector2(30, 0); kutu.add_child(l); hb.add_child(kutu); continue
+		l.custom_minimum_size = Vector2([34, 54, 0, 120, 44][i], 0)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if (i == 3 and baslik) else HORIZONTAL_ALIGNMENT_CENTER
+		hb.add_child(l)
+	return p
+
 # tarihçe: kulübün sezon sezon karnesi (menajer oyunlarındaki kulüp geçmişi): sezon · sıra · O G B M Av P · şampiyon · gol kralı
 const TARIH_GEN := [70, 48, 30, 30, 30, 30, 40, 36]
 func _tarih_panel() -> Control:
@@ -236,6 +283,7 @@ func _gol_satir(vals: Array, k: int, baslik: bool, biz: bool) -> Control:
 			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL; l.clip_text = true
 			l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 			if i == 1: l.size_flags_stretch_ratio = 1.3
+			if i == 1 and not baslik: l.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED   # oyuncu adı çevrilmez
 		else:
 			l.custom_minimum_size = Vector2(34 if i == 0 else 48, 0); l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		hb.add_child(l)

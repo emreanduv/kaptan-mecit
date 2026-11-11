@@ -59,6 +59,16 @@ func _init() -> void:
 		if kt != gol: hata += 1; print("  HATA gol krallığı toplamı ", kt, " != ", gol)
 		if JSON.stringify(L.gol_krallari()) != JSON.stringify(L2.gol_krallari()): hata += 1; print("  HATA gol krallığı kayıt")
 		print("   gol kralı: ", L.gol_krali_metni(), " · ilk 3: ", L.gol_krallari(3).map(func(r): return "%s %s %d" % [r[1], r[2], r[4]]))
+		# kadro: 11 ilk + yedekler, ligdeki golleriyle; kulübün gol toplamını aşmaz
+		var KD := L.kadro_satirlari()
+		var ilk := KD.filter(func(x): return x[5]).size()
+		var kg := 0
+		for x in KD: kg += int(x[4])
+		var bizgol := 0
+		for k in L.d.goller: if (k as String).begins_with(str(L.biz()) + "|"): bizgol += int(L.d.goller[k])
+		if ilk != 11 or KD.size() < 11 or kg > bizgol or L.kadro_ozet() == "": hata += 1; print("  HATA kadro ilk11=", ilk, " n=", KD.size(), " gol ", kg, "/", bizgol)
+		for x in KD: if x[3] < 1 or x[3] > 99 or str(x[1]) == "": hata += 1; print("  HATA kadro satırı ", x); break
+		if li == 0: print("   kadro: ", L.kadro_ozet(), " · ", KD.slice(0, 3))
 		var gv := L.guven()
 		if gv < 5 or gv > 99: hata += 1; print("  HATA güven ", gv)
 		if L.guven() != Lig.new(veri).guven(): hata += 1; print("  HATA güven kayıt")
