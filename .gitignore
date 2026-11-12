@@ -6,3 +6,4 @@ ios/App/build/
 *.jks
 *.keystore
 .DS_Store
+www/modern/
