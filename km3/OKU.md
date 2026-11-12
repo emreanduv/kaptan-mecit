@@ -89,3 +89,9 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Molada yeni satır **Kontrol**: Dokunmatik çubuk / Klasik kumanda (`user://km3-ayar.cfg` → `kontrol/klasik`). Klasik kumandada iki yanda panel: solda sabit yön haçı (8 yön, çaprazlar dahil) ve MENÜ, sağda A (ŞUT) / B (PAS) — basılı tutunca güç halkası dolar. Tabela ve imza panellerin içine kaçmaz (`ana._yerlesim`). Kod: `arayuz/dokunmatik.gd` (`klasik`, `_k`, `_input_klasik`, `_ciz_klasik`).
 - Oyun kolu zaten vardı (sol çubuk koş, A pas, B/X şut, Y kamera, Start mola); her modda çalışır.
 - Deneme: `km3-ayar.cfg`'ye `[kontrol] klasik=true` yaz, `--mac --ileri=60 --dokun --ekran=x.png`.
+
+## CBM Modern — Champion Battle Manager maçını izleme
+- Web derlemesi `?cbm=1` ile açılınca menü ve arayüz gizlenir, ses kapanır; maçı Champion Battle Manager'ın motoru oynatır, burası yalnız çizer (oyuncular gerçek hareketlerle, stadyum, kameralar).
+- Köprü: CBM iframe penceresine yazar → `window.__cbmKurulum` (takımlar, formalar, oyuncular), her karede `window.__cbmKare` (konumlar, top, skor, dakika, yön), `window.__cbmOlay` (vuruş, kaleci uçuşu, değişiklik, kırmızı kart, gol, düdük), `window.__cbmKamera` (0–4). Hazır olunca `window.__cbmHazir = true`.
+- Kod: `motor/dis_mac.gd` (Mac'in çizim için gereken yüzü: T, P, ball, goal_y_of…), `ana.gd` → `_dis_*`. `M` artık türsüz (Mac ya da DisMac).
+- Deneme: `--cbmdene=<önek>` → `<önek>.kurulum.json` + `<önek>.kareler.json` (30 Hz kayıt; üretici: cbm4 tarafında motoru Node'da çalıştıran kayıt betiği). Örnek: `xvfb-run godot --path km3 --rendering-driver opengl3 -- --cbmdene=/tmp/cbm --ekran=x.png --bekle=5 --kamera=4`.

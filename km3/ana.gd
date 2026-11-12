@@ -9,7 +9,7 @@ const SURELER := [2, 4, 6, 8]
 const ZORLUK := ["Kolay", "Orta", "Zor"]
 
 var veri: Dictionary
-var M: Mac = null
+var M = null     # Mac; CBM Modern izleme modunda DisMac (motor/dis_mac.gd)
 var stad: Stadyum = null
 var oyuncular: Array = []
 var top: MeshInstance3D
@@ -175,6 +175,7 @@ func _ready() -> void:
 				p.ucus_z = float(_arg.get("z", ".8")); p.ucus_ofs = Vector2.ZERO
 				M.ball.x = p.x + 3; M.ball.y = p.y + M.fwd_of(p.team) * 9; M.ball.owner = null; M.ball.vx = 0; M.ball.vy = 0
 		_donuk = true
+	if _dis_mi(): _dis_basla()
 	if _arg.has("ekran"):
 		if vr and _arg.has("bak"): vr.kafa.rotation_degrees = Vector3(float(_arg.bak), float(_arg.get("don", "0")), 0)
 		if not _arg.has("lig"): menu_goster(_arg.has("menu"))
@@ -186,6 +187,66 @@ func _ready() -> void:
 			" çizim=", RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME),
 			" üçgen=", RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME))
 		get_tree().quit()
+
+# ---------- CBM Modern: Champion Battle Manager maçını izleme (maçı CBM oynatır, burada yalnız çizilir) ----------
+var dis: DisMac = null
+var _dis_bekle := 0.0
+func _dis_mi() -> bool:
+	if _arg.has("cbmdene"): return true
+	return OS.has_feature("web") and str(JavaScriptBridge.eval("location.search", true)).contains("cbm=1")
+func _dis_js(ifade: String) -> String:
+	if not OS.has_feature("web"): return ""
+	var r = JavaScriptBridge.eval(ifade, true)
+	return "" if r == null else str(r)
+func _dis_basla() -> void:
+	dis = DisMac.new()
+	_arg["tekrarsiz"] = "1"; menu_goster(false); menu.visible = false; ui.visible = false
+	AudioServer.set_bus_mute(0, true)       # sesler CBM'den gelir (taraftar, düdük, spiker)
+	if OS.has_feature("web"): JavaScriptBridge.eval("window.__cbmHazir = true", true)
+func _dis_kur(d: Dictionary) -> void:
+	dis.kur(d); M = dis; _lig_bitis = 0.0
+	if stad: stad.queue_free()
+	stad = Stadyum.new(); stad.hafif = hafif; dunya.add_child(stad)
+	stad.kur(M.T[0].kit, M.T[1].kit, veri.panolar)
+	Futbolcu.hafif = hafif
+	for f in oyuncular: f.queue_free()
+	oyuncular.clear()
+	for p in M.P: _futbolcu_kur(p)
+	if hafif: _golge_kur()
+	stad.skor(skor_yazi("-"))
+func _dis_kare(dt: float) -> void:
+	var kurulum := ""
+	if _arg.has("cbmdene"):
+		if M != dis: kurulum = FileAccess.get_file_as_string(_arg.cbmdene + ".kurulum.json")
+	else:
+		kurulum = _dis_js("(function(){var k=window.__cbmKurulum||'';window.__cbmKurulum='';return k})()")
+	if kurulum != "": _dis_kur(JSON.parse_string(kurulum))
+	if M != dis: return
+	var kare := ""
+	if _arg.has("cbmdene"):
+		_dis_bekle += dt
+		var L: Array = JSON.parse_string(FileAccess.get_file_as_string(_arg.cbmdene + ".kareler.json"))
+		var i := mini(int(_dis_bekle * 30), L.size() - 1)
+		kare = JSON.stringify(L[i])
+	else:
+		kare = _dis_js("window.__cbmKare||''")
+		var km := _dis_js("window.__cbmKamera==null?'':String(window.__cbmKamera)")
+		if km != "" and int(km) != kam_mod: kam_mod = int(km) % KAMERALAR.size()
+	if kare != "":
+		var f = JSON.parse_string(kare)
+		if f is Dictionary:
+			dis.kare(f, dt)
+			for o in f.get("o", []):
+				var c := dis.olay(o)
+				if c.size(): _olay(c)
+	var ol := _dis_js("JSON.stringify((window.__cbmOlay||[]).splice(0))")
+	if ol != "":
+		var L = JSON.parse_string(ol)
+		if L is Array:
+			for o in L:
+				var c := dis.olay(o)
+				if c.size(): _olay(c)
+	_ciz(dt)
 
 func _futbolcu_kur(p) -> Futbolcu:
 	var kit: Dictionary = M.T[p.team].kit
@@ -276,6 +337,7 @@ func _mac_kur(ev: Dictionary, dep: Dictionary, sure: int, zor: int, gosterim: bo
 
 # ---------- döngü ----------
 func _process(dt: float) -> void:
+	if dis: _dis_kare(dt); return
 	_girdi()
 	var tekrarda := tekrar.kare(dt) if (M != null and vr == null) else false
 	if _tekrar_kutu: _tekrar_kutu.visible = tekrarda
@@ -413,7 +475,7 @@ static func W(x: float, y: float, z := 0.0) -> Vector3: return Vector3(x - PW / 
 func _ciz(dt: float) -> void:
 	if M == null: return
 	var now := Time.get_ticks_msec() / 1000.0
-	var gol := -1 if tekrar.aktif else M.son_gol_takimi()
+	var gol: int = -1 if tekrar.aktif else M.son_gol_takimi()
 	for f: Futbolcu in oyuncular:
 		if not f.visible: continue
 		var p = f.get_meta("oy")
@@ -752,7 +814,7 @@ func yardim_goster(v: bool, metin := "") -> void:
 		if vr: vr.lig_acildi(true)
 		return
 	# Nasıl oynanır açıkken arkadaki menü / mola paneli gizlenir
-	var mol := menu_acik and M != null and not M.demo
+	var mol: bool = menu_acik and M != null and not M.demo
 	menu.visible = menu_acik and not mol and not v
 	mola_panel.visible = mol and vr == null and not v
 
@@ -799,7 +861,7 @@ func basla() -> void:
 
 func menu_goster(v: bool) -> void:
 	menu_acik = v
-	var mol := v and M != null and not M.demo
+	var mol: bool = v and M != null and not M.demo
 	if mol or not v: lig_acik = false
 	menu.visible = v and not mol and not lig_acik
 	lig_ekran.visible = v and lig_acik and vr == null
