@@ -28,6 +28,8 @@ jobs:
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 21 }
       - run: npm ci
+      - name: Modern maç görünümü (Kaptan Mecit 3 web)
+        run: bash _ana/araclar/modern-al-champion.sh www
       - run: npx cap sync android
       - name: AAB derle (imzasız; imza ayrı yapılır)
         working-directory: android

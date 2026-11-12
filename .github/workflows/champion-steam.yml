@@ -38,6 +38,7 @@ jobs:
       - run: |
           mkdir -p oyun
           if [ -f ../www/klasik/index.html ]; then cp ../www/klasik/index.html oyun/index.html && cp ../www/klasik/*.js oyun/ 2>/dev/null || true; else cp ../www/index.html oyun/index.html; fi
+          bash ../_ana/araclar/modern-al-champion.sh oyun     # Modern maç görünümü: oyun/modern/ (Kaptan Mecit 3 web)
       - run: npm pkg set version=${{ inputs.surum }}
       - name: Paketle
         env: { CSC_IDENTITY_AUTO_DISCOVERY: "false" }
