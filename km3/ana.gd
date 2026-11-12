@@ -138,6 +138,7 @@ func _ready() -> void:
 	if _arg.has("ligfik"): lig.gorunum = "fikstur"
 	if _arg.has("liggol"): lig.gorunum = "goller"
 	if _arg.has("ligkadro"): lig.gorunum = "kadro"
+	if _arg.has("ligodul"): lig.gorunum = "odul"
 	if _arg.has("lig"): lig_goster(true)
 	if _arg.has("ligmac"): lig_mac_basla()
 	if _arg.has("mac"):

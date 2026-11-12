@@ -69,6 +69,18 @@ func _init() -> void:
 		if ilk != 11 or KD.size() < 11 or kg > bizgol or L.kadro_ozet() == "": hata += 1; print("  HATA kadro ilk11=", ilk, " n=", KD.size(), " gol ", kg, "/", bizgol)
 		for x in KD: if x[3] < 1 or x[3] > 99 or str(x[1]) == "": hata += 1; print("  HATA kadro satırı ", x); break
 		if li == 0: print("   kadro: ", L.kadro_ozet(), " · ", KD.slice(0, 3))
+		# sezon ödülleri: yılın oyuncusu, sezonun 11'i (1 kaleci, 4 defans, 3 orta saha, 3 forvet), yılın teknik direktörü; tarihçeye yazılır
+		var YO := L.yilin_oyuncusu_adaylari(10)
+		var S11 := L.sezonun_11i()
+		var kota := {}
+		for x in S11: kota[x[0]] = int(kota.get(x[0], 0)) + 1
+		var td := L.yilin_td()
+		if YO.size() != 10 or S11.size() != 11 or kota != {"G": 1, "D": 4, "O": 3, "F": 3} or td.size() != 3 or int(td[1]) < int(td[2]) or L.yilin_oyuncusu_metni() == "":
+			hata += 1; print("  HATA ödüller yo=", YO.size(), " 11=", kota, " td=", td)
+		for k in YO.size() - 1: if YO[k][6] < YO[k + 1][6]: hata += 1; print("  HATA ödül sırası"); break
+		if not L.mesaj.contains("Yılın oyuncusu"): hata += 1; print("  HATA sezon sonu mesajında yılın oyuncusu yok")
+		if JSON.stringify(Lig.new(veri).yilin_oyuncusu_adaylari(10)) != JSON.stringify(YO): hata += 1; print("  HATA ödüller kayıt")
+		print("   ödüller: yılın oyuncusu ", L.yilin_oyuncusu_metni(), " · TD ", L.yilin_td_metni(), " · 11: ", S11.map(func(x): return x[2]).slice(0, 5))
 		var gv := L.guven()
 		if gv < 5 or gv > 99: hata += 1; print("  HATA güven ", gv)
 		if L.guven() != Lig.new(veri).guven(): hata += 1; print("  HATA güven kayıt")
@@ -87,6 +99,7 @@ func _init() -> void:
 		if (L.d.tarih as Array).size() != 1 or int(L.d.sezon) != 2 or TS.size() != 2 or int(TS[1][1]) != sira or not TS[0][13]:
 			hata += 1; print("  HATA tarihçe ", TS)
 		if JSON.stringify(Lig.new(veri).tarih_satirlari()) != JSON.stringify(TS): hata += 1; print("  HATA tarihçe kayıt")
+		if str(L.d.tarih[0].get("yo", "")) == "": hata += 1; print("  HATA tarihçede yılın oyuncusu yok")
 		if TS[1][14] != Lig.hedef_sonuc(sira, int(L.d.tarih[0].hs)) or TS[1][14] == "" or TS[0][14] != L.hedef_adi(): hata += 1; print("  HATA tarihçe yönetim ", TS[1])
 		# eski kayıt (hedefsiz) açılınca hedef kurulur
 		L.d.erase("hedef"); L.kaydet()

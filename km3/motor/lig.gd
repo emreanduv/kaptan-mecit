@@ -22,7 +22,7 @@ var mesaj := ""
 var _birak_onay := 0.0
 var son_hafta: Array = []       # en son oynanan haftanın maçları (ekranda "Haftanın sonuçları")
 var diz := ""                   # kullanıcının ana menüde seçtiği diziliş ("" = Otomatik); kadro görünümü maçtaki ilk 11'i gösterir
-var gorunum := "tablo"          # sol panel: "kadro" (kulübün kadrosu), "tablo" (puan durumu), "fikstur" (kulübün sezon fikstürü), "goller" (gol krallığı) ya da "tarih" (kulübün sezon sezon tarihçesi)
+var gorunum := "tablo"          # sol panel: "kadro" (kulübün kadrosu), "tablo" (puan durumu), "fikstur" (kulübün sezon fikstürü), "goller" (gol krallığı), "odul" (sezon ödülleri) ya da "tarih" (kulübün sezon sezon tarihçesi)
 const GOL_AGIRLIK := {"F": 5.0, "O": 1.8, "D": .55, "G": 0.0}   # simüle maçta golü kimin attığı: mevkiye göre pay
 
 func _init(v: Dictionary) -> void:
@@ -247,6 +247,7 @@ func hafta_bitir() -> void:
 		d.sampiyon = tablo()[0].i
 		mesaj = "Sezon bitti · Şampiyon: " + takim(int(d.sampiyon)).ad
 		if gol_krali_metni() != "": mesaj += " · Gol kralı: " + gol_krali_metni()
+		if yilin_oyuncusu_metni() != "": mesaj += " · Yılın oyuncusu: " + yilin_oyuncusu_metni()
 		mesaj += " · Yönetim: " + hedef_sonuc(sira_biz(), hedef_sira())
 		_tarihe_yaz()
 	else:
@@ -295,7 +296,7 @@ func sezon_adi() -> String:
 func satirlar() -> Array:
 	if kip == "kupa": return kupa_satirlari()
 	if not var_mi(): return ["Lig", "Takımın", "SEZONA BAŞLA", "Kupalar", "Ana menü"]
-	var r: Array = ["YENİ SEZON", "Kadro", "Fikstür", "Gol krallığı", "Tarihçe", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Kadro", "Fikstür", "Gol krallığı", "Tarihçe", "Ana menü", "Ligi bırak"]
+	var r: Array = ["YENİ SEZON", "Kadro", "Fikstür", "Gol krallığı", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Kadro", "Fikstür", "Gol krallığı", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"]
 	if son_rapor != "": r.insert(r.find("Ana menü"), "Maç raporu")
 	r.insert(r.find("Ana menü"), "Kupalar")
 	return r
@@ -317,6 +318,7 @@ func satir_metni(i: int, sec := false) -> String:
 		"Fikstür": return ok + ("Puan durumu" if gorunum == "fikstur" else "Fikstür")
 		"Gol krallığı": return ok + ("Puan durumu" if gorunum == "goller" else "Gol krallığı")
 		"Tarihçe": return ok + ("Puan durumu" if gorunum == "tarih" else "Tarihçe")
+		"Ödüller": return ok + ("Puan durumu" if gorunum == "odul" else "Ödüller")
 	return ok + s
 
 func kay(i: int, yon: int) -> void:
@@ -341,6 +343,7 @@ func bas(i: int) -> String:
 		"Fikstür": gorunum = "tablo" if gorunum == "fikstur" else "fikstur"
 		"Gol krallığı": gorunum = "tablo" if gorunum == "goller" else "goller"
 		"Tarihçe": gorunum = "tablo" if gorunum == "tarih" else "tarih"
+		"Ödüller": gorunum = "tablo" if gorunum == "odul" else "odul"
 		"YENİ SEZON": sonraki_sezon()
 		"Ana menü": gorunum = "tablo"; return "menu"
 		"Maç raporu": return "rapor"
@@ -391,6 +394,96 @@ func kadro_ozet() -> String:
 # Champion'ın yetenek puanı (24–167) → 0-100
 static func yetenek(ca: float) -> int: return clampi(roundi(ca / 1.7), 1, 99)
 
+# ---------- sezon ödülleri: yılın oyuncusu, yılın teknik direktörü, sezonun 11'i (menajer oyunlarındaki sezon sonu ödülleri) ----------
+# Her kulübün ilk 11'i (kendi kulübümüzde ana menüdeki dizilişle kurulan kadro) bir sezon puanı alır:
+# yetenek + kulübün puan ortalaması ve sırası + lig golü (mevkiye göre ağırlık) + kaleci/defansta yenilen gol ortalaması.
+# Sezon sürerken "ödül yarışı" gösterilir; sezon bitince kazananlar mesaja ve tarihçeye yazılır.
+const ODUL_GOL := {"F": 2.0, "O": 2.6, "D": 3.2, "G": 0.0}
+var _ilk11_on := {}
+func _ilk11ler() -> Array:      # her kulüp için [[ad, rol, mevki, yetenek], ...]
+	var a := "%d|%d|%d|%s" % [int(d.lig), int(d.sezon), biz(), diz]
+	if _ilk11_on.get("a", "") != a:
+		var r: Array = []
+		var T: Array = lig_veri().takimlar
+		for i in T.size():
+			var k: Dictionary = _kadro() if i == biz() else Taktik.kadro_kur(T[i], str(lig_veri().id))
+			var L: Array = []
+			for o in k.get("oy", []): L.append([str(o.n), str(o.get("rol", "O")), str(o.get("mk", "")), yetenek(float(o.get("ca", 0.0)))])
+			r.append(L)
+		_ilk11_on = {"a": a, "r": r}
+	return _ilk11_on.r
+
+# bütün ilk 11'lerin sezon puanı, yüksekten düşüğe: [puan, ad, rol, mevki, kulüp, gol, yetenek]
+func odul_puanlari() -> Array:
+	var r: Array = []
+	if not var_mi(): return r
+	var T := tablo()
+	var n := T.size()
+	var bilgi := {}
+	for k in n: bilgi[int(T[k].i)] = [T[k], k + 1]
+	var I := _ilk11ler()
+	for ti in I.size():
+		var t: Dictionary = bilgi[ti][0]
+		if int(t.O) == 0: continue
+		var o := float(t.O)
+		var takim_p := float(t.P) / o * 8.0 + float(n - int(bilgi[ti][1])) / maxf(1.0, n - 1.0) * 10.0
+		var savunma := clampf((1.35 - float(t.Y) / o) * 9.0, -8.0, 9.0)
+		for x in I[ti]:
+			var g := int(d.goller.get(str(ti) + "|" + str(x[0]), 0))
+			var rol := str(x[1])
+			var p := float(x[3]) * .5 + takim_p + float(g) * float(ODUL_GOL.get(rol, 2.0)) * (34.0 / maxf(o, 1.0)) * .35
+			if rol == "G": p += savunma * 1.1
+			elif rol == "D": p += savunma * .75
+			elif rol == "O": p += 4.0     # oyun kurucu: golü az ama oyunun yükünü taşır
+			r.append([snappedf(p, .1), str(x[0]), rol, str(x[2]), ti, g, int(x[3])])
+	r.sort_custom(func(a, b): return a[0] > b[0] if a[0] != b[0] else a[1] < b[1])
+	return r
+
+# yılın oyuncusu yarışı (ekran ve VR): [sıra, oyuncu, mevki kodu, kulüp kısa, kulüp ad, gol, puan, biz mi]
+func yilin_oyuncusu_adaylari(n := 10) -> Array:
+	var r: Array = []
+	var P := odul_puanlari()
+	for k in mini(n, P.size()):
+		var x: Array = P[k]
+		r.append([k + 1, x[1], x[3], takim(x[4]).kisa, takim(x[4]).ad, x[5], roundi(x[0]), x[4] == biz()])
+	return r
+
+func yilin_oyuncusu_metni() -> String:
+	var y := yilin_oyuncusu_adaylari(1)
+	return "" if y.is_empty() else "%s (%s)" % [y[0][1], y[0][3]]
+
+# sezonun 11'i (4-3-3): en yüksek puanlı 1 kaleci, 4 defans, 3 orta saha, 3 forvet — [rol, mevki kodu, oyuncu, kulüp kısa, puan, biz mi, kulüp ad]
+func sezonun_11i() -> Array:
+	var r: Array = []
+	var kota := {"G": 1, "D": 4, "O": 3, "F": 3}
+	for x in odul_puanlari():
+		var rol := str(x[2])
+		if int(kota.get(rol, 0)) <= 0: continue
+		kota[rol] = int(kota[rol]) - 1
+		r.append([rol, x[3], x[1], takim(x[4]).kisa, roundi(x[0]), x[4] == biz(), takim(x[4]).ad])
+	var sira := ["G", "D", "O", "F"]
+	r.sort_custom(func(a, b): return sira.find(a[0]) < sira.find(b[0]) if a[0] != b[0] else a[4] > b[4])
+	return r
+
+# yılın teknik direktörü: güç sırasına göre beklenenin en çok üstüne çıkan kulüp (eşitlikte puan) — [kulüp, güç sırası, lig sırası] ya da []
+func yilin_td() -> Array:
+	if not var_mi(): return []
+	var T := tablo()
+	if T.is_empty() or int(T[0].O) == 0: return []
+	var gs: Array = range(T.size())
+	gs.sort_custom(func(a, b): return float(d.guc[a]) > float(d.guc[b]))
+	var en: Array = []; var en_f := -999; var en_p := -1
+	for k in T.size():
+		var ti := int(T[k].i)
+		var f: int = gs.find(ti) + 1 - (k + 1)
+		if f > en_f or (f == en_f and int(T[k].P) > en_p): en_f = f; en_p = int(T[k].P); en = [ti, gs.find(ti) + 1, k + 1]
+	return en
+
+func yilin_td_metni() -> String:
+	var y := yilin_td()
+	if y.is_empty(): return ""
+	return "%s  ·  güç sırası %d → ligde %d." % ["Sen · " + takim(y[0]).ad if y[0] == biz() else takim(y[0]).ad, y[1], y[2]]
+
 # ---------- tarihçe: kulübün sezon sezon karnesi (menajer oyunlarındaki kulüp geçmişi) ----------
 # Biten her sezon d.tarih'e yazılır; "YENİ SEZON" tarihçeyi yeni sezona taşır, "Ligi bırak" / "Verilerimi sil" siler.
 func _tarihe_yaz() -> void:
@@ -401,7 +494,8 @@ func _tarihe_yaz() -> void:
 	for r in tablo():
 		if r.i == biz(): b = r
 	d.tarih.append({"s": int(d.sezon), "sira": sira_biz(), "n": (d.takimlar as Array).size(), "P": b.P, "G": b.G, "B": b.B, "M": b.M,
-		"A": b.A, "Y": b.Y, "sam": int(d.sampiyon), "kral": gol_krali_metni(), "hd": hedef_adi(), "hs": hedef_sira()})
+		"A": b.A, "Y": b.Y, "sam": int(d.sampiyon), "kral": gol_krali_metni(), "hd": hedef_adi(), "hs": hedef_sira(),
+		"yo": yilin_oyuncusu_metni(), "td": not yilin_td().is_empty() and int(yilin_td()[0]) == biz()})
 
 func sonraki_sezon() -> void:
 	if not var_mi(): return
@@ -530,7 +624,10 @@ func tarih_ozet() -> String:
 	for x in T:
 		if int(x.sam) == biz(): sam += 1
 		eniyi = mini(eniyi, int(x.sira))
-	return "%d sezon · %d şampiyonluk · en iyi sıra %d." % [T.size(), sam, eniyi]
+	var td := 0
+	for x in T:
+		if bool(x.get("td", false)): td += 1
+	return "%d sezon · %d şampiyonluk · en iyi sıra %d." % [T.size(), sam, eniyi] + ((" · %d kez yılın teknik direktörü" % td) if td > 0 else "")
 
 # tablo satırları (ekran ve VR): [sıra, kısa ad, ad, O, G, B, M, A, Y, Av, P, biz mi]
 func tablo_satirlari() -> Array:

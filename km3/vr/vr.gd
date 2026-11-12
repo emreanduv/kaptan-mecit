@@ -307,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language"]
-const SURUM := "0.9.8"
+const SURUM := "0.9.9"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -446,7 +446,7 @@ func _lig_ciz() -> void:
 	_bas.font_size = 60
 	_bas.text = "LİG  ·  " + lg.ad + ("  ·  " + L.sezon_adi() + ("  ·  Sezon bitti" if L.bitti() else "  ·  Hafta %d/%d" % [int(L.d.hafta) + 1, L.hafta_sayisi()]) if L.var_mi() else "  ·  Yeni sezon")
 	_ipucu.text = "Çubuk yukarı/aşağı: satır  ·  sola/sağa: değiştir  ·  A ya da tetik: seç  ·  B: ana menü"
-	_mesaj.text = L.mesaj
+	_mesaj.text = L.mesaj; _mesaj.font_size = 40
 	if L.var_mi() and L.bitti() and L.kip != "kupa" and L.mesaj.begins_with("Sezon bitti"): _mesaj.text = ""   # şampiyon, gol kralı ve yönetim sağdaki yazıda; alt satıra sığmıyordu
 	if Dil.cevir(_bas.text).length() > 50: _bas.font_size = 50     # İngilizcede "Season over" başlığı panelden taşıyordu
 	if L.kip == "kupa": _kupa_ciz(L); return
@@ -481,6 +481,18 @@ func _lig_ciz() -> void:
 		for x in L.kadro_satirlari().slice(0, 18):
 			var v := [str(x[0]), Lig.mevki_adi(x[1]) + "  ·  " + x[2] + ("" if x[5] else "  (yedek)"), "", "", "", "", str(x[3]), str(x[4])]
 			for j in v.size(): sutun[j] += "\n" + v[j]
+	elif L.var_mi() and L.gorunum == "odul":
+		if L.mesaj == "": _mesaj.text = ("YILIN TEKNİK DİREKTÖRÜ:  " if L.bitti() else "TEKNİK DİREKTÖR YARIŞINDA ÖNDE:  ") + L.yilin_td_metni()
+		if Dil.cevir(_mesaj.text).length() > 62: _mesaj.font_size = 32     # uzun kulüp adında panelden taşmasın
+		sutun = ["#", "YILIN OYUNCUSU" if L.bitti() else "YILIN OYUNCUSU YARIŞI", "", "", "", "", "Gol", "Puan"]
+		for x in L.yilin_oyuncusu_adaylari(5):
+			var v := [str(x[0]), Lig.mevki_adi(x[2]) + "  ·  " + x[1] + "  ·  " + x[3], "", "", "", "", str(x[5]), str(x[6])]
+			for j in v.size(): sutun[j] += "\n" + v[j]
+		sutun[1] += "\n\nSEZONUN 11'İ"
+		for j in [0, 2, 3, 4, 5, 6, 7]: sutun[j] += "\n\n"
+		for x in L.sezonun_11i():
+			var v := ["", Lig.mevki_adi(x[1]) + "  ·  " + x[2] + "  ·  " + x[3], "", "", "", "", "", str(x[4])]
+			for j in v.size(): sutun[j] += "\n" + v[j]
 	elif L.var_mi() and L.gorunum == "goller":
 		sutun = ["#", "GOL KRALLIĞI", "", "", "", "", "", "Gol"]
 		for r in L.gol_krallari(18):
@@ -512,6 +524,7 @@ func _lig_ciz() -> void:
 			alt = "ŞAMPİYON: " + L.takim(int(L.d.sampiyon)).ad + "\nSenin takımın %d. bitirdi." % L.sira_biz()
 			alt += "\nYönetim: " + Lig.hedef_sonuc(L.sira_biz(), L.hedef_sira())
 			if L.gol_krali_metni() != "": alt += "\nGol kralı: " + L.gol_krali_metni()
+			if L.yilin_oyuncusu_metni() != "": alt += "\nYılın oyuncusu: " + L.yilin_oyuncusu_metni()
 		else:
 			var mc := L.sonraki_mac()
 			alt = "SONRAKİ MAÇ\n" + L.takim(int(mc[0])).ad + "\n– " + L.takim(int(mc[1])).ad + "\n" + ("İç saha" if int(mc[0]) == L.biz() else "Deplasman") + "  ·  sen %d. sıradasın" % L.sira_biz()

@@ -53,6 +53,7 @@ func yenile() -> void:
 	elif lig.var_mi() and lig.gorunum == "goller": sol = _goller_panel()
 	elif lig.var_mi() and lig.gorunum == "kadro": sol = _kadro_panel()
 	elif lig.var_mi() and lig.gorunum == "tarih": sol = _tarih_panel()
+	elif lig.var_mi() and lig.gorunum == "odul": sol = _odul_panel()
 	if dikey:
 		hb.add_child(_sag_panel()); hb.add_child(sol)
 	else:
@@ -69,7 +70,7 @@ func ciz() -> void:
 		b.text = lig.satir_metni(i, sec)
 		if S[i] in ["Lig", "Takımın", "Kupa"]: b.text = b.text.trim_prefix("‹  ").trim_suffix("  ›")   # okları yandaki düğmeler gösterir
 		var ana_eylem: bool = S[i] in ["MAÇA ÇIK", "SEZONA BAŞLA", "YENİ SEZON"]
-		if ((S[i] == "Kadro" and lig.gorunum == "kadro") or (S[i] == "Fikstür" and lig.gorunum == "fikstur") or (S[i] == "Gol krallığı" and lig.gorunum == "goller") or (S[i] == "Tarihçe" and lig.gorunum == "tarih")) and not sec:   # açık görünüm sekmesi
+		if ((S[i] == "Kadro" and lig.gorunum == "kadro") or (S[i] == "Fikstür" and lig.gorunum == "fikstur") or (S[i] == "Gol krallığı" and lig.gorunum == "goller") or (S[i] == "Tarihçe" and lig.gorunum == "tarih") or (S[i] == "Ödüller" and lig.gorunum == "odul")) and not sec:   # açık görünüm sekmesi
 			b.add_theme_stylebox_override("normal", _kutu(Color("#3d4a5c"), 6, 7)); b.add_theme_color_override("font_color", ALTIN); continue
 		var c := ALTIN if sec else (Color("#e5722f") if ana_eylem else SERIT)
 		b.add_theme_stylebox_override("normal", _kutu(c, 6, 7))
@@ -266,6 +267,52 @@ func _tarih_satir(vals: Array, k: int, baslik: bool, sampiyon: bool, suruyor: bo
 		else:
 			l.custom_minimum_size = Vector2(TARIH_GEN[i], 0)
 			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if i == 0 else HORIZONTAL_ALIGNMENT_CENTER
+		hb.add_child(l)
+	return p
+
+# sezon ödülleri: yılın oyuncusu yarışı (ilk 10), sezonun 11'i (4-3-3) ve yılın teknik direktörü; sezon bitince kazananlar
+func _odul_panel() -> Control:
+	var p := PanelContainer.new(); p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	p.add_theme_stylebox_override("panel", _kutu(PANEL, 6, 0))
+	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 0); p.add_child(v)
+	var bitti := lig.bitti()
+	v.add_child(_serit("%s  ·  %s  ·  %s sezonu" % ["SEZON ÖDÜLLERİ" if bitti else "ÖDÜL YARIŞI", lig.lig_veri().ad, lig.sezon_adi()]))
+	var Y := lig.yilin_oyuncusu_adaylari(10)
+	if Y.is_empty():
+		v.add_child(_ic(_etiket("Ödül yarışı ilk hafta oynanınca başlar: yetenek, kulübün puanı, goller ve yenilen goller sayılır.", 15, SOLUK)))
+		return p
+	var td := lig.yilin_td_metni()
+	var tdl := _etiket(("YILIN TEKNİK DİREKTÖRÜ:  " if bitti else "TEKNİK DİREKTÖR YARIŞINDA ÖNDE:  ") + td, 15, ALTIN)
+	tdl.custom_minimum_size = Vector2(0, 30); tdl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(_ic(tdl))
+	v.add_child(_odul_satir(["#", "YILIN OYUNCUSU" if bitti else "YILIN OYUNCUSU YARIŞI", "Mevki", "Kulüp", "Gol", "Puan"], 0, true, false))
+	var k := 0
+	for x in Y:
+		v.add_child(_odul_satir([("★" if (bitti and k == 0) else str(x[0])), x[1], Lig.mevki_adi(x[2]), x[4], str(x[5]), str(x[6])], k, false, x[7])); k += 1
+	v.add_child(_odul_satir(["", "SEZONUN 11'İ  ·  4-3-3", "Mevki", "Kulüp", "", "Puan"], 0, true, false))
+	k = 0
+	for x in lig.sezonun_11i():
+		v.add_child(_odul_satir(["", x[2], Lig.mevki_adi(x[1]), x[6], "", str(x[4])], k, false, x[5])); k += 1
+	return p
+
+func _odul_satir(vals: Array, k: int, baslik: bool, biz: bool) -> Control:
+	var p := PanelContainer.new()
+	var c := SERIT if baslik else (BIZ_RENK if biz else (SATIR_A if k % 2 == 0 else SATIR_B))
+	var st := _kutu(c, 0, 0); st.content_margin_top = 3; st.content_margin_bottom = 3; st.content_margin_left = 8; st.content_margin_right = 8
+	p.add_theme_stylebox_override("panel", st)
+	var hb := HBoxContainer.new(); hb.add_theme_constant_override("separation", 8); p.add_child(hb)
+	for i in vals.size():
+		var renk := ALTIN if (baslik or i == 5) else (SOLUK if i == 2 or i == 3 else YAZI)
+		if not baslik and i == 0 and str(vals[0]) == "★": renk = ALTIN
+		if not baslik and i == 4 and str(vals[i]) not in ["", "0"]: renk = ALTIN
+		var l := _etiket(str(vals[i]), 14 if baslik else 15, renk)
+		if i == 1 or i == 3:
+			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL; l.clip_text = true
+			l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			if i == 1: l.size_flags_stretch_ratio = 1.4
+			if i == 1 and not baslik: l.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED   # oyuncu adı çevrilmez
+		else:
+			l.custom_minimum_size = Vector2([34, 0, 54, 0, 40, 50][i], 0); l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		hb.add_child(l)
 	return p
 
