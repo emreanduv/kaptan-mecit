@@ -372,7 +372,27 @@ static func _klip_kok(k: Dictionary, evre: float, dongu := true) -> float:
 	var b: float = Y[posmod(i0 + 1, n) if dongu else clampi(i0 + 1, 0, n - 1)]
 	return lerpf(a, b, t)
 
+# Duruşlar arası geçiş yumuşatılır: ayakta → koşu, koşu → vuruş, kaleci duruşu → uçuş artık bir karede sıçramaz.
+var _son_now := -1.0
 func poz(p, M, now: float, gol_takim: int) -> void:
+	_poz_ham(p, M, now, gol_takim)
+	var dt := now - _son_now if _son_now >= 0 else 1.0
+	_son_now = now
+	if dt <= 0 or dt > .25 or _q.size() != KEMIK.size() + 1:
+		_q = []
+		for i in KEMIK.size(): _q.append(iskelet.get_bone_pose_rotation(i))
+		_q.append(iskelet.get_bone_pose_position(0))
+		return
+	var hizli: bool = (p.role == "G" and p.ucus > 0) or (M.ball.kicker == p and p.cd > .1)
+	var f := 1.0 - exp(-dt * (30.0 if hizli else 16.0))
+	for i in KEMIK.size():
+		var h: Quaternion = iskelet.get_bone_pose_rotation(i)
+		var q: Quaternion = (_q[i] as Quaternion).slerp(h, f)
+		_q[i] = q; iskelet.set_bone_pose_rotation(i, q)
+	var kp: Vector3 = (_q[KEMIK.size()] as Vector3).lerp(iskelet.get_bone_pose_position(0), f)
+	_q[KEMIK.size()] = kp; iskelet.set_bone_pose_position(0, kp)
+
+func _poz_ham(p, M, now: float, gol_takim: int) -> void:
 	_hareket_yukle()
 	var spd := sqrt(p.vx * p.vx + p.vy * p.vy)
 	var kaleci_hazir: bool = p.role == "G" and spd < 3 and sqrt((M.ball.x - p.x) ** 2 + (M.ball.y - p.y) ** 2) < 22

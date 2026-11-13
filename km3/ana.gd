@@ -547,6 +547,12 @@ func _kamera_guncelle(dt: float) -> void:
 	if _arg.has("golcu") and M.gol_atan != null:
 		var g := W(M.gol_atan.x, M.gol_atan.y)
 		kam.position = g + Vector3(-9.0 if g.x > 0 else 9.0, 4.0, 6.0); kam.fov = 45; kam.look_at(g + Vector3(0, .9, 0)); return
+	if _arg.has("kyakin"):
+		# deneme: uçan kaleciye yakın, sahadan kaleye bakan kamera
+		for p in M.P:
+			if p.role == "G" and (p.ucus > 0 or absf(p.y - M.ball.y) < 12):
+				var g := W(p.x, p.y); var ic := -signf(g.z) if g.z != 0 else 1.0
+				kam.position = g + Vector3(0, 1.6, ic * 7.5); kam.fov = 40; kam.look_at(g + Vector3(0, .8, 0)); return
 	if _arg.has("yakin"):
 		if b.owner != null: bw = W(b.owner.x, b.owner.y)
 		kam.position = bw + Vector3(4.0, 1.9, 3.0); kam.fov = 42; kam.look_at(bw + Vector3(0, .9, 0)); return
