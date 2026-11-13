@@ -1041,7 +1041,7 @@ func do_shoot(p: Oy, aim_x: float, pow := 1.0) -> void:
 	var vz := (tz + 9 * t * t) / t
 	p.dx = dx / d; p.dy = dy / d
 	release(p, dx / d * v, dy / d * v, clampf(vz, 1, 8))
-	ball.shot = true; ball.shot_team = p.team; ball.shot_t = 0; olay("vurus", 1.2)
+	ball.shot = true; ball.shot_team = p.team; ball.shot_t = 0; olay("vurus", 1.2); olay("sut", p.team, pow)
 
 func do_slide(p: Oy, dx: float, dy: float) -> void:
 	var n := hyp(dx, dy)

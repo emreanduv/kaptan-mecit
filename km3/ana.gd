@@ -361,7 +361,8 @@ func _process(dt: float) -> void:
 	if _tekrar_kutu: _tekrar_kutu.visible = tekrarda
 	if tekrarda: _birikim = 0.0; afis.visible = false; _afis_t = 0.0
 	# en çok 2 motor adımı / kare: yavaş bir karenin ardından "yetişmeye çalışıp" kareleri daha da yavaşlatma sarmalı olmasın
-	_birikim = minf(_birikim + dt, ADIM * 2)
+	var odt := dt * (.3 if _yavas > 0 else 1.0); _yavas -= dt
+	_birikim = minf(_birikim + odt, ADIM * 2)
 	var adim := 0
 	while _birikim >= ADIM and adim < 2 and not _donuk and not tekrarda:
 		_birikim -= ADIM; adim += 1
@@ -401,9 +402,17 @@ func _olay(o: Array) -> void:
 		"flash": afis_goster(o[1], "", 1.0)
 		"duduk": ses.duduk(int(o[1]))
 		"vurus": ses.vurus(float(o[1]))
+		"sut":
+			# vuruşun ağırlığı (FIFA hissi): bir an ağır çekim, kamera hafifçe sarsılır, telefonda kısa titreşim
+			_yavas = .07; _sarsinti = maxf(_sarsinti, .35 * float(o[2]))
+			if vr == null and dokunmatik and not M.demo: Input.vibrate_handheld(25)
+			if vr and not M.demo: vr.sag.trigger_haptic_pulse("haptic", 0.0, .8, .06, 0.0)
 		"ooo": ses.ooo()
 		"gol":
-			ses.gol()
+			ses.gol(); _sarsinti = 1.0
+			if vr == null and dokunmatik and not M.demo: Input.vibrate_handheld(90)
+			if vr and not M.demo:
+				vr.sag.trigger_haptic_pulse("haptic", 0.0, 1.0, .2, 0.0); vr.sol.trigger_haptic_pulse("haptic", 0.0, 1.0, .2, 0.0)
 			if vr == null and not _arg.has("tekrarsiz"): tekrar.gol()
 			ses.taraftar(_y(int(o[1])), "tezahurat", 2.4); ses.taraf_sustur(_y(1 - int(o[1])), 25.0)
 			_tabela()
@@ -526,6 +535,8 @@ func _ciz(dt: float) -> void:
 	dakika.text = M.min_label() + "'"
 	_kamera_guncelle(dt)
 
+var _yavas := 0.0
+var _sarsinti := 0.0
 func _kamera_guncelle(dt: float) -> void:
 	if vr: return
 	var b = M.ball
@@ -568,6 +579,10 @@ func _kamera_guncelle(dt: float) -> void:
 	_kam_hedef = _kam_hedef.lerp(bak, 1.0 - exp(-dt * 4.5)) if _kam_hedef != Vector3.ZERO else bak
 	kam.fov = lerpf(kam.fov, fov, k)
 	kam.look_at(_kam_hedef)
+	if _sarsinti > .01:
+		var g := _sarsinti * _sarsinti * .012
+		kam.rotate_object_local(Vector3.RIGHT, randf_range(-g, g)); kam.rotate_object_local(Vector3.UP, randf_range(-g, g))
+		_sarsinti *= exp(-dt * 7.0)
 
 func _kamera(i: int) -> void:
 	kam_mod = i
