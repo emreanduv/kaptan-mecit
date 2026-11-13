@@ -181,6 +181,9 @@ func _ready() -> void:
 		if vr and _arg.has("bak"): vr.kafa.rotation_degrees = Vector3(float(_arg.bak), float(_arg.get("don", "0")), 0)
 		if not _arg.has("lig"): menu_goster(_arg.has("menu"))
 		if _arg.has("yardim"): yardim_goster(true)
+		if _arg.has("rapor"):   # deneme: uzun maç raporu (kariyer satırı ekranı aşacak kadar uzun)
+			son_rapor = "MAÇ RAPORU\nAnkara Siyah  1 - 3  İstanbul Sarı-Lacivert\n\nMAÇIN YILDIZI:  I. Yokzek  (İSL)  ·  8.1\n  Kariyeri: " + " · ".join(range(8).map(func(i): return "2021–22 Bursa Spor (29 M · 3 G) kiralık")) + "\n" + "\nSATIR".repeat(40)
+			rapor_goster()
 		await get_tree().create_timer(float(_arg.get("bekle", "1.5"))).timeout
 		await RenderingServer.frame_post_draw
 		get_viewport().get_texture().get_image().save_png(_arg.ekran)
@@ -714,7 +717,12 @@ func _arayuz() -> void:
 	yvs.pressed.connect(func(): yvs.text = mola.veri_sil())
 	var yh := HBoxContainer.new(); yh.add_theme_constant_override("separation", 10); yh.add_child(ys); yh.add_child(yvs); yh.add_child(yk)
 	_yardim_dugmeler = [ys, yvs]
-	yv.add_child(yl); yv.add_child(yh); yardim_panel.add_child(yv)
+	# üstte de her zaman görünen bir kapatma düğmesi (uzun maç raporunda alttaki düğme ekran dışında kalabiliyordu)
+	var yu := HBoxContainer.new(); var ybos := Control.new(); ybos.size_flags_horizontal = Control.SIZE_EXPAND_FILL; yu.add_child(ybos)
+	var yk2 := Button.new(); yk2.text = "Kapat  ✕"; yk2.add_theme_font_size_override("font_size", 20); yk2.custom_minimum_size = Vector2(150, 52)
+	yk2.pressed.connect(func(): yardim_goster(false)); yu.add_child(yk2); _yardim_ust_dugme = yk2
+	yk.custom_minimum_size = Vector2(150, 52)
+	yv.add_child(yu); yv.add_child(yl); yv.add_child(yh); yardim_panel.add_child(yv)
 	ui.add_child(_kaydirmali(yardim_panel))
 
 # küçük ekranda sığmayan panel parmakla kaydırılır; panel gizliyken dokunuşları yutmasın diye kap da gizlenir
@@ -741,6 +749,7 @@ var _tp: Control
 var _imza: Control
 var _ak: Control
 var _yardim_yazi: Label
+var _yardim_ust_dugme: Button
 var dikey := false
 
 func _css() -> Dictionary:
@@ -785,8 +794,9 @@ func _yerlesim() -> void:
 	if mola_panel: mola_panel.custom_minimum_size.x = minf(760, mantik.x - 24)
 	if afis: afis.custom_minimum_size.x = minf(520, mantik.x - 24)
 	if _yardim_yazi:
-		_yardim_yazi.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if dikey else TextServer.AUTOWRAP_OFF
-		_yardim_yazi.custom_minimum_size.x = mantik.x - 60 if dikey else 0.0
+		# her yönde ekran genişliğine sarılır (uzun satır paneli ekrandan taşırıp düğmeleri dışarı itiyordu)
+		_yardim_yazi.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_yardim_yazi.custom_minimum_size.x = minf(mantik.x - 60 - sol - sag, 1100.0)
 	if dok: dok.ust = ust; dok.alt = alt; dok.sag = sag0; dok.queue_redraw()
 	if lig_ekran: lig_ekran.dikey = dikey; lig_ekran.ust = ust; if lig_ekran.visible: lig_ekran.yenile()
 func _dil_yaz() -> void:
@@ -810,6 +820,9 @@ func yardim_goster(v: bool, metin := "") -> void:
 	yardim_acik = v
 	yardim_metin = metin if v else ""
 	if _yardim_yazi: _yardim_yazi.text = metin if metin != "" else Mola.YARDIM
+	if _yardim_ust_dugme: _yardim_ust_dugme.text = "Devam  ›" if metin != "" else "Kapat  ✕"
+	if v and yardim_panel and yardim_panel.get_parent() and yardim_panel.get_parent().get_parent() is ScrollContainer:
+		(yardim_panel.get_parent().get_parent() as ScrollContainer).scroll_vertical = 0
 	for b in _yardim_dugmeler: b.visible = metin == ""
 	yardim_panel.visible = v and vr == null
 	if not v and _rapor_lig:

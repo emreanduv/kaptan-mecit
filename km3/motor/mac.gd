@@ -88,6 +88,7 @@ class Top:
 	var shot_team := 0
 	var shot_t := 0.0
 	var gk_tried: Oy = null
+	var gk_dalis: Oy = null    # bu şut için erkenden atlayan kaleci (atlayış topa yetişsin diye vuruştan önce başlar)
 	var cross := false
 	var atis := false          # taçtan atıldı (doğrudan gol olmaz)
 	var ofs = null       # {q, team, yakin}
@@ -245,6 +246,7 @@ func goal_y_of(ti: int) -> float: return 0.0 if ((ti == 0) != flip) else PL
 func own_goal_y(ti: int) -> float: return PL - goal_y_of(ti)
 # kaleci kurtarışa uzanır: topun kale çizgisine geleceği yere doğru yana uçar (ya da yakınsa göğsünde tutar).
 # Motor konumu uçuşun bittiği yere hemen geçer; görüntü ucus_ofs ile eski yerden oraya süzülür (geri sıçrama yok).
+const DALIS_ONCE := .52
 func kaleci_uc(g: Oy, b: Top, ly: float) -> void:
 	var hx := b.x
 	if b.vy != 0:
@@ -283,7 +285,7 @@ func min_label() -> String:
 
 func kickoff(ti: int) -> void:
 	var b := ball
-	b.x = PW / 2; b.y = PL / 2; b.z = 0; b.vx = 0; b.vy = 0; b.vz = 0; b.owner = null; b.shot = false; b.intended = null; b.gk_tried = null; b.kicker = null
+	b.x = PW / 2; b.y = PL / 2; b.z = 0; b.vx = 0; b.vy = 0; b.vz = 0; b.owner = null; b.shot = false; b.intended = null; b.gk_tried = null; b.gk_dalis = null; b.kicker = null
 	for p: Oy in P:
 		var h := home(p)
 		var yy := h.y
@@ -937,6 +939,11 @@ func think_gk(p: Oy, dt: float) -> void:
 		if t > 0 and t < 1.6:
 			var xc := b.x + b.vx * t
 			if xc > GX0 - 2.5 and xc < GX1 + 2.5:
+				# kaleci, top kendisine gelmeden ~0,4 sn önce atlar: uçuşun en uzandığı an topun geldiği ana denk gelir
+				# (önceden top değince atlıyordu; görüntüde önce top dönüyor, sonra kaleci uçuyordu)
+				if b.shot and t < DALIS_ONCE and p.ucus <= 0 and b.gk_dalis != p:
+					b.gk_dalis = p; p.dive = 2; kaleci_uc(p, b, p.y); return
+				if p.ucus > 0: return
 				p.hedef = true; p.tx = clampf(xc, GX0 - 1, GX1 + 1); p.ty = p.y; p.run = 1.25; p.dive = 1; return
 	p.dive = 0
 	var sweep := b.owner == null and not in_box and depth_of(p.team, b.y) < 19 and absf(b.x - PW / 2) < 20
@@ -965,7 +972,7 @@ func release(p: Oy, vx: float, vy: float, vz: float, intended: Oy = null) -> voi
 	# taç hakkı bir bize bir rakibe geçiyordu
 	if set_piece != null and set_piece.p == p:
 		b.x = clampf(b.x, .2, PW - .2); b.y = clampf(b.y, .2, PL - .2)
-	b.last = p; b.last_team = p.team; b.kicker = p; b.intended = intended; b.gk_tried = null; b.cross = false; b.shot = false
+	b.last = p; b.last_team = p.team; b.kicker = p; b.intended = intended; b.gk_tried = null; b.gk_dalis = null; b.cross = false; b.shot = false
 	b.atis = set_piece != null and set_piece.get("tac", false) and set_piece.p == p
 	p.cd = .35; p.hold = 0; set_piece = null
 
@@ -1162,7 +1169,7 @@ func ball_step(dt: float) -> void:
 			if Tg.human: ps += [.14, .07, .02][diff]
 			if not Tg.human and T[1 - g.team].human: ps += DIFF.gk[diff]
 			g.dive = 2  # görüntü: uçuş
-			kaleci_uc(g, b, ly)
+			if g.ucus <= 0: kaleci_uc(g, b, ly)   # erken atladıysa uçuş zaten sürüyor
 			if randf() < ps:
 				if b.shot and not demo:
 					ist.kurtar[g.team] += 1; ist.isabet[1 - g.team] += 1; oy_k(g).k += 1
