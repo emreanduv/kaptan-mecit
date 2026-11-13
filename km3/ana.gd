@@ -161,9 +161,19 @@ func _ready() -> void:
 				if p.role == "G" and p.ucus > 1.45 and M.ball.shot: uc = true
 			if uc: break
 		for i in int(float(_arg.dalis) * 60): _adim()
+	if _arg.has("tutus"):
+		# deneme: kaleci topu tutsun (tutus = yakalamadan sonra geçen saniye)
+		var n := 0
+		while n < 60 * 900:
+			_adim(); n += 1
+			if M.ball.owner != null and M.ball.owner.role == "G" and not M.ball.owner.ayak and M.ball.owner.ucus > 0: break
+		for i in int(float(_arg.tutus) * 60): _adim()
 	if _arg.has("ileri"):
 		var n := int(float(_arg.ileri) * 60)
 		for i in n: _adim()
+	if _arg.has("eldetop"):
+		for p in M.P:
+			if p.role == "G": M.ball.owner = p; p.ayak = false; p.ucus = 0.0; p.dec = 5.0; p.hold = 0.0; break
 	if _arg.has("dene"):
 		# başsız deneme: maçı sonuna kadar oynat, skor ve olay sayısını yaz
 		var t0 := Time.get_ticks_msec()
@@ -511,6 +521,16 @@ func _ciz(dt: float) -> void:
 		f.poz(p, M, now, gol)
 	var b = M.ball
 	top.position = W(b.x, b.y, b.z + .12)
+	# kaleci topu tutuyorsa top yerde değil ellerinin arasında görünür (yakalama, göğse alma, atlayıp tutma)
+	if b.owner != null and b.owner.role == "G" and not b.owner.ayak:
+		for f: Futbolcu in oyuncular:
+			if f.get_meta("oy") != b.owner: continue
+			var sk: Skeleton3D = f.iskelet
+			var eL: Vector3 = sk.global_transform * (sk.get_bone_global_pose(sk.find_bone("dirsekL")) * Vector3(0, -.27, 0))
+			var eR: Vector3 = sk.global_transform * (sk.get_bone_global_pose(sk.find_bone("dirsekR")) * Vector3(0, -.27, 0))
+			var ileri: Vector3 = sk.global_transform.basis.z.normalized()
+			top.position = (eL + eR) * .5 + ileri * .1
+			break
 	top.rotate(Vector3(b.vy, 0, -b.vx).normalized() if (b.vx != 0 or b.vy != 0) else Vector3.UP, Vector2(b.vx, b.vy).length() * dt / .12)
 	if golgeler:
 		var mm := golgeler.multimesh
@@ -573,7 +593,7 @@ func _kamera_guncelle(dt: float) -> void:
 		for p in M.P:
 			if p.role == "G" and (p.ucus > 0 or absf(p.y - M.ball.y) < 12):
 				var g := W(p.x, p.y); var ic := -signf(g.z) if g.z != 0 else 1.0
-				kam.position = g + Vector3(0, 1.6, ic * 7.5); kam.fov = 40; kam.look_at(g + Vector3(0, .8, 0)); return
+				kam.position = g + Vector3(2.5, 1.6, -ic * 6.5 * float(_arg.get("kyon", "-1"))); kam.fov = 40; kam.look_at(g + Vector3(0, .8, 0)); return
 	if _arg.has("yakin"):
 		if b.owner != null: bw = W(b.owner.x, b.owner.y)
 		kam.position = bw + Vector3(4.0, 1.9, 3.0); kam.fov = 42; kam.look_at(bw + Vector3(0, .9, 0)); return

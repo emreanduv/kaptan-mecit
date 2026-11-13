@@ -278,6 +278,9 @@ func _poz_yordamsal(p, M, now: float, gol_takim: int) -> void:
 		var yan := signf(p.vx * cos(yaw) - p.vy * sin(yaw))
 		_z("kok", -yan * .9); _kok_y = .25
 		_s("omuzL", Vector3(-.2, 0, -2.6)); _s("omuzR", Vector3(-.2, 0, 2.6))
+	elif kaleci and top.owner == p and not p.ayak:
+		# top elde: göğse bastırılmış, iki el topun iki yanında (yürürken de)
+		_s("omuzL", Vector3(-.75, 0, -.28)); _s("omuzR", Vector3(-.75, 0, .28)); _x("dirsekL", -1.55); _x("dirsekR", -1.55); _x("bas", .15)
 	elif kaleci and top_yakin < 22 and spd < 3:
 		_kok_y = -.1; _x("bacakL", -.45); _x("bacakR", -.45); _x("dizL", .8); _x("dizR", .8); _x("bel", .35)
 		_z("bacakL", -.12); _z("bacakR", .12); _s("omuzL", Vector3(-.9, 0, -.45)); _s("omuzR", Vector3(-.9, 0, .45)); _x("dirsekL", -.6); _x("dirsekR", -.6)
