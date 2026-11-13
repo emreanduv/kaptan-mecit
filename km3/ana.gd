@@ -88,6 +88,7 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		var kv := a.trim_prefix("--").split("=", true, 1)
 		_arg[kv[0]] = kv[1] if kv.size() > 1 else "1"
+	if _arg.has("tohum"): seed(int(_arg.tohum))
 	if _arg.has("hafif"): hafif = true
 	if _arg.has("dil"): Dil.ayarla(_arg.dil == "en", false)
 	else: Dil.kur()
@@ -546,7 +547,9 @@ func _kamera_guncelle(dt: float) -> void:
 	var mod := 4 if tekrar.aktif else kam_mod     # tekrar: yakın yayın kamerası
 	match mod:
 		0:  # yayın: yan tribün üstü, topu yatayda izler
-			poz = Vector3(53, 20, clampf(bw.z * .8, -32, 32)); bak = Vector3(bw.x * .6, 0, bw.z); fov = 30
+			# FIFA 2000 ölçüsü: biraz daha yakın, oyuncular telefonda daha büyük; top hızlanınca (uzun pas, şut) hafifçe açılır
+			var bhiz: float = Vector2(b.vx, b.vy).length() if b.owner == null else 0.0
+			poz = Vector3(49, 19, clampf(bw.z * .8, -34, 34)); bak = Vector3(bw.x * .6, 0, bw.z); fov = 27.0 + 4.0 * clampf((bhiz - 8.0) / 16.0, 0, 1)
 		1:  # tele: köşe, yüksek
 			poz = Vector3(46, 24, 66); bak = Vector3(bw.x * .7, 0, bw.z * .85); fov = 34
 		2:  # dinamik: ev sahibinin arkasından, hücum yönüne bakar
@@ -575,6 +578,7 @@ func _kamera_guncelle(dt: float) -> void:
 		if b.owner != null: bw = W(b.owner.x, b.owner.y)
 		kam.position = bw + Vector3(4.0, 1.9, 3.0); kam.fov = 42; kam.look_at(bw + Vector3(0, .9, 0)); return
 	var k := 1.0 - exp(-dt * 3.2)
+	if kam.position == Vector3.ZERO: kam.fov = fov
 	kam.position = kam.position.lerp(poz, k) if kam.position != Vector3.ZERO else poz
 	_kam_hedef = _kam_hedef.lerp(bak, 1.0 - exp(-dt * 4.5)) if _kam_hedef != Vector3.ZERO else bak
 	kam.fov = lerpf(kam.fov, fov, k)
