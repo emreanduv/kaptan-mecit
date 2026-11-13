@@ -544,6 +544,13 @@ func _kamera_guncelle(dt: float) -> void:
 			poz = Vector3(39.5, 6.5, clampf(bw.z + 3, -48, 48)); bak = Vector3(bw.x, .8, bw.z); fov = clampf(46 - (39.5 - bw.x) * .38, 18, 46)
 		_:  # saha kenarı: göz hizası
 			poz = Vector3(PW / 2 + 5, 1.75, clampf(bw.z, -40, 40) * .7); bak = Vector3(bw.x, .9, bw.z); fov = 52
+	if dis and M == dis:
+		# CBM Modern telefonda dik ekranda izlenir: yatay görüş çok dar kalır, köşe vuruşunda top kadrajdan çıkar.
+		# Dik ekranda kamera topu ortalar ve görüş açısını ekran oranına göre genişletir.
+		var en_boy := get_viewport().get_visible_rect().size.aspect()
+		if en_boy < 1.0:
+			bak = Vector3(bw.x, bak.y, bw.z)
+			fov = minf(fov / sqrt(maxf(en_boy, .35)) * .85, 72.0)
 	if _arg.has("golcu") and M.gol_atan != null:
 		var g := W(M.gol_atan.x, M.gol_atan.y)
 		kam.position = g + Vector3(-9.0 if g.x > 0 else 9.0, 4.0, 6.0); kam.fov = 45; kam.look_at(g + Vector3(0, .9, 0)); return
