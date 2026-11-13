@@ -338,6 +338,9 @@ func _kaleci_ucus(p, M) -> void:
 # Hıza göre iki komşu döngü harmanlanır; adım evresi oyuncunun gerçekten katettiği yola bağlıdır (ayak kaymaz).
 static var _hareket: Dictionary = {}
 var _evre := 0.0
+var _egim := 0.0
+var _egim_t := 0.0
+var _egim_yaw := 0.0
 var _son_yol := -1.0
 var _q: Array = []
 
@@ -399,7 +402,8 @@ func _poz_ham(p, M, now: float, gol_takim: int) -> void:
 	_hareket_yukle()
 	var spd := sqrt(p.vx * p.vx + p.vy * p.vy)
 	var kaleci_hazir: bool = p.role == "G" and spd < 3 and sqrt((M.ball.x - p.x) ** 2 + (M.ball.y - p.y) ** 2) < 22
-	var vuruyor: bool = M.ball.kicker == p and p.cd > .1
+	var kuruyor: bool = "kur" in p and p.kur > 0
+	var vuruyor: bool = (M.ball.kicker == p and p.cd > .1) or kuruyor
 	# yere düşme, kayma, kaleci duruşu/uçuşu, gol sevinci ve duran oyuncu: el yapımı hareketler
 	if _hareket.has("yok") or p.slide > 0 or p.stun > .3 or kaleci_hazir or (p.role == "G" and (p.dive == 1 or p.ucus > 0)) or spd < .45 and not vuruyor:
 		_son_yol = p.anim
@@ -414,6 +418,8 @@ func _poz_ham(p, M, now: float, gol_takim: int) -> void:
 		var k := 1.0 - clampf((p.cd - .1) / .25, 0, 1)                 # 0 → 1
 		# motor topu temas anında bırakır: kısa bir kurulma + vuruş + takip gösterilir
 		var ev: float = lerpf(float(V.temas) - .22, minf(1.0, float(V.temas) + .38), k)
+		if kuruyor: ev = float(V.temas) - .22 * clampf(p.kur / .1, 0, 1)          # son adım + bacak geride
+		elif "kur_son" in p and p.kur_son: ev = lerpf(float(V.temas), minf(1.0, float(V.temas) + .38), k)   # kurulma görüldü: temastan devam
 		poz_q = _ornek(V, ev, false); ky = _klip_kok(V, ev, false)
 	else:
 		# hıza göre iki komşu döngü ve harman ağırlığı
@@ -429,8 +435,12 @@ func _poz_ham(p, M, now: float, gol_takim: int) -> void:
 		for i in qa.size(): poz_q.append((qa[i] as Quaternion).slerp(qb[i], w))
 		ky = lerpf(_klip_kok(a, _evre), _klip_kok(b, _evre), w)
 	_son_yol = p.anim
-	# kök: oyunun verdiği yön; diğer kemikler kayıttan
-	iskelet.set_bone_pose_rotation(0, Quaternion(Vector3.UP, yaw))
+	# kök: oyunun verdiği yön; dönüşte gövde virajın içine yatar (koşu hızı × dönüş hızı), diğer kemikler kayıttan
+	var edt := clampf(now - _egim_t, 1.0 / 240.0, .1); _egim_t = now
+	var yhiz := wrapf(yaw - _egim_yaw, -PI, PI) / edt; _egim_yaw = yaw
+	var hedef_egim := clampf(-yhiz * spd * .03, -.3, .3) if not vuruyor else 0.0
+	_egim = lerpf(_egim, hedef_egim, minf(1.0, edt * 10.0))
+	iskelet.set_bone_pose_rotation(0, Quaternion(Vector3.UP, yaw) * Quaternion(Vector3.BACK, _egim))
 	for i in range(1, KEMIK.size()): iskelet.set_bone_pose_rotation(i, poz_q[i])
 	iskelet.set_bone_pose_position(0, Vector3(0, ky, 0))
 	# gol sevinci koşarken: kollar havada

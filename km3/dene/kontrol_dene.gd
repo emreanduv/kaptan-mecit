@@ -19,6 +19,8 @@ func _init() -> void:
 		for i in d[2]:
 			M.step(1.0 / 60.0)
 		M.tus_birak(d[1]); M.step(1.0 / 60.0)
+		if d[1] == "sut":
+			for i in 8: M.step(1.0 / 60.0)    # şut kurulması (~0,1 sn) sonra top çıkar
 		var b = M.ball; var f: float = M.fwd_of(0)
 		sonuc.append("%s hiz=%.1f ileri=%.1f hedef=%s sahip=%s ctrl_sahip=%s dolum=%.2f" % [d[0], Vector2(b.vx, b.vy).length(), b.vy * f, b.intended.n if b.intended != null else "-", b.owner.n if b.owner != null else "-", b.owner == c, M.dolum[d[1]]])
 	var M2 = Mac.new(t0, t1, 4, 1, false)

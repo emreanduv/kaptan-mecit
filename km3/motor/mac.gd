@@ -68,6 +68,11 @@ class Oy:
 	var ucus_z := 0.0
 	var ucus_ofs := Vector2.ZERO
 	var first_time := false
+	# şut kurulması: vuruş kararından sonra topa son adım ve bacağın geri çekilmesi (~0,1 sn), sonra vuruş
+	var kur := 0.0
+	var kur_a := 0.0
+	var kur_g := 1.0
+	var kur_son := false
 	var ayak := false          # geri pas: kaleci topu eline alamaz, ayağıyla oynar
 	var won := false
 	var sari := false
@@ -333,6 +338,7 @@ func step(dt: float) -> void:
 	if state != "play":
 		state_t -= dt
 		for p: Oy in P:
+			p.kur = 0.0
 			p.vx *= .85; p.vy *= .85; p.x += p.vx * dt; p.y += p.vy * dt; p.anim += hyp(p.vx, p.vy) * dt
 		if state == "goal" and gol_atan != null: gol_kutlama(dt)
 		elif state == "goal" or state == "half": move_off_ball(dt, true)
@@ -389,6 +395,13 @@ func step(dt: float) -> void:
 		if ball.owner != set_piece.p: set_piece = null
 	kondisyon(dt); oto_degisiklik()
 	tactical_prep(dt)
+	for p: Oy in P:
+		if p.kur > 0:
+			p.kur -= dt
+			if p.kur <= 0:
+				if ball.owner == p: do_shoot(p, p.kur_a, p.kur_g, true)
+				else: p.kur_son = false
+		elif p.cd <= 0: p.kur_son = false
 	for p: Oy in P.duplicate(): think(p, dt)
 	for p: Oy in P.duplicate():
 		if P.has(p): move_player(p, dt)
@@ -645,6 +658,7 @@ func ahead_gap(p: Oy) -> float:
 	return a
 
 func think_carrier(p: Oy, dt: float) -> void:
+	if p.kur > 0: return
 	var Tt: Dictionary = T[p.team]
 	var gy := goal_y_of(p.team)
 	var f := fwd_of(p.team)
@@ -670,7 +684,7 @@ func think_carrier(p: Oy, dt: float) -> void:
 	p.hold += dt
 	if p.first_time:
 		p.first_time = false
-		if dG < 19: do_shoot(p, 0, .85); return
+		if dG < 19: do_shoot(p, 0, .85, true); return
 	var wide := absf(p.x - PW / 2) > 18
 	var counter: bool = Pp.mode == "counter"
 	if p.dec <= 0:
@@ -836,9 +850,10 @@ func think(p: Oy, dt: float) -> void:
 					if cq != null: do_cross(p, cq)
 					else: do_pass(p, p.dx, p.dy)
 				return
+			if p.kur > 0: p.mx = ix; p.my = iy; p.run = 0.0; return
 			if p.first_time:
 				p.first_time = false
-				if hyp(PW / 2 - p.x, goal_y_of(p.team) - p.y) < 19: do_shoot(p, ix, .85); return
+				if hyp(PW / 2 - p.x, goal_y_of(p.team) - p.y) < 19: do_shoot(p, ix, .85, true); return
 			if p.role == "G":
 				p.hold += dt
 				if giris.pasE or giris.sutE or p.hold > 1.6: do_pass(p, ix, iy if iy != 0 else fwd_of(p.team)); return
@@ -1012,7 +1027,12 @@ func do_pass(p: Oy, dx: float, dy: float, target: Oy = null) -> void:
 	p.dx = ux; p.dy = uy
 	release(p, ux * v, uy * v, vz, q); olay("vurus", .7)
 
-func do_shoot(p: Oy, aim_x: float, pow := 1.0) -> void:
+const KURULMA := .1
+func do_shoot(p: Oy, aim_x: float, pow := 1.0, kuruldu := false) -> void:
+	if not kuruldu and set_piece == null and hyp(PW / 2 - p.x, goal_y_of(p.team) - p.y) <= 36:
+		# FIFA hissi: şut anında topa son adım + bacağı geri çekme, top sonra çıkar (bu arada araya girilebilir)
+		p.kur = KURULMA; p.kur_a = aim_x; p.kur_g = pow; p.kur_son = true; return
+	p.kur = 0.0
 	if not demo: ist.sut[p.team] += 1; oy_k(p).s += 1
 	var gy := goal_y_of(p.team)
 	var f := fwd_of(p.team)
