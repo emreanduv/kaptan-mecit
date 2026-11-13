@@ -54,6 +54,7 @@ func yenile() -> void:
 	elif lig.var_mi() and lig.gorunum == "kadro": sol = _kadro_panel()
 	elif lig.var_mi() and lig.gorunum == "tarih": sol = _tarih_panel()
 	elif lig.var_mi() and lig.gorunum == "odul": sol = _odul_panel()
+	elif lig.var_mi() and lig.gorunum == "ist": sol = _ist_panel()
 	if dikey:
 		hb.add_child(_sag_panel()); hb.add_child(sol)
 	else:
@@ -70,7 +71,7 @@ func ciz() -> void:
 		b.text = lig.satir_metni(i, sec)
 		if S[i] in ["Lig", "Takımın", "Kupa"]: b.text = b.text.trim_prefix("‹  ").trim_suffix("  ›")   # okları yandaki düğmeler gösterir
 		var ana_eylem: bool = S[i] in ["MAÇA ÇIK", "SEZONA BAŞLA", "YENİ SEZON"]
-		if ((S[i] == "Kadro" and lig.gorunum == "kadro") or (S[i] == "Fikstür" and lig.gorunum == "fikstur") or (S[i] == "Gol krallığı" and lig.gorunum == "goller") or (S[i] == "Tarihçe" and lig.gorunum == "tarih") or (S[i] == "Ödüller" and lig.gorunum == "odul")) and not sec:   # açık görünüm sekmesi
+		if ((S[i] == "Kadro" and lig.gorunum == "kadro") or (S[i] == "Fikstür" and lig.gorunum == "fikstur") or (S[i] == "Gol krallığı" and lig.gorunum == "goller") or (S[i] == "Tarihçe" and lig.gorunum == "tarih") or (S[i] == "Ödüller" and lig.gorunum == "odul") or (S[i] == "İstatistik" and lig.gorunum == "ist")) and not sec:   # açık görünüm sekmesi
 			b.add_theme_stylebox_override("normal", _kutu(Color("#3d4a5c"), 6, 7)); b.add_theme_color_override("font_color", ALTIN); continue
 		var c := ALTIN if sec else (Color("#e5722f") if ana_eylem else SERIT)
 		b.add_theme_stylebox_override("normal", _kutu(c, 6, 7))
@@ -293,6 +294,36 @@ func _odul_panel() -> Control:
 	k = 0
 	for x in lig.sezonun_11i():
 		v.add_child(_odul_satir(["", x[2], Lig.mevki_adi(x[1]), x[6], "", str(x[4])], k, false, x[5])); k += 1
+	return p
+
+# lig istatistikleri: ligin rekorları (en golcü, en sağlam savunma, iç saha / deplasman, form, seriler, en farklı skor) + kulübün karnesi
+func _ist_panel() -> Control:
+	var p := PanelContainer.new(); p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	p.add_theme_stylebox_override("panel", _kutu(PANEL, 6, 0))
+	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 0); p.add_child(v)
+	v.add_child(_serit("İSTATİSTİKLER  ·  %s  ·  %s sezonu" % [lig.lig_veri().ad, lig.sezon_adi()]))
+	var R := lig.istatistik()
+	if R.is_empty():
+		v.add_child(_ic(_etiket("İstatistikler ilk hafta oynanınca dolar.", 15, SOLUK)))
+		return p
+	var k := 0
+	for x in R:
+		var b: bool = x[0] == "b"
+		var q := PanelContainer.new()
+		var c := SERIT if b else (BIZ_RENK if x[3] else (SATIR_A if k % 2 == 0 else SATIR_B))
+		var st := _kutu(c, 0, 0); st.content_margin_top = 5 if b else 3; st.content_margin_bottom = 3; st.content_margin_left = 8; st.content_margin_right = 8
+		q.add_theme_stylebox_override("panel", st)
+		var hb := HBoxContainer.new(); hb.add_theme_constant_override("separation", 10); q.add_child(hb)
+		var l := _etiket(x[1], 14 if b else 15, ALTIN if b else SOLUK)
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL; l.clip_text = true; l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		hb.add_child(l)
+		if not b:
+			var dv := _etiket(x[2], 15, YAZI)
+			dv.size_flags_horizontal = Control.SIZE_EXPAND_FILL; dv.size_flags_stretch_ratio = 1.1
+			dv.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; dv.clip_text = true; dv.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			hb.add_child(dv)
+		v.add_child(q)
+		k = 0 if b else k + 1
 	return p
 
 func _odul_satir(vals: Array, k: int, baslik: bool, biz: bool) -> Control:

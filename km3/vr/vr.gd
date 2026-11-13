@@ -307,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language"]
-const SURUM := "0.9.10"
+const SURUM := "0.9.11"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -492,6 +492,12 @@ func _lig_ciz() -> void:
 		for j in [0, 2, 3, 4, 5, 6, 7]: sutun[j] += "\n\n"
 		for x in L.sezonun_11i():
 			var v := ["", Lig.mevki_adi(x[1]) + "  ·  " + x[2] + "  ·  " + x[3], "", "", "", "", "", str(x[4])]
+			for j in v.size(): sutun[j] += "\n" + v[j]
+	elif L.var_mi() and L.gorunum == "ist":
+		if L.mesaj == "": _mesaj.text = "İSTATİSTİKLER  ·  " + L.lig_veri().ad + "  ·  " + L.sezon_adi()
+		sutun = ["", "İSTATİSTİKLER", "", "", "", "", "", ""]
+		for x in L.istatistik().slice(0, 18):
+			var v := ["", (("\u2014 " + x[1] + " \u2014") if x[0] == "b" else (x[1] + ":  " + x[2])), "", "", "", "", "", ""]
 			for j in v.size(): sutun[j] += "\n" + v[j]
 	elif L.var_mi() and L.gorunum == "goller":
 		sutun = ["#", "GOL KRALLIĞI", "", "", "", "", "", "Gol"]

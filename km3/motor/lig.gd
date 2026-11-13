@@ -22,7 +22,7 @@ var mesaj := ""
 var _birak_onay := 0.0
 var son_hafta: Array = []       # en son oynanan haftanın maçları (ekranda "Haftanın sonuçları")
 var diz := ""                   # kullanıcının ana menüde seçtiği diziliş ("" = Otomatik); kadro görünümü maçtaki ilk 11'i gösterir
-var gorunum := "tablo"          # sol panel: "kadro" (kulübün kadrosu), "tablo" (puan durumu), "fikstur" (kulübün sezon fikstürü), "goller" (gol krallığı), "odul" (sezon ödülleri) ya da "tarih" (kulübün sezon sezon tarihçesi)
+var gorunum := "tablo"          # sol panel: "kadro" (kulübün kadrosu), "tablo" (puan durumu), "fikstur" (kulübün sezon fikstürü), "goller" (gol krallığı), "odul" (sezon ödülleri), "ist" (lig istatistikleri) ya da "tarih" (kulübün sezon sezon tarihçesi)
 const GOL_AGIRLIK := {"F": 5.0, "O": 1.8, "D": .55, "G": 0.0}   # simüle maçta golü kimin attığı: mevkiye göre pay
 
 func _init(v: Dictionary) -> void:
@@ -296,7 +296,7 @@ func sezon_adi() -> String:
 func satirlar() -> Array:
 	if kip == "kupa": return kupa_satirlari()
 	if not var_mi(): return ["Lig", "Takımın", "SEZONA BAŞLA", "Kupalar", "Ana menü"]
-	var r: Array = ["YENİ SEZON", "Kadro", "Fikstür", "Gol krallığı", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Kadro", "Fikstür", "Gol krallığı", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"]
+	var r: Array = ["YENİ SEZON", "Kadro", "Fikstür", "Gol krallığı", "İstatistik", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Kadro", "Fikstür", "Gol krallığı", "İstatistik", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"]
 	if son_rapor != "": r.insert(r.find("Ana menü"), "Maç raporu")
 	r.insert(r.find("Ana menü"), "Kupalar")
 	return r
@@ -319,6 +319,7 @@ func satir_metni(i: int, sec := false) -> String:
 		"Gol krallığı": return ok + ("Puan durumu" if gorunum == "goller" else "Gol krallığı")
 		"Tarihçe": return ok + ("Puan durumu" if gorunum == "tarih" else "Tarihçe")
 		"Ödüller": return ok + ("Puan durumu" if gorunum == "odul" else "Ödüller")
+		"İstatistik": return ok + ("Puan durumu" if gorunum == "ist" else "İstatistik")
 	return ok + s
 
 func kay(i: int, yon: int) -> void:
@@ -344,6 +345,7 @@ func bas(i: int) -> String:
 		"Gol krallığı": gorunum = "tablo" if gorunum == "goller" else "goller"
 		"Tarihçe": gorunum = "tablo" if gorunum == "tarih" else "tarih"
 		"Ödüller": gorunum = "tablo" if gorunum == "odul" else "odul"
+		"İstatistik": gorunum = "tablo" if gorunum == "ist" else "ist"
 		"YENİ SEZON": sonraki_sezon()
 		"Ana menü": gorunum = "tablo"; return "menu"
 		"Maç raporu": return "rapor"
@@ -636,6 +638,93 @@ func tablo_satirlari() -> Array:
 	for k in t.size():
 		var x: Dictionary = t[k]
 		r.append([k + 1, takim(x.i).kisa, takim(x.i).ad, x.O, x.G, x.B, x.M, x.A, x.Y, x.Av, x.P, x.i == biz(), x.form])
+	return r
+
+# ---------- lig istatistikleri (menajer oyunlarının "İstatistikler" sayfası gibi) ----------
+# Fikstürdeki oynanmış maçlardan: ligin rekorları + kulübün iç saha / deplasman karnesi, en farklı galibiyet / yenilgi, seri.
+# Döndürür: [[tür, etiket, değer, biz], ...] — tür "b" (bölüm başlığı) ya da "s" (satır). Ayrı kayıt yok.
+static func _ondalik(x: float) -> String:
+	var s := "%.2f" % x
+	return s if Dil.en else s.replace(".", ",")
+
+func _skor_metni(mc: Array, w: int) -> String:
+	return "%s %d-%d %s  ·  %s" % [takim(int(mc[0])).kisa, int(mc[2]), int(mc[3]), takim(int(mc[1])).kisa, ("week %d" if Dil.en else "%d. hafta") % (w + 1)]
+
+func istatistik() -> Array:
+	var r: Array = []
+	if not var_mi(): return r
+	var n: int = (d.takimlar as Array).size()
+	var S: Array = []
+	for i in n: S.append({"evp": 0, "dpp": 0, "ev": [0, 0, 0], "dp": [0, 0, 0], "sonuc": "", "gs": 0, "ys": 0})
+	var mac := 0; var gol := 0; var evg := 0; var ber := 0
+	var fark: Array = []; var golcu_mac: Array = []
+	var biz_g: Array = []; var biz_m: Array = []
+	var F: Array = d.fikstur
+	for w in F.size():
+		for mc in F[w]:
+			var ge := int(mc[2]); var gd := int(mc[3])
+			if ge < 0: continue
+			mac += 1; gol += ge + gd
+			var e: Dictionary = S[int(mc[0])]; var dp: Dictionary = S[int(mc[1])]
+			if ge > gd: evg += 1; e.ev[0] += 1; e.evp += 3; dp.dp[2] += 1; e.sonuc += "G"; dp.sonuc += "M"
+			elif ge == gd: ber += 1; e.ev[1] += 1; e.evp += 1; dp.dp[1] += 1; dp.dpp += 1; e.sonuc += "B"; dp.sonuc += "B"
+			else: e.ev[2] += 1; dp.dp[0] += 1; dp.dpp += 3; e.sonuc += "M"; dp.sonuc += "G"
+			var fk := absi(ge - gd)
+			if fark.is_empty() or fk > int(fark[0]) or (fk == int(fark[0]) and ge + gd > int(fark[1])): fark = [fk, ge + gd, mc, w]
+			if golcu_mac.is_empty() or ge + gd > int(golcu_mac[0]): golcu_mac = [ge + gd, mc, w]
+			for yan in 2:
+				if int(mc[yan]) != biz(): continue
+				var a := ge if yan == 0 else gd; var y := gd if yan == 0 else ge
+				if a > y and (biz_g.is_empty() or a - y > int(biz_g[0]) or (a - y == int(biz_g[0]) and a > int(biz_g[1]))): biz_g = [a - y, a, mc, w]
+				if a < y and (biz_m.is_empty() or y - a > int(biz_m[0]) or (y - a == int(biz_m[0]) and y > int(biz_m[1]))): biz_m = [y - a, y, mc, w]
+	if mac == 0: return r
+	var T := tablo()
+	var en_iyi := func(anahtar: Callable, buyuk := true) -> Array:   # [takım, değer]; eşitlikte tablodaki sıra
+		var best := -1; var bv := 0
+		for x in T:
+			var v: int = anahtar.call(int(x.i))
+			if best < 0 or (v > bv if buyuk else v < bv): best = int(x.i); bv = v
+		return [best, bv]
+	var seri := func(i: int, harfler: String, son := false) -> int:   # en uzun (ya da sondaki) seri
+		var s: String = S[i].sonuc; var en := 0; var k := 0
+		for c in s:
+			k = k + 1 if harfler.contains(c) else 0; en = maxi(en, k)
+		return k if son else en
+	var ad := func(i: int) -> String: return takim(i).ad
+	r.append(["b", "LİG REKORLARI", "", false])
+	var x: Array = en_iyi.call(func(i): return int(T.filter(func(t): return int(t.i) == i)[0].A))
+	r.append(["s", "En golcü takım (gol)", "%s  ·  %d" % [ad.call(x[0]), x[1]], x[0] == biz()])
+	x = en_iyi.call(func(i): return int(T.filter(func(t): return int(t.i) == i)[0].Y), false)
+	r.append(["s", "En sağlam savunma (yenilen gol)", "%s  ·  %d" % [ad.call(x[0]), x[1]], x[0] == biz()])
+	x = en_iyi.call(func(i): return int(S[i].evp))
+	r.append(["s", "İç sahanın en iyisi (puan)", "%s  ·  %d" % [ad.call(x[0]), x[1]], x[0] == biz()])
+	x = en_iyi.call(func(i): return int(S[i].dpp))
+	r.append(["s", "Deplasmanın en iyisi (puan)", "%s  ·  %d" % [ad.call(x[0]), x[1]], x[0] == biz()])
+	x = en_iyi.call(func(i):
+		var p := 0
+		for c in (S[i].sonuc as String).right(5): p += 3 if c == "G" else (1 if c == "B" else 0)
+		return p)
+	r.append(["s", "Formda takım (son 5 maçta puan)", "%s  ·  %d" % [ad.call(x[0]), x[1]], x[0] == biz()])
+	x = en_iyi.call(func(i): return seri.call(i, "G"))
+	r.append(["s", "En uzun galibiyet serisi (maç)", "%s  ·  %d" % [ad.call(x[0]), x[1]], x[0] == biz()])
+	x = en_iyi.call(func(i): return seri.call(i, "GB"))
+	r.append(["s", "En uzun yenilmezlik serisi (maç)", "%s  ·  %d" % [ad.call(x[0]), x[1]], x[0] == biz()])
+	r.append(["s", "En farklı skor", _skor_metni(fark[2], int(fark[3])), int(fark[2][0]) == biz() or int(fark[2][1]) == biz()])
+	r.append(["s", "En gollü maç", _skor_metni(golcu_mac[1], int(golcu_mac[2])), int(golcu_mac[1][0]) == biz() or int(golcu_mac[1][1]) == biz()])
+	r.append(["s", "Maç başına gol", _ondalik(float(gol) / mac), false])
+	r.append(["s", "Ev sahibi · beraberlik · deplasman", "%s  ·  %s  ·  %s" % [yuzde(roundi(100.0 * evg / mac)), yuzde(roundi(100.0 * ber / mac)), yuzde(roundi(100.0 * (mac - evg - ber) / mac))], false])
+	var b: Dictionary = S[biz()]
+	r.append(["b", takim(biz()).ad, "", true])
+	r.append(["s", "İç saha (G-B-M · puan)", "%d-%d-%d  ·  %d" % [b.ev[0], b.ev[1], b.ev[2], b.evp], true])
+	r.append(["s", "Deplasman (G-B-M · puan)", "%d-%d-%d  ·  %d" % [b.dp[0], b.dp[1], b.dp[2], b.dpp], true])
+	r.append(["s", "En farklı galibiyetimiz", _skor_metni(biz_g[2], int(biz_g[3])) if not biz_g.is_empty() else "—", true])
+	r.append(["s", "En ağır yenilgimiz", _skor_metni(biz_m[2], int(biz_m[3])) if not biz_m.is_empty() else "—", true])
+	var son: String = (b.sonuc as String).right(1)
+	var adlar := {"G": "galibiyet", "B": "beraberlik", "M": "yenilgi"}
+	if Dil.en: adlar = {"G": "win", "B": "draw", "M": "defeat"}
+	var sn: int = seri.call(biz(), son, true) if son != "" else 0
+	r.append(["s", "Süren seri", ("%d %s%s" % [sn, adlar[son], "s" if Dil.en and sn > 1 else ""]) if son != "" else "—", true])
+	r.append(["s", "Yenilmezlik serisi (en uzun · şu an)", "%d  ·  %d" % [seri.call(biz(), "GB"), seri.call(biz(), "GB", true)], true])
 	return r
 
 # kulübün sezon fikstürü (ekran ve VR): her hafta için [hafta, iç saha mı, rakip, bizim gol, rakip gol] (oynanmadıysa gol -1)

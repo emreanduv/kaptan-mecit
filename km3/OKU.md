@@ -65,6 +65,11 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Kayıtta `d.hedef` ({k, s}), tarihçede `hd`/`hs`. Eski kayıtlar açılınca hedef kurulur; eski tarihçe satırlarında Yönetim boş kalır. "Ligi bırak" / "Verilerimi sil" hepsini siler (aynı dosya).
 - Kod: `Lig._hedef_kur()`, `hedef_adi/sira/aciklama()`, `hedef_sonuc()`, `beklenen_puan()`, `guven()`, `guven_adi()`, `yuzde()` (TR %72, EN 72%), `LigEkran._yonetim_panel()`, `vr._lig_ciz()`. Deneme: `dene/lig_dene.gd` (28 ligde hedef/güven/kayıt/eski kayıt), `--ligsezon=22 --ligtakim=8 --lig --ekran=x.png` (`--vrsahte`, `--dil=en`).
 
+## 0.9.11 — Lig istatistikleri
+- Lig ekranında **İstatistik** satırı (VR'da da), menajer oyunlarının istatistik sayfası gibi. **Lig rekorları:** en golcü takım, en sağlam savunma, iç sahanın ve deplasmanın en iyisi, formda takım (son 5 maç), en uzun galibiyet ve yenilmezlik serisi, en farklı skor, en gollü maç, maç başına gol, ev sahibi / beraberlik / deplasman yüzdesi. **Kulübün karnesi:** iç saha ve deplasman G-B-M · puan, en farklı galibiyetimiz, en ağır yenilgimiz, süren seri, yenilmezlik serisi (en uzun · şu an). Bizim kulübü ilgilendiren satırlar mavi.
+- Her şey fikstürdeki oynanmış maçlardan hesaplanır; ayrı kayıt yok (aynı `user://km3-lig.json`; "Verilerimi sil" / "Ligi bırak" siler).
+- Kod: `Lig.istatistik()`, `LigEkran._ist_panel()`, `vr._lig_ciz()`. Deneme: `godot --headless --path km3 -s dene/ist_dene.gd` (28 ligde satır sayısı, iç saha + deplasman puanı = tablo puanı), `--ligsezon=24 --lig --ligist --ekran=x.png` (`--vrsahte`, `--dil=en`).
+
 ## 0.9.9 — Sezon ödülleri
 - Lig ekranında **Ödüller** satırı (VR'da da), menajer oyunlarının sezon sonu ödülleri gibi: **yılın oyuncusu** yarışı (ilk 10: # · oyuncu · mevki · kulüp · gol · puan), **sezonun 11'i** (4-3-3: 1 kaleci, 4 defans, 3 orta saha, 3 forvet) ve **yılın teknik direktörü** (güç sırasına göre beklenenin en çok üstüne çıkan kulüp; "güç sırası 11 → ligde 3."). Sezon sürerken "Ödül yarışı", bitince "Sezon ödülleri" (birinci ★).
 - Puan: yetenek/2 + kulübün maç başı puanı ×8 + lig sırası (0–10) + lig golü (sezon temposuna göre; forvet 2, orta saha 2,6, defans 3,2 ağırlık) + kaleci/defansa yenilen gol ortalaması + orta sahaya oyun kurucu payı (+4). 56 sezonluk denemede yılın oyuncusu: 35 forvet, 17 orta saha, 4 defans.
