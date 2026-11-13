@@ -150,6 +150,16 @@ func _ready() -> void:
 	if _arg.has("tekrar"):
 		# deneme: golden sonra tekrarın t. saniyesine git
 		tekrar.kare(Tekrar.BEKLE + .01); tekrar.kare(float(_arg.tekrar))
+	if _arg.has("dalis"):
+		# deneme: bir kaleci şuta erken atlayana kadar oynat, sonra dalis saniye ilerlet (görüntü denetimi)
+		var n := 0
+		while n < 60 * 900:
+			_adim(); n += 1
+			var uc := false
+			for p in M.P:
+				if p.role == "G" and p.ucus > 1.45 and M.ball.shot: uc = true
+			if uc: break
+		for i in int(float(_arg.dalis) * 60): _adim()
 	if _arg.has("ileri"):
 		var n := int(float(_arg.ileri) * 60)
 		for i in n: _adim()
