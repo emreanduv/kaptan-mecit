@@ -192,6 +192,7 @@ func _ready() -> void:
 # ---------- CBM Modern: Champion Battle Manager maçını izleme (maçı CBM oynatır, burada yalnız çizilir) ----------
 var dis: DisMac = null
 var _dis_bekle := 0.0
+var _dis_hiz := 1.0
 func _dis_mi() -> bool:
 	if _arg.has("cbmdene"): return true
 	return OS.has_feature("web") and str(JavaScriptBridge.eval("location.search", true)).contains("cbm=1")
@@ -236,7 +237,10 @@ func _dis_kare(dt: float) -> void:
 	if kare != "":
 		var f = JSON.parse_string(kare)
 		if f is Dictionary:
-			dis.kare(f, dt)
+			# CBM maçı hızlandırınca (x2, x4) ya da tekrarı ağır çekimde oynatınca çizim de aynı oyun zamanında akar:
+			# kaleci uçuşu, vuruş, kamera takibi oyunun hızına uyar (yoksa x4'te kaleci geç atlar, kamera topu kaçırır)
+			_dis_hiz = clampf(float(f.get("h", 1.0)), 0.05, 6.0)
+			dis.kare(f, dt * _dis_hiz)
 			for o in f.get("o", []):
 				var c := dis.olay(o)
 				if c.size(): _olay(c)
@@ -247,7 +251,7 @@ func _dis_kare(dt: float) -> void:
 			for o in L:
 				var c := dis.olay(o)
 				if c.size(): _olay(c)
-	_ciz(dt)
+	_ciz(dt * _dis_hiz)
 
 func _futbolcu_kur(p) -> Futbolcu:
 	var kit: Dictionary = M.T[p.team].kit
