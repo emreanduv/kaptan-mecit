@@ -1084,10 +1084,17 @@ func move_player(p: Oy, dt: float) -> void:
 		elif p.mx != 0 or p.my != 0:
 			mx = p.mx; my = p.my; sp = top * (p.run if p.run != 0 else 1.0) * minf(1, hyp(p.mx, p.my) * 1.15)
 		var tvx := mx * sp; var tvy := my * sp
-		var k := minf(1, dt * (7.0 if ball.owner == p else 9.0))
+		# elle oynanan oyuncu parmağa hemen cevap verir (ICanFootball / FIFA hissi): daha sert hızlanma ve
+		# yüzü doğrudan istenen yöne döner; top da (ball_step) bu yöne yumuşakça toplanır
+		var k := minf(1, dt * ((11.0 if ball.owner == p else 13.0) if hum else (7.0 if ball.owner == p else 9.0)))
 		p.vx += (tvx - p.vx) * k; p.vy += (tvy - p.vy) * k; vx = p.vx; vy = p.vy
 		var s := hyp(vx, vy)
-		if s > .5: p.dx = vx / s; p.dy = vy / s
+		if hum and sp > 0 and not p.hedef:
+			# yüz istenen yöne döner (saniyede ~2 tur; tam geri dönüş ~0,25 sn), top bu yönde ayağın önüne toplanır
+			var su := Vector2(p.dx, p.dy); var hd := Vector2(mx, my).normalized()
+			var aci := su.angle_to(hd); var adim := dt * 13.0
+			su = su.rotated(clampf(aci, -adim, adim)); p.dx = su.x; p.dy = su.y
+		elif s > .5: p.dx = vx / s; p.dy = vy / s
 	p.x += vx * dt; p.y += vy * dt
 	p.x = clampf(p.x, -3, PW + 3); p.y = clampf(p.y, -3, PL + 3)
 	if p.role == "G":
@@ -1115,7 +1122,15 @@ func ball_step(dt: float) -> void:
 		var p := b.owner
 		var ph := p.anim * 1.6
 		var off := .62 + sin(ph) * .12
-		b.x = p.x + p.dx * off; b.y = p.y + p.dy * off; b.z = 0; b.vx = p.vx; b.vy = p.vy; b.vz = 0; b.last_team = p.team; b.last = p
+		var hx := p.x + p.dx * off; var hy := p.y + p.dy * off
+		# top ayağa yapışık gider ama ışınlanmaz: oyuncuyla birlikte kayar, ayağın önüne yumuşakça toplanır
+		# (dönüşte top oyuncunun çevresinden dolaşır, karşılamada ayağa gelir). Duran topta yerinde kalır.
+		if set_piece != null or hyp(hx - b.x, hy - b.y) > 2.5: b.x = hx; b.y = hy
+		else:
+			var kt := minf(1.0, dt * 15.0)
+			b.x += p.vx * dt; b.y += p.vy * dt
+			b.x += (hx - b.x) * kt; b.y += (hy - b.y) * kt
+		b.z = 0; b.vx = p.vx; b.vy = p.vy; b.vz = 0; b.last_team = p.team; b.last = p
 		if set_piece == null and p.role != "G" and (b.x < -.15 or b.x > PW + .15 or b.y < -.15 or b.y > PL + .15):
 			b.owner = null; b.kicker = p
 			if out_of_play(b): return
