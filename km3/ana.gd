@@ -86,6 +86,9 @@ var tekrar := Tekrar.new()
 var _tekrar_kutu: Control
 
 func _ready() -> void:
+	# gömülü yazıda (Open Sans) olmayan işaretler (★ → ▶ ◀ ✓ …) için yedek yazı: web, telefon ve Quest'te kutu çıkmasın
+	var simge = load("res://yazi/simge.ttf")
+	if simge: ThemeDB.fallback_font.fallbacks = [simge]
 	for a in OS.get_cmdline_user_args():
 		var kv := a.trim_prefix("--").split("=", true, 1)
 		_arg[kv[0]] = kv[1] if kv.size() > 1 else "1"
@@ -94,6 +97,7 @@ func _ready() -> void:
 	if _arg.has("dil"): Dil.ayarla(_arg.dil == "en", false)
 	else: Dil.kur()
 	veri = JSON.parse_string(FileAccess.get_file_as_string("res://veri/takimlar.json"))
+	Duzen.yukle(); Duzen.uygula(veri)     # oyuncunun düzenlemeleri / yüklediği paket (PES option file usulü)
 	lig = Lig.new(veri)
 	_ortam()
 	dunya = Node3D.new(); add_child(dunya)
@@ -136,6 +140,7 @@ func _ready() -> void:
 		for i in int(_arg.ligsezon):
 			if lig.bitti(): lig.sonraki_sezon()    # deneme: hafta sayısı sezonu aşarsa yeni sezona geç (tarihçe dolar)
 			lig.haftayi_simule()
+	if _arg.has("duzen") or (OS.has_feature("web") and str(JavaScriptBridge.eval("new URLSearchParams(location.search).get('duzen') || ''", true)) == "1"): duzen_ac.call_deferred()
 	if _arg.has("ligtarih"): lig.gorunum = "tarih"
 	if _arg.has("ligfik"): lig.gorunum = "fikstur"
 	if _arg.has("liggol"): lig.gorunum = "goller"
@@ -712,6 +717,12 @@ func _arayuz() -> void:
 	lgd.custom_minimum_size = Vector2(0, 50)
 	lgd.pressed.connect(func(): lig_goster(true))
 	mv.add_child(lgd)
+	if not OS.has_feature("android") or OS.has_feature("web"):    # Quest (yerel Android) derlemesinde klavye yok: düzenleme yalnız telefon/web/masaüstünde
+		var dz := Button.new(); dz.text = "Düzenleme modu  ·  kulüp ve oyuncu adları"; dz.add_theme_font_size_override("font_size", 18)
+		dz.add_theme_stylebox_override("normal", _kutu(Color("#5a4a7a"), 10)); dz.add_theme_stylebox_override("hover", _kutu(Color("#6a5a8c"), 10))
+		dz.add_theme_color_override("font_color", Color.WHITE); dz.custom_minimum_size = Vector2(0, 46)
+		dz.pressed.connect(duzen_ac)
+		mv.add_child(dz)
 	var yd := Button.new(); yd.text = "Nasıl oynanır"; yd.add_theme_font_size_override("font_size", 18)
 	yd.add_theme_stylebox_override("normal", _kutu(Color("#1f3b3c"), 10)); yd.add_theme_stylebox_override("hover", _kutu(Color("#2a4e50"), 10))
 	yd.add_theme_color_override("font_color", Color.WHITE)
@@ -743,6 +754,15 @@ func _arayuz() -> void:
 	_dil_yaz()
 	menu.add_child(mv)
 	ui.add_child(_kaydirmali(menu))
+	# düzenleme modu
+	duzen_ekran = DuzenEkran.new(self, veri); ui.add_child(_kaydirmali(duzen_ekran))
+	duzen_ekran.kapandi.connect(func(degisti):
+		if degisti:
+			var ls := sec_lig.selected; var es := sec_ev.selected; var ds := sec_dep.selected
+			sec_lig.clear()
+			for l in veri.ligler: sec_lig.add_item(l.ad + " · " + l.ulke)
+			sec_lig.select(ls); _takimlari_doldur(); sec_ev.select(es); sec_dep.select(ds)
+		menu.visible = menu_acik and not lig_acik and not (M != null and not M.demo))
 	# lig ekranı (tam ekran)
 	lig_ekran = LigEkran.new(lig); ui.add_child(lig_ekran)
 	lig_ekran.eylem.connect(func(a):
@@ -785,7 +805,7 @@ func _arayuz() -> void:
 	_yardim_dugmeler = [ys, yvs]
 	# üstte de her zaman görünen bir kapatma düğmesi (uzun maç raporunda alttaki düğme ekran dışında kalabiliyordu)
 	var yu := HBoxContainer.new(); var ybos := Control.new(); ybos.size_flags_horizontal = Control.SIZE_EXPAND_FILL; yu.add_child(ybos)
-	var yk2 := Button.new(); yk2.text = "Kapat  ✕"; yk2.add_theme_font_size_override("font_size", 20); yk2.custom_minimum_size = Vector2(150, 52)
+	var yk2 := Button.new(); yk2.text = "Kapat  ×"; yk2.add_theme_font_size_override("font_size", 20); yk2.custom_minimum_size = Vector2(150, 52)
 	yk2.pressed.connect(func(): yardim_goster(false)); yu.add_child(yk2); _yardim_ust_dugme = yk2
 	yk.custom_minimum_size = Vector2(150, 52)
 	yv.add_child(yu); yv.add_child(yl); yv.add_child(yh); yardim_panel.add_child(yv)
@@ -886,7 +906,7 @@ func yardim_goster(v: bool, metin := "") -> void:
 	yardim_acik = v
 	yardim_metin = metin if v else ""
 	if _yardim_yazi: _yardim_yazi.text = metin if metin != "" else Mola.YARDIM
-	if _yardim_ust_dugme: _yardim_ust_dugme.text = "Devam  ›" if metin != "" else "Kapat  ✕"
+	if _yardim_ust_dugme: _yardim_ust_dugme.text = "Devam  ›" if metin != "" else "Kapat  ×"
 	if v and yardim_panel and yardim_panel.get_parent() and yardim_panel.get_parent().get_parent() is ScrollContainer:
 		(yardim_panel.get_parent().get_parent() as ScrollContainer).scroll_vertical = 0
 	for b in _yardim_dugmeler: b.visible = metin == ""
@@ -999,6 +1019,11 @@ void fragment(){
 """
 
 # ---------- lig modu ----------
+var duzen_ekran: DuzenEkran
+func duzen_ac() -> void:
+	menu.visible = false
+	duzen_ekran.ac()
+
 func lig_goster(v: bool) -> void:
 	if v and not lig.var_mi(): lig.kur_lig = sec_lig.selected; lig.kur_takim = sec_ev.selected
 	if v: lig.diz = "" if sec_dz.selected <= 0 else sec_dz.metin()
