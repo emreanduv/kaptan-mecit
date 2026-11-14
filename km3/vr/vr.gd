@@ -307,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language", "Maç saati"]
-const SURUM := "0.10.3"
+const SURUM := "0.10.4"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -335,7 +335,7 @@ func _menu3d_kur() -> void:
 	zemin.material_override = zm; menu3d.add_child(zemin)
 	var bas := _yazi(96, Color.WHITE); bas.text = "Kaptan Mecit 3"; bas.position = Vector3(0, .44, .001); menu3d.add_child(bas); _bas = bas
 	var imza := _yazi(36, Color("#cfe3d6")); imza.text = "Bir Mr. Anduv! yapımıdır.  ·  sürüm " + SURUM; imza.position = Vector3(0, .36, .001); menu3d.add_child(imza); _imza = imza
-	for i in maxi(SATIRLAR.size(), Mola.SATIRLAR.size()):
+	for i in maxi(14, maxi(SATIRLAR.size(), Mola.SATIRLAR.size())):   # lig menüsü 13 satıra çıkabiliyor (Rakip raporu + Maç raporu + Kupalar)
 		var l := _yazi(52, Color.WHITE); l.position = Vector3(0, .25 - i * .085, .001); menu3d.add_child(l)
 		_menu_satirlar.append(l)
 	var ipucu := _yazi(32, Color(1, 1, 1, .75))
@@ -494,10 +494,11 @@ func _lig_ciz() -> void:
 		for x in L.sezonun_11i():
 			var v := ["", Lig.mevki_adi(x[1]) + "  ·  " + x[2] + "  ·  " + x[3], "", "", "", "", "", str(x[4])]
 			for j in v.size(): sutun[j] += "\n" + v[j]
-	elif L.var_mi() and L.gorunum == "ist":
-		if L.mesaj == "": _mesaj.text = "İSTATİSTİKLER  ·  " + L.lig_veri().ad + "  ·  " + L.sezon_adi()
-		sutun = ["", "İSTATİSTİKLER", "", "", "", "", "", ""]
-		for x in L.istatistik().slice(0, 18):
+	elif L.var_mi() and L.gorunum in ["ist", "rakip"]:
+		var rk: bool = L.gorunum == "rakip"
+		if L.mesaj == "": _mesaj.text = ("RAKİP RAPORU  ·  " if rk else "İSTATİSTİKLER  ·  ") + L.lig_veri().ad + "  ·  " + L.sezon_adi()
+		sutun = ["", "RAKİP RAPORU" if rk else "İSTATİSTİKLER", "", "", "", "", "", ""]
+		for x in (L.rakip_raporu() if rk else L.istatistik()).slice(0, 18):
 			var v := ["", (("\u2014 " + x[1] + " \u2014") if x[0] == "b" else (x[1] + ":  " + x[2])), "", "", "", "", "", ""]
 			for j in v.size(): sutun[j] += "\n" + v[j]
 	elif L.var_mi() and L.gorunum == "goller":
