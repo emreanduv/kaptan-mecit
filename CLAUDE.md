@@ -26,6 +26,14 @@ Yayın sırası: incelemedeki/testteki mağazada gönderilen sürüme onay gelen
 - Mağaza incelemesine göndermeden önce derleme TestFlight / kapalı testte cihazda açılıp yeni özellikler gözle doğrulanır.
 - Yayınlanan her sürümden sonra `store/SON-SURUM` güncellenir.
 
+## Kaptan Mecit + Champion Battle Manager = tek oyun (Emre'nin kuralı, 14 Kasım 2026)
+- İkisi FIFA'nın kendisi ve yanındaki menajerlik oyunu gibi **tek oyun** olarak düşünülür: Kaptan Mecit oynanabilir yüz, Champion Battle Manager izlenip yönetilen yüz. Her biri kendi gereksinimine göre gelişir, ama ortak küme (veri ve kadrolar, ligler/kupalar, maç motoru kuralları, 3B çizim ve hareketler, stadyum, ses, düzenleme/paket, arayüz dersleri) **ikisine aynı anda** işlenir; Emre'nin ayrıca söylemesi beklenmez.
+- Bugünkü bağlar: CBM'in Modern maç görünümü Kaptan Mecit 3 web derlemesidir (`araclar/modern-al-champion.sh`, CBM izleme modu `motor/dis_mac.gd`): KM3'teki her çizim/hareket iyileştirmesi CBM'in bir sonraki derlemesine kendiliğinden girer; KM3'e dokunan her işte `cbmdene=` ile izleme modu da denenir. Kadrolar CBM'in haftalık dünyasından (`km-kadro.yml`). CBM'de yeni bir strateji/yönetim derinliği gelince KM'nin lig moduna karşılığı düşünülür.
+- Bütün Mr. Anduv! oyun ve uygulamaları tek evren: bir üründe yapılan iyileştirme gerekliyse hepsine derç edilir.
+
+## Telefon boyutunda deneme (Emre'nin kuralı, 14 Kasım 2026)
+Her ekran (menü, mola, düzenleme, rapor, lig) yayından önce **telefon ölçüsünde** denenir: iPhone yatay (844×390) ve dikey (390×844) Playwright cihaz taklidiyle; her düğmeye ulaşılabiliyor mu, ekrandan uzun olan parmakla kayıyor mu, ana eylem ("Maça başla") kaydırmadan görünüyor mu. Masaüstü görüntüsü yetmez (menü telefonda sığmıyordu, Emre fark etti).
+
 ## Tek isim, tek gelişim (Emre'nin kuralı, bütün oyun ve uygulamalar)
 - Bir oyun/uygulamanın adı **her mağazada aynıdır**: App Store, Google Play, Meta Horizon (VR), Steam, saat uygulamaları. Mağazaya göre ek ("VR", "Mobile" vb.) konmaz.
 - Teknik olarak mümkün olan her geliştirme, güncelleme ve iyileştirme **o ürünün bütün mağazalardaki sürümlerine** yapılır (telefon ↔ VR ↔ masaüstü). Platforma özgü olanlar karşılığıyla taşınır (VR kumanda titreşimi → telefonda dokunuş titreşimi).

@@ -308,7 +308,7 @@ func _futbolcu_kur(p) -> Futbolcu:
 	var renk := {"forma": ("#f3d35a" if p.team == 0 else "#3ec46d") if gk else kit.c1,
 		"serit": "#1d1d1d" if gk else serit, "sort": "#1d1d1d" if gk else kit.c2,
 		"tozluk": "#1d1d1d" if gk else kit.c1, "ten": p.ten, "sac": p.sac, "eldiven": "#f4f4f4" if gk else null,
-		"stil": _sac_stili(str(p.n))}
+		"stil": _sac_stili(str(p.n) if str(p.n) != "" else "%d-%d" % [p.team, p.no])}
 	var f := Futbolcu.new()
 	dunya.add_child(f)
 	f.kur(renk, p.no, .96 + float((p.no * 37) % 9) / 100.0)
