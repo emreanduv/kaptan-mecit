@@ -286,7 +286,8 @@ func _poz_yordamsal(p, M, now: float, gol_takim: int) -> void:
 	if dx != 0 or dy != 0:
 		var t := atan2(dx, dy)
 		var d := wrapf(t - yaw, -PI, PI)
-		yaw += d * .3
+		# vuruş anında gövde hemen topun gittiği yöne döner (yavaş dönüşte vuruş topuk gibi görünüyordu)
+		yaw += d * (1.0 if M.ball.kicker == p and p.cd > 0 else .3)
 	_sifirla()
 	_z("omuzL", -.12); _z("omuzR", .12)
 	var spd := sqrt(p.vx * p.vx + p.vy * p.vy)
