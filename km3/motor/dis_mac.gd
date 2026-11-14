@@ -67,7 +67,8 @@ func kare(f: Dictionary, dt: float) -> void:
 		p.anim += Vector2(nx - p.x, ny - p.y).length() if p.x != PW / 2 or p.y != PL / 2 else 0.0
 		p.x = nx; p.y = ny; p.vx = vx; p.vy = vy
 		var hiz := Vector2(vx, vy).length()
-		if hiz > .3: p.dx = vx / hiz; p.dy = vy / hiz
+		if p.cd > 0: pass                            # vuruş anında yüz topun gittiği yöne dönük kalır (topukla vuruş görünmesin)
+		elif hiz > .3: p.dx = vx / hiz; p.dy = vy / hiz
 		elif ball.owner == null:
 			# dururken topa döner
 			var b := Vector2(ball.x - p.x, ball.y - p.y)
@@ -84,7 +85,13 @@ func olay(o: Array) -> Array:
 	match str(o[0]):
 		"vurus":
 			var p: Mac.Oy = P[int(o[1])] if int(o[1]) < P.size() else null
-			if p: p.cd = .35; ball.kicker = p
+			if p:
+				p.cd = .35; ball.kicker = p
+				# vuran oyuncu topun gittiği yöne bakar; top yavaşsa hücum ettiği kaleye
+				var v := Vector2(ball.vx, ball.vy)
+				if v.length() < 1.0: v = Vector2(PW / 2 - p.x, goal_y_of(p.team) - p.y)
+				if v.length() > .01:
+					v = v.normalized(); p.dx = v.x; p.dy = v.y
 			return ["vurus", float(o[2]) if o.size() > 2 else .6]
 		"kayma":
 			if int(o[1]) < P.size(): P[int(o[1])].slide = .7
