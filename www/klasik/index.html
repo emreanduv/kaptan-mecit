@@ -357,10 +357,32 @@ let UI={screen:'home',qlg:'tr',qh:'gs',qa:'fb',clg:'tr',cteam:null,tab:'tablo',q
 
 /* ===================== REHBER · PUAN · PAYLAŞ · BİZE YAZ · VERİLERİMİ SİL (test ekibinin önerileri, Malazgirt Akıncıları 1.6 ile aynı paket) =====================
    Hiçbir veri toplanmaz: puan ve paylaşım telefonun/mağazanın kendi ekranlarıyla yapılır; ilerleme yalnız bu cihazda (km.rehber, km.puan). */
-const KM_SURUM='1.6.9',KM_IOS_ID=''; /* App Store'da yayımlanınca uygulama numarası yazılır (ör. '67…'); boşken iOS'ta mağaza araması açılır */
+const KM_SURUM='1.7.0',KM_IOS_ID=''; /* App Store'da yayımlanınca uygulama numarası yazılır (ör. '67…'); boşken iOS'ta mağaza araması açılır */
 const KM_GOMULU=/[?&](mac|vr)=1/.test(window.__KM_Q||location.search); /* Champion Battle maç modu ya da VR motoru: rehber/puan gösterilmez */
 const KM_KABUK=!KM_GOMULU&&/\/klasik\//.test(location.pathname); /* mobil uygulamada Klasik / Modern seçicisinin içinden açıldı */
 const kmOku=(k,v)=>{try{return JSON.parse(localStorage.getItem(k))??v}catch(e){return v}},kmYaz=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+/* DÜZENLEME MODU (PES'teki option file usulü; Modern ile aynı paket biçimi KMPAKET1). Oyunun verisi değişmez: düzenleme
+   açılışta LEAGUES (lig adı, kulüp adı/kısa ad/renk) ve HAVUZ (oyuncu adı/numara) üstüne uygulanır. Oyuncu düzenlemesi özgün
+   ada bağlıdır (haftalık kadro güncellemesinde kaymaz). Champion Battle / VR gömülü modunda uygulanmaz. */
+const KMD_KEY='km.duzen',KMD_PAKET='KMPAKET1',KMD_OZ={};
+const kmdOku=()=>{const d=kmOku(KMD_KEY,null);return{t:(d&&typeof d.t==='object'&&d.t)||{},l:(d&&typeof d.l==='object'&&d.l)||{}}};
+function kmdUygula(){if(KM_GOMULU)return;const d=kmdOku();
+  for(const lg of Object.keys(LEAGUES)){const L=LEAGUES[lg];if(!('l:'+lg in KMD_OZ))KMD_OZ['l:'+lg]=L.kurgu;L.kurgu=d.l[lg]||KMD_OZ['l:'+lg];
+    for(const r of L.t){const tk='t:'+lg+':'+r[0];if(!KMD_OZ[tk])KMD_OZ[tk]={ad:r[1],kisa:r[2],c1:r[3],c2:r[4]};const oz=KMD_OZ[tk],e=d.t[r[0]]||{};
+      r[1]=e.ad||oz.ad;r[2]=e.kisa||oz.kisa;r[3]=e.c1||oz.c1;r[4]=e.c2||oz.c2;
+      const H=HAVUZ[lg+':'+r[0]];if(!H)continue;const hk='h:'+lg+':'+r[0];if(!KMD_OZ[hk])KMD_OZ[hk]=H.map(x=>[x[0],x[1]]);const eo=e.o||{};
+      H.forEach((x,i)=>{const o=KMD_OZ[hk][i];if(!o)return;const y=eo[o[1]]||{};x[1]=y.n||o[1];x[0]=y.no||o[0]})}}}
+function kmdTemiz(e){const r={};if(!e||typeof e!=='object')return r;for(const k of['ad','kisa','c1','c2'])if(e[k]!=null)r[k]=String(e[k]).slice(0,40);
+  if(r.kisa)r.kisa=r.kisa.slice(0,4);for(const k of['c1','c2'])if(r[k]&&!/^#?[0-9a-fA-F]{6}$/.test(r[k]))delete r[k];
+  if(e.o&&typeof e.o==='object'){const o={};for(const n of Object.keys(e.o)){const x=e.o[n];if(!x||typeof x!=='object')continue;const y={};if(x.n!=null)y.n=String(x.n).slice(0,28);if(+x.no>=1&&+x.no<=99)y.no=+x.no;if(Object.keys(y).length)o[String(n).slice(0,40)]=y}if(Object.keys(o).length)r.o=o}
+  return r}
+function kmdPaketAl(m){const i=String(m||'').indexOf(KMD_PAKET);if(i<0)return -1;let j;try{j=JSON.parse(String(m).slice(i+KMD_PAKET.length).trim())}catch(e){return -1}
+  if(!j||typeof j!=='object')return -1;const d=kmdOku();let n=0;
+  if(j.t&&typeof j.t==='object')for(const k of Object.keys(j.t)){d.t[k]=kmdTemiz(j.t[k]);n++}
+  if(j.l&&typeof j.l==='object')for(const k of Object.keys(j.l)){d.l[k]=String(j.l[k]).slice(0,40);n++}
+  kmYaz(KMD_KEY,d);kmdUygula();return n}
+kmdUygula();
+
 const kmPlatform=()=>{try{const p=window.Capacitor&&window.Capacitor.getPlatform&&window.Capacitor.getPlatform();if(p&&p!=='web')return p}catch(e){}return 'web'};
 const kmMobil=()=>['ios','android'].includes(kmPlatform());
 const KM_PLAY='https://play.google.com/store/apps/details?id=com.anduv.kaptanmecit';
@@ -515,7 +537,7 @@ function homeScreen(){
    <div class="stack">${meta}
     <button class="big" data-act="quick">HIZLI MAÇ<small>İki takım seç, sahaya çık</small></button>
     <div class="row"><button class="alt" data-act="career">LİG<br><small style="font-family:var(--f);font-size:12px;font-weight:800">${carSub}</small></button><button class="alt dark" data-act="settings">AYARLAR<br><small style="font-family:var(--f);font-size:12px;font-weight:800">${['Kolay','Orta','Zor'][S.set.diff]} · ${S.set.dur} dk</small></button></div>
-    <button class="alt" data-act="kupa" style="width:100%">🏆 KUPALAR<br><small style="font-family:var(--f);font-size:12px;font-weight:800">${kupaAlt()}</small></button>
+    <button class="alt" data-act="kupa" style="width:100%">🏆 KUPALAR<br><small style="font-family:var(--f);font-size:12px;font-weight:800">${kupaAlt()}</small></button>${KM_GOMULU?'':'<button class="alt ghost" data-act="duzen" style="width:100%">DÜZENLEME MODU<br><small style="font-family:var(--f);font-size:12px;font-weight:800">kulüp ve oyuncu adları · paket paylaş</small></button>'}
     <div class="row"><button class="alt ghost" data-act="howto">NASIL OYNANIR?</button><button class="alt ghost" data-act="paylas">ARKADAŞINA ÖNER</button></div>
     ${KM_KABUK?'<button class="alt ghost" data-act="kabuk" style="width:100%">‹ OYUN SEÇİMİ</button>':''}<p class="credit">Bir Mr. Anduv! yapımıdır.</p>
    </div></section>`;
@@ -579,6 +601,35 @@ function howtoScreen(){return `<section class="screen">${topbar('NASIL OYNANIR?'
    <div class="card"><h3>REHBER</h3>${rhListe()}<button class="alt dark" data-act="rhBastan">↺ REHBERİ BAŞTAN GÖSTER</button></div>
    <div class="row" style="width:100%;max-width:440px"><button class="alt ghost" data-act="paylas">ARKADAŞINA ÖNER</button><button class="alt ghost" data-act="bizeYaz">BİZE YAZ</button></div>
    <p class="credit">Bir Mr. Anduv! yapımıdır.</p></section>`}
+const kmdE=x=>String(x??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function duzenScreen(){
+  const lg=UI.dlg&&LEAGUES[UI.dlg]?UI.dlg:LG_ORDER[0],L=LEAGUES[lg],r=L.t.find(x=>x[0]===UI.dt)||L.t[0],H=HAVUZ[lg+':'+r[0]]||[];
+  const oz=KMD_OZ['h:'+lg+':'+r[0]]||[],gir='style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #bbb;font:inherit;font-size:16px;background:#fff;color:#111"';
+  const sec=(id,ops,v)=>`<select id="${id}" ${gir}>${ops.map(([k,t])=>`<option value="${kmdE(k)}" ${k===v?'selected':''}>${kmdE(t)}</option>`).join('')}</select>`;
+  return `<section class="screen">${topbar('DÜZENLEME MODU')}<div class="card"><p class="dim" style="font-size:13px;margin-top:0">Kulüp ve oyuncu adlarını kendine göre değiştir; paketini arkadaşlarınla paylaş ya da onlarınkini yükle. Aynı paket Modern'de de geçerli.</p>
+   <h3>LİG</h3>${sec('kmdLig',LG_ORDER.map(k=>[k,LEAGUES[k].kurgu+' · '+LEAGUES[k].ad]),lg)}
+   <h3>KULÜP</h3>${sec('kmdT',L.t.map(x=>[x[0],x[1]]),r[0])}
+   <h3>LİG ADI</h3><input id="kmdLad" maxlength="40" value="${kmdE(L.kurgu)}" ${gir}>
+   <h3>KULÜP ADI</h3><input id="kmdAd" maxlength="40" value="${kmdE(r[1])}" ${gir}>
+   <h3>KISA AD (3 HARF)</h3><input id="kmdKisa" maxlength="4" value="${kmdE(r[2])}" ${gir}>
+   <div class="row" style="align-items:center;gap:14px;margin-top:10px"><label style="font-weight:800">FORMA <input type="color" id="kmdC1" value="${kmdE(r[3])}" style="width:56px;height:40px;border:0;vertical-align:middle"></label><label style="font-weight:800">İKİNCİ RENK <input type="color" id="kmdC2" value="${kmdE(r[4])}" style="width:56px;height:40px;border:0;vertical-align:middle"></label></div>
+   <h3>OYUNCULAR · NUMARA VE AD</h3>
+   ${H.map((x,i)=>`<div style="display:flex;gap:8px;align-items:center;margin:6px 0"><span class="dim" style="width:40px;font-size:12px;font-weight:800">${kmdE(x[2])}</span><input class="kmdNo" data-i="${i}" type="number" min="1" max="99" value="${+x[0]||''}" style="width:64px;padding:9px;border-radius:8px;border:1px solid #bbb;font:inherit;font-size:16px;background:#fff;color:#111"><input class="kmdN" data-i="${i}" maxlength="28" value="${kmdE(x[1])}" style="flex:1;min-width:0;padding:9px;border-radius:8px;border:1px solid #bbb;font:inherit;font-size:16px;background:#fff;color:#111">${oz[i]&&oz[i][1]!==x[1]?`<span class="dim" style="font-size:11px">(${kmdE(oz[i][1])})</span>`:''}</div>`).join('')}
+   ${UI.kmdMsg?`<p style="font-weight:800;color:var(--red)">${kmdE(UI.kmdMsg)}</p>`:''}
+   <div class="row"><button class="alt" data-act="kmdKaydet">KAYDET</button><button class="alt ghost" data-act="kmdSifirla">ÖZGÜN HALİNE DÖNDÜR</button></div></div>
+   <div class="card"><h3>PAKET</h3><div class="row"><button class="alt dark" data-act="kmdPaylas">PAKETİMİ PAYLAŞ</button></div>
+   <textarea id="kmdPaket" rows="3" placeholder="Arkadaşının paketini buraya yapıştır (KMPAKET1 …)" ${gir}></textarea><div class="row"><button class="alt dark" data-act="kmdYukle">PAKET YÜKLE</button></div>
+   ${UI.kmdOnay?'<p style="font-weight:800;color:var(--red)">Bütün düzenlemeler silinecek. Emin misin?</p><div class="row"><button class="alt" data-act="kmdHepsiEvet">EVET, SİL</button><button class="alt ghost" data-act="kmdHepsiVazgec">VAZGEÇ</button></div>':'<button class="alt ghost" data-act="kmdHepsi">BÜTÜN DÜZENLEMELERİ SİL</button>'}</div></section>`}
+function kmdKaydet(){const lg=UI.dlg&&LEAGUES[UI.dlg]?UI.dlg:LG_ORDER[0],L=LEAGUES[lg],r=L.t.find(x=>x[0]===UI.dt)||L.t[0],id=r[0];
+  const d=kmdOku(),oz=KMD_OZ['t:'+lg+':'+id],ozH=KMD_OZ['h:'+lg+':'+id]||[],g=x=>{const el=document.getElementById(x);return el?el.value.trim():''},e={};
+  const lad=g('kmdLad');if(lad&&lad!==KMD_OZ['l:'+lg])d.l[lg]=lad.slice(0,40);else delete d.l[lg];
+  const ad=g('kmdAd'),ks=g('kmdKisa').toLocaleUpperCase('tr'),c1=g('kmdC1'),c2=g('kmdC2');
+  if(ad&&ad!==oz.ad)e.ad=ad.slice(0,40);if(ks&&ks!==oz.kisa)e.kisa=ks.slice(0,4);
+  if(c1&&c1.toLowerCase()!==String(oz.c1).toLowerCase())e.c1=c1;if(c2&&c2.toLowerCase()!==String(oz.c2).toLowerCase())e.c2=c2;
+  const eo={};document.querySelectorAll('.kmdN').forEach(el=>{const i=+el.dataset.i,o=ozH[i];if(!o)return;const noEl=document.querySelector('.kmdNo[data-i="'+i+'"]'),n=el.value.trim(),no=noEl?+noEl.value:0,y={};
+    if(n&&n!==o[1])y.n=n.slice(0,28);if(no>=1&&no<=99&&no!==+o[0])y.no=no;if(Object.keys(y).length)eo[o[1]]=y});
+  if(Object.keys(eo).length)e.o=eo;if(Object.keys(e).length)d.t[id]=e;else delete d.t[id];
+  kmYaz(KMD_KEY,d);kmdUygula();UI.kmdMsg='Kaydedildi.';render()}
 function settingsScreen(){
   const seg=(k,opts)=>`<div class="chips">${opts.map(([v,l])=>`<button class="chip ${S.set[k]===v?'on':''}" data-act="set" data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div>`;
   return `<section class="screen">${topbar('AYARLAR')}<div class="card"><h3>MAÇ SÜRESİ</h3>${seg('dur',[[2,'2 dk'],[4,'4 dk'],[6,'6 dk'],[8,'8 dk']])}<h3>ZORLUK</h3>${seg('diff',[[0,'Kolay'],[1,'Orta'],[2,'Zor']])}<h3>KAMERA</h3>${seg('cam',[[0,'Klasik'],[1,'Dinamik'],[2,'Tele'],[3,'Stadyum'],[4,'TV']])}<h3>SES</h3>${seg('snd',[[1,'Açık'],[0,'Kapalı']])}<h3>OYUNCU DEĞİŞİKLİĞİ</h3>${seg('asist',[[1,'🤖 Asistan yapsın'],[0,'Ben yaparım']])}<p class="dim" style="margin:0;font-size:13px">5 değişiklik hakkı, en fazla 3 arada (devre arası sayılmaz). Asistan yorgunluğa, sakatlığa ve skora bakarak değiştirir; maçta II menüsünden sen de değiştirebilirsin.</p></div>
@@ -595,7 +646,7 @@ function render(){
   }
 }
 function render0(){
-  const map={home:homeScreen,quick:quickScreen,'career-new':careerNewScreen,career:careerScreen,result:resultScreen,howto:howtoScreen,settings:settingsScreen,kupa:kupaScreen};
+  const map={duzen:duzenScreen,home:homeScreen,quick:quickScreen,'career-new':careerNewScreen,career:careerScreen,result:resultScreen,howto:howtoScreen,settings:settingsScreen,kupa:kupaScreen};
   const ek=UI.screen==='career'&&!S.car?'career-new':UI.screen,kart=rhKart(ek);
   let h=(map[UI.screen]||homeScreen)();
   if(kart)h=h.replace(/^(<section[^>]*>(?:<div class="topbar">.*?<\/h2><\/div>)?)/s,'$1'+kart);
@@ -603,6 +654,8 @@ function render0(){
   $('#app').innerHTML=h;
 }
 function go(s){UI.screen=s;render();window.scrollTo(0,0)}
+document.addEventListener('change',e=>{const t=e.target;if(!t||!t.id)return;
+  if(t.id==='kmdLig'){UI.dlg=t.value;UI.dt=null;UI.kmdMsg='';render()}else if(t.id==='kmdT'){UI.dt=t.value;UI.kmdMsg='';render()}});
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b||b.closest('#game'))return;const a=b.dataset.act,v=b.dataset.v;SND.click();
   if(a==='okart'){oyuncuKart(b.dataset.lg,b.dataset.id,+b.dataset.no,b.dataset.ad);return}
@@ -623,6 +676,17 @@ document.addEventListener('click',e=>{
     case'puanOneri':UI.puanAc=false;render();kmBizeYaz();break;
     case'puanSonra':UI.puanAc=false;render();break;
     case'veriSil':UI.silOnay=true;render();break;
+    case'duzen':UI.kmdMsg='';UI.kmdOnay=false;go('duzen');break;
+    case'kmdKaydet':kmdKaydet();break;
+    case'kmdSifirla':{const lg=UI.dlg&&LEAGUES[UI.dlg]?UI.dlg:LG_ORDER[0],r=LEAGUES[lg].t.find(x=>x[0]===UI.dt)||LEAGUES[lg].t[0],d=kmdOku();delete d.t[r[0]];delete d.l[lg];kmYaz(KMD_KEY,d);kmdUygula();UI.kmdMsg='Kulüp özgün haline döndü.';render();break}
+    case'kmdPaylas':{const d=kmdOku();if(!Object.keys(d.t).length&&!Object.keys(d.l).length){UI.kmdMsg='Henüz düzenleme yok: önce bir kulübü değiştirip kaydet.';render();break}
+      const m=KMD_PAKET+' '+JSON.stringify(d),P=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Share;try{navigator.clipboard.writeText(m)}catch(e){}
+      try{if(P&&P.share)P.share({title:'Kaptan Mecit paketi',text:m}).catch(()=>{});else if(navigator.share)navigator.share({title:'Kaptan Mecit paketi',text:m}).catch(()=>{})}catch(e){}
+      UI.kmdMsg='Paketin panoya kopyalandı (paylaşım da açıldıysa oradan gönderebilirsin).';render();break}
+    case'kmdYukle':{const el=document.getElementById('kmdPaket'),n=kmdPaketAl(el?el.value:'');UI.kmdMsg=n<0?'Bu bir Kaptan Mecit paketi değil (KMPAKET1 ile başlamalı).':'Paket yüklendi: '+n+' kulüp / lig.';render();break}
+    case'kmdHepsi':UI.kmdOnay=true;render();break;
+    case'kmdHepsiVazgec':UI.kmdOnay=false;render();break;
+    case'kmdHepsiEvet':UI.kmdOnay=false;kmYaz(KMD_KEY,{t:{},l:{}});kmdUygula();UI.kmdMsg='Bütün düzenlemeler silindi.';render();break;
     case'veriSilVazgec':UI.silOnay=false;render();break;
     case'veriSilEvet':kmVerileriSil();break;
     case'career':go(S.car?'career':'career-new');break;

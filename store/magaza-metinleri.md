@@ -42,6 +42,9 @@ Tüm kulüp ve oyuncu adları kurmacadır.
 
 Bir Mr. Anduv! yapımıdır.
 
+**Bu sürümde yenilikler (1.7.0) — App Store "Yenilikler" / Play "Sürüm notları" (en fazla 500 karakter)**
+Düzenleme modu geldi: kulüp adlarını, renkleri, oyuncu adlarını ve forma numaralarını kendine göre değiştir; paketini arkadaşlarınla paylaş ya da onlarınkini yükle (Klasik ve Modern'de aynı paket). Kadrolar artık her hafta güncelleniyor. Modern'de top ayağa yapışık, şuttan önce son adım, daha yakın kamera; kaleci topu elinde tutuyor.
+
 **Bu sürümde yenilikler (1.4.0) — App Store "Yenilikler" / Play "Sürüm notları" (en fazla 500 karakter)**
 Test ekibimizin önerileriyle: yeni oyunculara ilk karşılaşmada kısa ipuçları veren Rehber (istediğin an kapatabilirsin) ve ana menüden, mola menüsünden ve Ayarlar'dan açılan Nasıl Oynanır ekranı. Galibiyetini ve şampiyonluğunu arkadaşlarınla paylaş, oyunu mağazada puanla, Ayarlar'dan Bize yaz ile görüşünü ilet. Verilerimi sil ile kariyerini ve ayarlarını cihazdan silebilirsin. Test ekibimize teşekkürler!
 
@@ -66,6 +69,9 @@ Top-down retro football
 
 **Full description**
 Kaptan Mecit is a top-down, pixel-art retro football game inspired by classic cartridge-era football: play a quick match or take your club to the title in a league career with 6 leagues, 114 clubs, 34 formations, fouls, cards, penalties, offside and VAR. Offline, ad-free and free. Five camera views: classic pixel-art top-down, dynamic, tele, a wide stadium view and a straight-on TV broadcast angle. Play 11-a-side with a virtual stick and two buttons: pass and shoot on the ball, select player and slide tackle off the ball. Quick Match with 114 fictional clubs, or a full-season league career in one of six leagues. No ads, no in-app purchases, no data collection, works offline. All club and player names are fictional. (Game language: Turkish.)
+
+**What's new (1.7.0)**
+Edit mode is here: rename clubs, colours, players and shirt numbers your way; share your pack with friends or load theirs (same pack in Classic and Modern). Squads are now updated every week. In Modern the ball stays at your feet, players plant before shooting, the camera is closer and keepers hold the ball they catch.
 
 **What's new (1.4.0)**
 Built on our testers' suggestions: a Guide with short tips the first time you meet each screen (turn it off any time) and a How to Play screen from the main menu, the pause menu and Settings. Share your wins and titles with friends, rate the game in the store, and send feedback from Settings with Write to us. Delete my data removes your career and settings from the device. Thanks to our test team!
