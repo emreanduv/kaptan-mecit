@@ -27,12 +27,18 @@ if not iap:
 out['urun'] = iap and [iap['id'], iap['attributes'].get('state')]
 if iap:
     IID = iap['id']
-    # adlar ve açıklamalar (açıklama en fazla 55 karakter)
-    var = {l['attributes']['locale'] for l in (api('GET', f'v2/inAppPurchases/{IID}/inAppPurchaseLocalizations') or {'data': []})['data']}
-    for loc, ad, ac in [('tr', 'Tam Sürüm', 'Bütün sezonlar ve Challenge Modu, tek seferlik ödeme'), ('en-US', 'Full Version', 'Every season and Challenge Mode, one-time payment'), ('en-GB', 'Full Version', 'Every season and Challenge Mode, one-time payment')]:
-        if loc not in var:
-            api('POST', 'v1/inAppPurchaseLocalizations', {'data': {'type': 'inAppPurchaseLocalizations', 'attributes': {'locale': loc, 'name': ad, 'description': ac},
-                'relationships': {'inAppPurchaseV2': {'data': {'type': 'inAppPurchases', 'id': IID}}}}})
+    # adlar ve açıklamalar (açıklama en fazla 55 karakter). Apple 2026: yerelleştirmeler ürünün "sürüm"üne bağlı (v2);
+    # eski v1/inAppPurchaseLocalizations 2027 başında kalkıyor. Sürüm yoksa taslak sürüm açılır.
+    vs = (api('GET', f'v2/inAppPurchases/{IID}/versions') or {}).get('data') or []
+    VID = vs[0]['id'] if vs else ((api('POST', 'v1/inAppPurchaseVersions', {'data': {'type': 'inAppPurchaseVersions',
+        'relationships': {'inAppPurchase': {'data': {'type': 'inAppPurchases', 'id': IID}}}}}) or {}).get('data') or {}).get('id')
+    out['surum'] = VID
+    if VID:
+        var = {l['attributes']['locale'] for l in ((api('GET', f'v1/inAppPurchaseVersions/{VID}/localizations?limit=200') or {}).get('data') or [])}
+        for loc, ad, ac in [('tr', 'Tam Sürüm', 'Bütün sezonlar ve Challenge Modu, tek seferlik ödeme'), ('en-US', 'Full Version', 'Every season and Challenge Mode, one-time payment'), ('en-GB', 'Full Version', 'Every season and Challenge Mode, one-time payment')]:
+            if loc not in var:
+                api('POST', 'v2/inAppPurchaseLocalizations', {'data': {'type': 'inAppPurchaseLocalizations', 'attributes': {'locale': loc, 'name': ad, 'description': ac},
+                    'relationships': {'version': {'data': {'type': 'inAppPurchaseVersions', 'id': VID}}}}})
     # fiyat: ABD taban 1,99 $
     sch = api('GET', f'v2/inAppPurchases/{IID}/iapPriceSchedule')
     if not (sch and sch.get('data')):
