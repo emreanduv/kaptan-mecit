@@ -1,0 +1,26 @@
+{
+ "adimlar": [
+  "metin tr",
+  "metin en-US",
+  "alt başlık tr",
+  "alt başlık en-US"
+ ],
+ "surum": [
+  "4.10.1",
+  "PREPARE_FOR_SUBMISSION"
+ ],
+ "gizlilik": "https://claude.ai/artifact/WutmMZEaYwe5KMC7tfN1Tj",
+ "ad": {
+  "tr": "Champion Battle Manager",
+  "en-US": "Champion Battle Manager"
+ },
+ "urller": {
+  "tr": [
+   "https://claude.ai/artifact/WutmMZEaYwe5KMC7tfN1Tj"
+  ],
+  "en-US": [
+   "https://claude.ai/artifact/WutmMZEaYwe5KMC7tfN1Tj"
+  ]
+ },
+ "hatalar": []
+}
