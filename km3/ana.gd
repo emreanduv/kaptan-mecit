@@ -46,6 +46,7 @@ var sec_dep: Secici
 var sec_sure: Secici
 var sec_zor: Secici
 var sec_kam: Secici
+var sec_saat: Secici
 var sec_zih: Secici            # oyun anlayışı (CBM'deki zihniyet): Savunma / Dengeli / Hücum
 var sec_dz: Secici
 
@@ -140,6 +141,7 @@ func _ready() -> void:
 		for i in int(_arg.ligsezon):
 			if lig.bitti(): lig.sonraki_sezon()    # deneme: hafta sayısı sezonu aşarsa yeni sezona geç (tarihçe dolar)
 			lig.haftayi_simule()
+	if _arg.has("saat"): sec_saat.select(int(_arg.saat)); saat_uygula(int(_arg.saat))
 	if _arg.has("duzen") or (OS.has_feature("web") and str(JavaScriptBridge.eval("new URLSearchParams(location.search).get('duzen') || ''", true)) == "1"): duzen_ac.call_deferred()
 	if _arg.has("ligtarih"): lig.gorunum = "tarih"
 	if _arg.has("ligfik"): lig.gorunum = "fikstur"
@@ -338,7 +340,7 @@ func _ortam() -> void:
 	ps.sky_top_color = Color("#070b18"); ps.sky_horizon_color = Color("#1c2638")
 	ps.ground_bottom_color = Color("#0b0d10"); ps.ground_horizon_color = Color("#1c2638")
 	ps.sun_angle_max = 0.0
-	sky.sky_material = ps
+	sky.sky_material = ps; _gok = ps; _env = env
 	env.background_mode = Environment.BG_SKY; env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color("#8ea4c4"); env.ambient_light_energy = .55
@@ -363,7 +365,34 @@ func _ortam() -> void:
 	# karşı projektör: gölgesiz dolgu
 	var dl := DirectionalLight3D.new()
 	dl.rotation_degrees = Vector3(-50, 208, 0); dl.light_color = Color("#e8eeff"); dl.light_energy = .55
-	add_child(dl)
+	add_child(dl); _dolgu = dl
+
+# Maç saati: 0 gece (projektörler), 1 gün batımı, 2 gündüz. Aynı stadyum, farklı gök ve ışık (FIFA'daki saat seçimi gibi).
+var _gok: ProceduralSkyMaterial
+var _env: Environment
+var _dolgu: DirectionalLight3D
+const SAATLER := ["Gece", "Gün batımı", "Gündüz"]
+func saat_uygula(i: int) -> void:
+	if _gok == null: return
+	match i:
+		1:
+			_gok.sky_top_color = Color("#2b3a66"); _gok.sky_horizon_color = Color("#f08a4b")
+			_gok.ground_horizon_color = Color("#9a5a3a"); _gok.ground_bottom_color = Color("#1a1210")
+			_env.ambient_light_color = Color("#d9a88a"); _env.ambient_light_energy = .6
+			gunes.light_color = Color("#ffc38a"); gunes.light_energy = 1.25; gunes.rotation_degrees = Vector3(-22, 62, 0)
+			_dolgu.light_color = Color("#9fb4ff"); _dolgu.light_energy = .45
+		2:
+			_gok.sky_top_color = Color("#3d7fd6"); _gok.sky_horizon_color = Color("#b9d6f2")
+			_gok.ground_horizon_color = Color("#b9d6f2"); _gok.ground_bottom_color = Color("#3a4a3a")
+			_env.ambient_light_color = Color("#d8e6f7"); _env.ambient_light_energy = 1.05
+			gunes.light_color = Color("#fffbf2"); gunes.light_energy = 1.85; gunes.rotation_degrees = Vector3(-48, 120, 0)
+			_dolgu.light_color = Color("#dfe9ff"); _dolgu.light_energy = .35
+		_:
+			_gok.sky_top_color = Color("#070b18"); _gok.sky_horizon_color = Color("#1c2638")
+			_gok.ground_horizon_color = Color("#1c2638"); _gok.ground_bottom_color = Color("#0b0d10")
+			_env.ambient_light_color = Color("#8ea4c4"); _env.ambient_light_energy = .55
+			gunes.light_color = Color("#fff4e2"); gunes.light_energy = 1.35; gunes.rotation_degrees = Vector3(-58, 28, 0)
+			_dolgu.light_color = Color("#e8eeff"); _dolgu.light_energy = .55
 
 # ---------- maç kurulumu ----------
 func _mac_kur(ev: Dictionary, dep: Dictionary, sure: int, zor: int, gosterim: bool, deplasman := false) -> void:
@@ -702,10 +731,16 @@ func _arayuz() -> void:
 	sec_dz.add_item("Otomatik")
 	for d in Taktik.siralama(): sec_dz.add_item(d)
 	var sat := HBoxContainer.new(); sat.add_theme_constant_override("separation", 10)
-	sec_sure = _secici(sat, "Süre"); sec_zor = _secici(sat, "Zorluk"); sec_kam = _secici(sat, "Kamera"); sec_zih = _secici(sat, "Oyun anlayışı")
+	sec_sure = _secici(sat, "Süre"); sec_zor = _secici(sat, "Zorluk"); sec_kam = _secici(sat, "Kamera")
+	var sat2 := HBoxContainer.new(); sat2.add_theme_constant_override("separation", 10)
+	sec_zih = _secici(sat2, "Oyun anlayışı")
 	for z in ["Savunma", "Dengeli", "Hücum"]: sec_zih.add_item(z)
 	sec_zih.select(1)
-	mv.add_child(sat)
+	sec_saat = _secici(sat2, "Maç saati")
+	for z in SAATLER: sec_saat.add_item(z)
+	sec_saat.select(0)
+	sec_saat.item_selected.connect(func(i): saat_uygula(i))
+	mv.add_child(sat); mv.add_child(sat2)
 	for l in veri.ligler: sec_lig.add_item(l.ad + " · " + l.ulke)
 	for s in SURELER: sec_sure.add_item(str(s) + " dk")
 	for z in ZORLUK: sec_zor.add_item(z)

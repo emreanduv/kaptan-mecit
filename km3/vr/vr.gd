@@ -306,8 +306,8 @@ func _lazer_guncelle() -> void:
 	_lazer.scale = Vector3(1, 1, boy)
 
 # ---------- 3B menü ----------
-const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language"]
-const SURUM := "0.10.0"
+const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language", "Maç saati"]
+const SURUM := "0.10.1"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -350,6 +350,7 @@ func _menu3d_kur() -> void:
 	koken.add_child(afis3d)
 
 func _secici(i: int) -> Secici:
+	if i == 11: return ana.sec_saat
 	return [ana.sec_lig, ana.sec_ev, ana.sec_dep, ana.sec_dz, ana.sec_sure, ana.sec_zor, ana.sec_kam][i] if i < 7 else null
 
 func _satir_sayisi() -> int:
@@ -391,7 +392,7 @@ func _menu_ciz() -> void:
 		l.visible = i < n and not yd
 		if not l.visible: continue
 		var sec := i == _satir
-		l.position.y = (.27 - i * .075) if mol else (.27 - i * .066)
+		l.position.y = (.27 - i * .075) if mol else (.27 - i * .06)
 		if mol:
 			l.text = ana.mola.satir_metni(i, sec)
 			l.font_size = 44
