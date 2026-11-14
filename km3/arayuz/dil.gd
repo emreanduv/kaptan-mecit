@@ -19,7 +19,7 @@ const SOZLUK := {
 	"Bir Mr. Anduv! yapımıdır.": "Made by Mr. Anduv!",
 	"sürüm": "version",
 	"Senin takımın": "Your team", "Rakip": "Opponent", "Diziliş (Otomatik: asistan kadroya en uygununu seçer)": "Formation (Auto: the assistant picks the best one for your squad)",
-	"Diziliş": "Formation", "Süre": "Length", "Zorluk": "Difficulty", "Kamera": "Camera", "Koltuk": "Seat", "Otomatik": "Auto",
+	"Diziliş": "Formation", "Süre": "Length", "Zorluk": "Difficulty", "Kamera": "Camera", "Koltuk": "Seat", "Otomatik": "Auto", "Oyun anlayışı": "Mentality", "Savunma": "Defensive", "Dengeli": "Balanced", "Hücum": "Attacking",
 	"Kolay": "Easy", "Orta": "Medium", "Zor": "Hard",
 	"Yayın": "Broadcast", "Tele": "Tele", "Dinamik": "Dynamic", "Saha kenarı": "Touchline", "Yakın": "Close", "Maket": "Tabletop", "Stadyum": "Stand",
 	"Maça başla": "Kick off", "MAÇA BAŞLA": "KICK OFF", "LİG MODU": "LEAGUE MODE", "Nasıl oynanır": "How to play", "NASIL OYNANIR": "HOW TO PLAY",

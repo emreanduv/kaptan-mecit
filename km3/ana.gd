@@ -46,6 +46,7 @@ var sec_dep: Secici
 var sec_sure: Secici
 var sec_zor: Secici
 var sec_kam: Secici
+var sec_zih: Secici            # oyun anlayışı (CBM'deki zihniyet): Savunma / Dengeli / Hücum
 var sec_dz: Secici
 
 # mola (yedek kulübesi), rehber, Nasıl oynanır
@@ -687,7 +688,9 @@ func _arayuz() -> void:
 	sec_dz.add_item("Otomatik")
 	for d in Taktik.siralama(): sec_dz.add_item(d)
 	var sat := HBoxContainer.new(); sat.add_theme_constant_override("separation", 10)
-	sec_sure = _secici(sat, "Süre"); sec_zor = _secici(sat, "Zorluk"); sec_kam = _secici(sat, "Kamera")
+	sec_sure = _secici(sat, "Süre"); sec_zor = _secici(sat, "Zorluk"); sec_kam = _secici(sat, "Kamera"); sec_zih = _secici(sat, "Oyun anlayışı")
+	for z in ["Savunma", "Dengeli", "Hücum"]: sec_zih.add_item(z)
+	sec_zih.select(1)
 	mv.add_child(sat)
 	for l in veri.ligler: sec_lig.add_item(l.ad + " · " + l.ulke)
 	for s in SURELER: sec_sure.add_item(str(s) + " dk")
@@ -869,7 +872,7 @@ func dil_degistir() -> void:
 	Dil.ayarla(not Dil.en)
 	_dil_yaz()
 	# seçicilerdeki yazılar ve tabela yeniden çevrilsin
-	for s in [sec_lig, sec_ev, sec_dep, sec_dz, sec_sure, sec_zor, sec_kam]:
+	for s in [sec_lig, sec_ev, sec_dep, sec_dz, sec_sure, sec_zor, sec_kam, sec_zih]:
 		if s: s.select(s.selected)
 	if M: _tabela()
 
@@ -919,6 +922,8 @@ func _secici(kap: Container, ad: String) -> Secici:
 	v.add_child(l); v.add_child(o); kap.add_child(v)
 	return o
 
+func _zih() -> int: return (sec_zih.selected - 1) if sec_zih else 0
+
 func _takimlari_doldur() -> void:
 	var L: Array = veri.ligler[sec_lig.selected].takimlar
 	for o in [sec_ev, sec_dep]:
@@ -934,6 +939,7 @@ func basla() -> void:
 	var lig: String = veri.ligler[sec_lig.selected].id
 	var dz: String = "" if sec_dz.selected <= 0 else sec_dz.metin()
 	var ev := Taktik.kadro_kur(L[a], lig, dz)
+	ev["zih"] = _zih()
 	var dep := Taktik.kadro_kur(L[b], lig, "")
 	_mac_kur(ev, dep, SURELER[sec_sure.selected], sec_zor.selected, false)
 	afis_goster(ev.dzAd + "  ·  " + ev.kisa, "rakip " + dep.kisa + " · " + dep.dzAd, 2.4)
@@ -1024,6 +1030,7 @@ func lig_mac_basla() -> void:
 	var dz: String = "" if sec_dz.selected <= 0 else sec_dz.metin()
 	# maç motorunda kullanıcı her zaman T[0]; sonuç Lig'de doğru ev/deplasman tarafına yazılır
 	var ev := Taktik.kadro_kur(lg.takimlar[biz], lg.id, dz)
+	ev["zih"] = _zih()
 	var dep := Taktik.kadro_kur(lg.takimlar[rk], lg.id, "")
 	lig_acik = false; lig_maci = true; _lig_bitis = 0.0
 	menu_goster(false)
@@ -1039,6 +1046,7 @@ func kupa_mac_basla() -> void:
 	var ben: Array = lig.kupa.ben; var rk: Array = m.b if Lig._ayni(m.a, ben) else m.a
 	var dz: String = "" if sec_dz.selected <= 0 else sec_dz.metin()
 	var ev := Taktik.kadro_kur(lig.kupa_takim(ben), str(ben[0]), dz)
+	ev["zih"] = _zih()
 	var dep := Taktik.kadro_kur(lig.kupa_takim(rk), str(rk[0]), "")
 	lig_acik = false; lig_maci = true; kupa_maci = true; _lig_bitis = 0.0
 	menu_goster(false)

@@ -511,11 +511,12 @@ func tactical_prep(dt: float) -> void:
 		if last == 0: last = PL - 14
 		var mid := ms / mn if mn > 0 else last - 12
 		var line: float; var cx: float; var ws: float
+		var zh := float(T[ti].t.get("zih", 0))     # oyun anlayışı: hücumda hat ileri, savunmada geri
 		if poss:
-			line = clampf(bd - 18, 26, 50); cx = PW / 2 + (b.x - PW / 2) * .22; ws = 1
+			line = clampf(bd - 18 + zh * 5, 24, 54); cx = PW / 2 + (b.x - PW / 2) * .22; ws = 1
 		else:
 			var hi: float = 1.0 if (demo or not T[1 - ti].human) else [.9, .96, 1.0][diff]
-			line = clampf((bd * .62 - 4) * hi, 8, 38); cx = PW / 2 + (b.x - PW / 2) * .5; ws = .62
+			line = clampf((bd * .62 - 4) * hi + zh * 4, 6, 42); cx = PW / 2 + (b.x - PW / 2) * .5; ws = .62
 		var mode := "def"
 		if poss: mode = "counter" if (counter_t > 0 and counter_team == ti) else "build"
 		TP.append({"poss": poss, "line": line, "cx": cx, "ws": ws, "last": minf(last, PL - 3), "mid": mid, "mode": mode})
@@ -691,7 +692,7 @@ func think_carrier(p: Oy, dt: float) -> void:
 		p.dec = rnd(.2, .4)
 		var ang := absf(PW / 2 - p.x) / maxf(1, absf(gy - p.y))
 		var range_ := ozl(p, "range", 24)
-		var sh := .75 if dG < 14 else (.38 if dG < 24 else .2)
+		var sh := (.75 if dG < 14 else (.38 if dG < 24 else .2)) * (1.0 + float(Tt.t.get("zih", 0)) * .2)
 		if dG < range_ and ang < 1.3 and randf() < sh * Tt.skill + .06: do_shoot(p, 0); return
 		if wide and cd > PL - 26 and randf() < .35 + ozl(p, "cross", 0):
 			var q := cross_target(p)
