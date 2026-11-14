@@ -141,6 +141,7 @@ func _ready() -> void:
 		for i in int(_arg.ligsezon):
 			if lig.bitti(): lig.sonraki_sezon()    # deneme: hafta sayısı sezonu aşarsa yeni sezona geç (tarihçe dolar)
 			lig.haftayi_simule()
+	if _arg.has("molaac"): menu_goster.call_deferred(true)
 	if _arg.has("saat"): sec_saat.select(int(_arg.saat)); saat_uygula(int(_arg.saat))
 	if _arg.has("duzen") or (OS.has_feature("web") and str(JavaScriptBridge.eval("new URLSearchParams(location.search).get('duzen') || ''", true)) == "1"): duzen_ac.call_deferred()
 	if _arg.has("ligtarih"): lig.gorunum = "tarih"
@@ -490,7 +491,43 @@ func _olay(o: Array) -> void:
 				if f.get_meta("oy") == o[1]: f.visible = false
 
 # tekrar oynarken herhangi bir tuş / dokunuş tekrarı geçer
+# Parmakla kaydırma: menü, düzenleme, yardım ve rapor panelleri ekrandan uzunsa parmak sürüklenince kayar
+# (Godot'nun kaydırma kutusu düğmelerin üstünden sürüklemeyi her telefonda almıyor). 14 pikselden fazla sürüklenirse
+# dokunulan düğme basılmış sayılmaz.
+var _kaydiricilar: Array = []
+var _surukle := {}
+func _kaydirici_bul(pos: Vector2) -> ScrollContainer:
+	for sc: ScrollContainer in _kaydiricilar:
+		if is_instance_valid(sc) and sc.is_visible_in_tree() and sc.get_global_rect().has_point(pos) and sc.get_v_scroll_bar().max_value > sc.size.y + 2:
+			return sc
+	return null
+
+func _kaydirma_girdi(e: InputEvent) -> bool:
+	if e is InputEventScreenTouch:
+		if e.pressed:
+			var sc := _kaydirici_bul(e.position)
+			_surukle = {"i": e.index, "y0": e.position.y, "aktif": false, "sc": sc} if sc else {}
+			return false
+		var vardi: bool = _surukle.get("aktif", false)
+		_surukle = {}
+		return vardi
+	if e is InputEventScreenDrag and not _surukle.is_empty() and e.index == _surukle.i:
+		var sc: ScrollContainer = _surukle.sc
+		if not _surukle.aktif and absf(e.position.y - _surukle.y0) > 14:
+			_surukle.aktif = true
+			# basılı düğmeyi bırak (ekran dışında bırakma: düğme "basıldı" saymaz)
+			var b := InputEventMouseButton.new(); b.button_index = MOUSE_BUTTON_LEFT; b.pressed = false; b.position = Vector2(-9999, -9999); b.global_position = b.position
+			Input.parse_input_event(b)
+		if _surukle.aktif:
+			if is_instance_valid(sc): sc.scroll_vertical -= int(round(e.relative.y))
+			return true
+		return false
+	if _surukle.get("aktif", false) and (e is InputEventMouseMotion or (e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and not e.pressed and e.position.x > -9000)):
+		return true
+	return false
+
 func _input(e: InputEvent) -> void:
+	if _kaydirma_girdi(e): get_viewport().set_input_as_handled(); return
 	if not tekrar.aktif: return
 	if (e is InputEventKey or e is InputEventScreenTouch or e is InputEventMouseButton or e is InputEventJoypadButton) and e.pressed:
 		tekrar.bitir(); if _tekrar_kutu: _tekrar_kutu.visible = false
@@ -732,8 +769,13 @@ func _arayuz() -> void:
 	var bl := Label.new(); bl.text = "Kaptan Mecit 3"; bl.add_theme_font_size_override("font_size", 34); bl.add_theme_color_override("font_color", Color.WHITE)
 	var bl2 := Label.new(); bl2.text = "Bir Mr. Anduv! yapımıdır."; bl2.add_theme_font_size_override("font_size", 15); bl2.add_theme_color_override("font_color", Color("#cfe3d6"))
 	bv.add_child(bl); bv.add_child(bl2); bas.add_child(bv); mv.add_child(bas)
-	sec_lig = _secici(mv, "Lig"); sec_ev = _secici(mv, "Senin takımın"); sec_dep = _secici(mv, "Rakip")
-	sec_dz = _secici(mv, "Diziliş (Otomatik: asistan kadroya en uygununu seçer)")
+	# yan ekranda iki sütun (solda seçimler, sağda düğmeler) ki menü telefon yüksekliğine sığsın; dikeyde tek sütun
+	_menu_kolon = BoxContainer.new(); _menu_kolon.add_theme_constant_override("separation", 16)
+	var kol1 := VBoxContainer.new(); kol1.add_theme_constant_override("separation", 8); kol1.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var kol2 := VBoxContainer.new(); kol2.add_theme_constant_override("separation", 8); kol2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_menu_kolon.add_child(kol1); _menu_kolon.add_child(kol2); mv.add_child(_menu_kolon)
+	sec_lig = _secici(kol1, "Lig"); sec_ev = _secici(kol1, "Senin takımın"); sec_dep = _secici(kol1, "Rakip")
+	sec_dz = _secici(kol1, "Diziliş (Otomatik: asistan kadroya en uygununu seçer)")
 	sec_dz.add_item("Otomatik")
 	for d in Taktik.siralama(): sec_dz.add_item(d)
 	var sat := HBoxContainer.new(); sat.add_theme_constant_override("separation", 10)
@@ -746,7 +788,7 @@ func _arayuz() -> void:
 	for z in SAATLER: sec_saat.add_item(z)
 	sec_saat.select(0)
 	sec_saat.item_selected.connect(func(i): saat_uygula(i))
-	mv.add_child(sat); mv.add_child(sat2)
+	kol1.add_child(sat); kol2.add_child(sat2)
 	for l in veri.ligler: sec_lig.add_item(l.ad + " · " + l.ulke)
 	for s in SURELER: sec_sure.add_item(str(s) + " dk")
 	for z in ZORLUK: sec_zor.add_item(z)
@@ -760,19 +802,19 @@ func _arayuz() -> void:
 	dug.add_theme_stylebox_override("pressed", _kutu(Color("#c95f22"), 12)); dug.add_theme_color_override("font_color", Color.WHITE)
 	dug.custom_minimum_size = Vector2(0, 58)
 	dug.pressed.connect(basla)
-	mv.add_child(dug)
+	kol2.add_child(dug)
 	var lgd := Button.new(); lgd.text = "Lig · Kupalar"; lgd.add_theme_font_size_override("font_size", 22)
 	lgd.add_theme_stylebox_override("normal", _kutu(Color("#2f5d8c"), 12)); lgd.add_theme_stylebox_override("hover", _kutu(Color("#3a6fa3"), 12))
 	lgd.add_theme_stylebox_override("pressed", _kutu(Color("#24486d"), 12)); lgd.add_theme_color_override("font_color", Color.WHITE)
 	lgd.custom_minimum_size = Vector2(0, 50)
 	lgd.pressed.connect(func(): lig_goster(true))
-	mv.add_child(lgd)
+	kol2.add_child(lgd)
 	if not OS.has_feature("android") or OS.has_feature("web"):    # Quest (yerel Android) derlemesinde klavye yok: düzenleme yalnız telefon/web/masaüstünde
 		var dz := Button.new(); dz.text = "Düzenleme modu  ·  kulüp ve oyuncu adları"; dz.add_theme_font_size_override("font_size", 18)
 		dz.add_theme_stylebox_override("normal", _kutu(Color("#5a4a7a"), 10)); dz.add_theme_stylebox_override("hover", _kutu(Color("#6a5a8c"), 10))
 		dz.add_theme_color_override("font_color", Color.WHITE); dz.custom_minimum_size = Vector2(0, 46)
 		dz.pressed.connect(duzen_ac)
-		mv.add_child(dz)
+		kol2.add_child(dz)
 	var yd := Button.new(); yd.text = "Nasıl oynanır"; yd.add_theme_font_size_override("font_size", 18)
 	yd.add_theme_stylebox_override("normal", _kutu(Color("#1f3b3c"), 10)); yd.add_theme_stylebox_override("hover", _kutu(Color("#2a4e50"), 10))
 	yd.add_theme_color_override("font_color", Color.WHITE)
@@ -790,7 +832,7 @@ func _arayuz() -> void:
 		ks.add_theme_color_override("font_color", Color.WHITE)
 		ks.pressed.connect(func(): JavaScriptBridge.eval("location.href='../index.html?sec=1'"))
 		alt.add_child(ks)
-	mv.add_child(alt)
+	kol2.add_child(alt)
 	# standart: puan ver (yalnız telefon uygulamasında), arkadaşına öner, bize yaz
 	var alt2 := HBoxContainer.new(); alt2.add_theme_constant_override("separation", 10)
 	var std := [["Arkadaşına öner", paylas], ["Bize yaz", bize_yaz]]
@@ -800,7 +842,7 @@ func _arayuz() -> void:
 		sb.add_theme_stylebox_override("normal", _kutu(Color("#1f3b3c"), 10)); sb.add_theme_stylebox_override("hover", _kutu(Color("#2a4e50"), 10))
 		sb.add_theme_color_override("font_color", Color.WHITE)
 		sb.pressed.connect(x[1]); alt2.add_child(sb)
-	mv.add_child(alt2)
+	kol2.add_child(alt2)
 	_dil_yaz()
 	menu.add_child(mv)
 	ui.add_child(_kaydirmali(menu))
@@ -871,6 +913,7 @@ func _kaydirmali(p: Control) -> Control:
 	cc.add_child(p); sc.add_child(cc)
 	sc.visible = p.visible
 	p.visibility_changed.connect(func(): sc.visible = p.visible)
+	_kaydiricilar.append(sc)
 	return sc
 
 func _mola_ciz() -> void:
@@ -926,7 +969,10 @@ func _yerlesim() -> void:
 		_imza.offset_top = 16 + ust; _imza.offset_bottom = _imza.offset_top + _imza.get_combined_minimum_size().y
 	if _ak: _ak.offset_top = 110 + ust; _ak.offset_bottom = 260 + ust
 	if _tekrar_kutu: _tekrar_kutu.offset_top = 70 + ust; _tekrar_kutu.offset_bottom = 120 + ust
-	if menu: menu.custom_minimum_size.x = minf(800, mantik.x - 24)
+	if menu:
+		var iki := not dikey and mantik.x >= 1000
+		if _menu_kolon: _menu_kolon.vertical = not iki
+		menu.custom_minimum_size.x = minf(1240.0 if iki else 800.0, mantik.x - 24)
 	if mola_panel: mola_panel.custom_minimum_size.x = minf(760, mantik.x - 24)
 	if afis: afis.custom_minimum_size.x = minf(520, mantik.x - 24)
 	if _yardim_yazi:
@@ -1070,6 +1116,7 @@ void fragment(){
 
 # ---------- lig modu ----------
 var duzen_ekran: DuzenEkran
+var _menu_kolon: BoxContainer
 func duzen_ac() -> void:
 	menu.visible = false
 	duzen_ekran.ac()

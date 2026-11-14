@@ -44,6 +44,9 @@ Tüm kulüp ve oyuncu adları kurmacadır.
 
 Bir Mr. Anduv! yapımıdır.
 
+**Bu sürümde yenilikler (1.7.2) — App Store "Yenilikler" / Play "Sürüm notları" (en fazla 500 karakter)**
+Yeni menü: yan ekranda iki sütun, her şey tek bakışta ve Maça başla her zaman görünür; uzun ekranlar parmakla kaydırılır. Kafa vuruşu, çalım, omuz omuza mücadele, oyuncu yüzleri ve saç modelleri, maç saati, düzenleme modu ve her hafta güncellenen kadrolar.
+
 **Bu sürümde yenilikler (1.7.1) — App Store "Yenilikler" / Play "Sürüm notları" (en fazla 500 karakter)**
 Modern'de kafa vuruşu: yüksek ortada oyuncular sıçrayıp kafayla vuruyor. Çalım: rakibin önünde sert yön değiştirince gövde çalımı atıp topu koruyorsun. Omuz omuza mücadele, oyuncu yüzleri ve beş saç modeli. Maç saati: gece, gün batımı ya da gündüz. Düzenleme modu ve her hafta güncellenen kadrolar.
 
@@ -94,6 +97,9 @@ The ball stays at your feet; change direction sharply to feint past a defender, 
 All club and player names are fictional.
 
 Made by Mr. Anduv!
+
+**What's new (1.7.2)**
+New menu: two columns in landscape so everything fits on one screen and Kick off is always visible; long screens scroll with your finger. Headers, skill moves, shoulder-to-shoulder battles, player faces and hairstyles, kick-off time, edit mode and weekly updated squads.
 
 **What's new (1.7.1)**
 Headers in Modern: players leap for high crosses. Skill moves: change direction sharply in front of a defender to feint past him and keep the ball. Shoulder-to-shoulder battles, player faces and five hairstyles. Kick-off time: night, sunset or day. Edit mode and squads updated every week.
