@@ -295,13 +295,19 @@ func _dis_kare(dt: float) -> void:
 				if c.size(): _olay(c)
 	_ciz(dt * _dis_hiz)
 
+# saç modeli oyuncunun adından (her maçta aynı oyuncu aynı görünür): %45 kısa, %15 kazınmış, %20 dolgun, %10 kıvırcık, %10 arkadan uzun
+static func _sac_stili(ad: String) -> int:
+	var h := absi(ad.hash()) % 100
+	return 0 if h < 45 else (1 if h < 60 else (2 if h < 80 else (3 if h < 90 else 4)))
+
 func _futbolcu_kur(p) -> Futbolcu:
 	var kit: Dictionary = M.T[p.team].kit
 	var gk: bool = p.role == "G"
 	var serit: String = kit.c2 if Mac.renk_farki(kit.c1, kit.c2) > 128 else "#ffffff"
 	var renk := {"forma": ("#f3d35a" if p.team == 0 else "#3ec46d") if gk else kit.c1,
 		"serit": "#1d1d1d" if gk else serit, "sort": "#1d1d1d" if gk else kit.c2,
-		"tozluk": "#1d1d1d" if gk else kit.c1, "ten": p.ten, "sac": p.sac, "eldiven": "#f4f4f4" if gk else null}
+		"tozluk": "#1d1d1d" if gk else kit.c1, "ten": p.ten, "sac": p.sac, "eldiven": "#f4f4f4" if gk else null,
+		"stil": _sac_stili(str(p.n))}
 	var f := Futbolcu.new()
 	dunya.add_child(f)
 	f.kur(renk, p.no, .96 + float((p.no * 37) % 9) / 100.0)

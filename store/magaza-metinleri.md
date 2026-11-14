@@ -42,6 +42,9 @@ Tüm kulüp ve oyuncu adları kurmacadır.
 
 Bir Mr. Anduv! yapımıdır.
 
+**Bu sürümde yenilikler (1.7.1) — App Store "Yenilikler" / Play "Sürüm notları" (en fazla 500 karakter)**
+Modern'de kafa vuruşu: yüksek ortada oyuncular sıçrayıp kafayla vuruyor. Çalım: rakibin önünde sert yön değiştirince gövde çalımı atıp topu koruyorsun. Omuz omuza mücadele, oyuncu yüzleri ve beş saç modeli. Maç saati: gece, gün batımı ya da gündüz. Düzenleme modu ve her hafta güncellenen kadrolar.
+
 **Bu sürümde yenilikler (1.7.0) — App Store "Yenilikler" / Play "Sürüm notları" (en fazla 500 karakter)**
 Düzenleme modu geldi: kulüp adlarını, renkleri, oyuncu adlarını ve forma numaralarını kendine göre değiştir; paketini arkadaşlarınla paylaş ya da onlarınkini yükle (Klasik ve Modern'de aynı paket). Kadrolar artık her hafta güncelleniyor. Modern'de top ayağa yapışık, şuttan önce son adım, daha yakın kamera; kaleci topu elinde tutuyor.
 
@@ -69,6 +72,9 @@ Top-down retro football
 
 **Full description**
 Kaptan Mecit is a top-down, pixel-art retro football game inspired by classic cartridge-era football: play a quick match or take your club to the title in a league career with 6 leagues, 114 clubs, 34 formations, fouls, cards, penalties, offside and VAR. Offline, ad-free and free. Five camera views: classic pixel-art top-down, dynamic, tele, a wide stadium view and a straight-on TV broadcast angle. Play 11-a-side with a virtual stick and two buttons: pass and shoot on the ball, select player and slide tackle off the ball. Quick Match with 114 fictional clubs, or a full-season league career in one of six leagues. No ads, no in-app purchases, no data collection, works offline. All club and player names are fictional. (Game language: Turkish.)
+
+**What's new (1.7.1)**
+Headers in Modern: players leap for high crosses. Skill moves: change direction sharply in front of a defender to feint past him and keep the ball. Shoulder-to-shoulder battles, player faces and five hairstyles. Kick-off time: night, sunset or day. Edit mode and squads updated every week.
 
 **What's new (1.7.0)**
 Edit mode is here: rename clubs, colours, players and shirt numbers your way; share your pack with friends or load theirs (same pack in Classic and Modern). Squads are now updated every week. In Modern the ball stays at your feet, players plant before shooting, the camera is closer and keepers hold the ball they catch.

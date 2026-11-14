@@ -75,6 +75,10 @@ class Oy:
 	var kur_son := false
 	# kafa: yüksek ortayı karşılayan oyuncu sıçrar (sn, geri sayım); top o anda başından oynanır ya da göğüsten ayağa iner
 	var kafa := 0.0
+	# çalım: topu süren oyuncu yakın bir rakibin önünde sert yön değiştirince (~0,4 sn) gövde çalımı; top korunur, kısa ivme
+	var calim := 0.0
+	var calim_cd := 0.0
+	var calim_yon := 1.0
 	var ayak := false          # geri pas: kaleci topu eline alamaz, ayağıyla oynar
 	var won := false
 	var sari := false
@@ -399,6 +403,8 @@ func step(dt: float) -> void:
 	tactical_prep(dt)
 	for p: Oy in P:
 		if p.kafa > 0: p.kafa = maxf(0.0, p.kafa - dt)
+		if p.calim > 0: p.calim = maxf(0.0, p.calim - dt)
+		if p.calim_cd > 0: p.calim_cd -= dt
 		if p.kur > 0:
 			p.kur -= dt
 			if p.kur <= 0:
@@ -1116,6 +1122,17 @@ func move_player(p: Oy, dt: float) -> void:
 		var k := minf(1, dt * ((11.0 if ball.owner == p else 13.0) if hum else (7.0 if ball.owner == p else 9.0)))
 		p.vx += (tvx - p.vx) * k; p.vy += (tvy - p.vy) * k; vx = p.vx; vy = p.vy
 		var s := hyp(vx, vy)
+		if hum and sp > 0 and not p.hedef and ball.owner == p and p.calim_cd <= 0 and set_piece == null:
+			var aci0 := Vector2(p.dx, p.dy).angle_to(Vector2(mx, my))
+			if absf(aci0) > 1.1:
+				var yakin := false
+				for q: Oy in P:
+					if q.team != p.team and q.role != "G" and hyp(q.x - p.x, q.y - p.y) < 2.6: yakin = true; break
+				if yakin:
+					p.calim = CALIM_SURE; p.calim_cd = 1.4; p.calim_yon = signf(aci0); olay("calim", p.team)
+		if p.calim > 0:
+			var hz := hyp(p.vx, p.vy); var hedef := top * 1.12
+			if hz > .1 and hz < hedef: p.vx *= minf(hedef / hz, 1.0 + dt * 3.0); p.vy *= minf(hedef / hz, 1.0 + dt * 3.0)
 		if hum and sp > 0 and not p.hedef:
 			# yüz istenen yöne döner (saniyede ~2 tur; tam geri dönüş ~0,25 sn), top bu yönde ayağın önüne toplanır
 			var su := Vector2(p.dx, p.dy); var hd := Vector2(mx, my).normalized()
@@ -1173,6 +1190,7 @@ func ball_step(dt: float) -> void:
 				if p.role == "G" and not p.ayak: rate *= .2
 				rate *= (1 - ozl(p, "hold", 0)) * (1 + ozl(q, "tackle", 0))
 				if not (Tp.human and p == ctrl): rate *= .55
+				if p.calim > 0: rate *= .3          # çalım anında top korunur
 				if randf() < rate * dt * 2.2:
 					if mudahale_faul(q, p): return
 					b.owner = q; q.hold = 0; p.cd = .7; p.stun = .25; b.intended = null; set_piece = null; olay("vurus", .4); break
@@ -1260,6 +1278,7 @@ func out_of_play(b: Top) -> bool:
 	return false
 
 const KAFA_SURE := .5
+const CALIM_SURE := .4
 func take(p: Oy) -> void:
 	var b := ball
 	if not demo and b.last != null and b.last != p and b.last.team == p.team and b.intended != null:

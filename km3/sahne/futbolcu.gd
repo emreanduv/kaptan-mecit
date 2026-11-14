@@ -170,7 +170,10 @@ func kur(renk: Dictionary, no: int, boy := 1.0) -> Futbolcu:
 	if _taban.is_empty(): _taban_uret()
 	if _mat == null: _mat = _malzeme()
 	var Y: Yapici = _taban.Y
-	var R := [renk.forma, renk.serit, renk.sort, renk.tozluk, "#151515", renk.ten, renk.sac, renk.get("eldiven", renk.ten)]
+	var stil: int = int(renk.get("stil", 0))
+	var sac_bolge = renk.sac
+	if stil == 1: sac_bolge = Color(renk.ten).lerp(Color(renk.sac), .35).to_html(false)    # kazınmış / çok kısa
+	var R := [renk.forma, renk.serit, renk.sort, renk.tozluk, "#151515", renk.ten, sac_bolge, renk.get("eldiven", renk.ten)]
 	var C: Array = []
 	for c in R: C.append(Color(c if c != null else renk.ten))
 	var col := PackedColorArray(); col.resize(Y.bolge.size())
@@ -215,9 +218,51 @@ func kur(renk: Dictionary, no: int, boy := 1.0) -> Futbolcu:
 	lab.double_sided = false
 	lab.shaded = true
 	ba.add_child(lab)
+	_yuz_ve_sac(renk, stil)
 	scale = Vector3.ONE * boy
 	_e.resize(KEMIK.size())
 	return self
+
+# Yüz ve saç modeli: gözler, kaşlar ve oyuncuya göre saç (kısa / kazınmış / dolgun / kıvırcık / arkadan uzun).
+# Kaynak tek tip baş küresi; ekler baş kemiğine bağlı küçük şekiller (oyuncu başına birkaç yüz üçgen).
+static var _renk_mat := {}
+static func _rm(c: Color) -> StandardMaterial3D:
+	var k := c.to_html(false)
+	if not _renk_mat.has(k):
+		var m := StandardMaterial3D.new(); m.albedo_color = c; m.roughness = .85; _renk_mat[k] = m
+	return _renk_mat[k]
+
+func _parca(ust: Node3D, mesh: Mesh, c: Color, poz: Vector3, olcek := Vector3.ONE) -> void:
+	var mi := MeshInstance3D.new(); mi.mesh = mesh; mi.material_override = _rm(c); mi.position = poz; mi.scale = olcek
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	ust.add_child(mi)
+
+static var _kure_m := {}
+static func _km(r: float, seg: int) -> SphereMesh:
+	var k := "%f/%d" % [r, seg]
+	if not _kure_m.has(k):
+		var m := SphereMesh.new(); m.radius = r; m.height = r * 2; m.radial_segments = seg; m.rings = maxi(4, seg / 2); _kure_m[k] = m
+	return _kure_m[k]
+
+func _yuz_ve_sac(renk: Dictionary, stil: int) -> void:
+	var ba := BoneAttachment3D.new(); ba.bone_name = "bas"; iskelet.add_child(ba)
+	var sac := Color(renk.sac); var ten := Color(renk.ten)
+	# baş küresinin merkezi kemiğe göre (0, .1, .005); yüz +Z
+	var goz := Color("#141414")
+	for sx in [-1.0, 1.0]:
+		_parca(ba, _km(.012, 6), goz, Vector3(.034 * sx, .112, .103))
+		var kas := BoxMesh.new(); kas.size = Vector3(.034, .007, .01)
+		_parca(ba, kas, sac.darkened(.25), Vector3(.035 * sx, .136, .101))
+	var seg := 8 if hafif else 12
+	match stil:
+		2:  # dolgun, üstü uzun
+			_parca(ba, _km(.12, seg), sac, Vector3(0, .15, -.012), Vector3(.95, .62, 1.05))
+		3:  # kıvırcık / afro
+			_parca(ba, _km(.15, seg), sac, Vector3(0, .155, -.025), Vector3(1.0, .82, 1.0))
+		4:  # arkadan uzun (omuza doğru)
+			_parca(ba, _km(.118, seg), sac, Vector3(0, .14, -.015), Vector3(.97, .6, 1.03))
+			var arka := BoxMesh.new(); arka.size = Vector3(.17, .17, .06)
+			_parca(ba, arka, sac, Vector3(0, .04, -.085))
 
 func _sifirla() -> void:
 	for i in _e.size(): _e[i] = Vector3.ZERO
@@ -449,7 +494,20 @@ func _poz_ham(p, M, now: float, gol_takim: int) -> void:
 	var edt := clampf(now - _egim_t, 1.0 / 240.0, .1); _egim_t = now
 	var yhiz := wrapf(yaw - _egim_yaw, -PI, PI) / edt; _egim_yaw = yaw
 	var hedef_egim := clampf(-yhiz * spd * .03, -.3, .3) if not vuruyor else 0.0
-	_egim = lerpf(_egim, hedef_egim, minf(1.0, edt * 10.0))
+	# çalım: gövde önce bir yana sonra öbür yana (aldatma), yön değişimiyle birlikte
+	if "calim" in p and p.calim > 0:
+		var ck: float = clampf(1.0 - p.calim / .4, 0, 1)
+		hedef_egim += float(p.calim_yon) * .32 * sin(TAU * ck)
+	# omuz omuza: yanındaki rakibe doğru yaslan (top mücadelesi)
+	if "P" in M and not vuruyor and spd > 2.0:
+		for q in M.P:
+			if q.team == p.team or q.role == "G": continue
+			var ox: float = q.x - p.x; var oz: float = q.y - p.y
+			if ox * ox + oz * oz < 1.1 * 1.1:
+				var lx := ox * cos(yaw) - oz * sin(yaw)
+				hedef_egim += .16 if lx < 0 else -.16
+				break
+	_egim = lerpf(_egim, hedef_egim, minf(1.0, edt * (22.0 if ("calim" in p and p.calim > 0) else 10.0)))
 	iskelet.set_bone_pose_rotation(0, Quaternion(Vector3.UP, yaw) * Quaternion(Vector3.BACK, _egim))
 	for i in range(1, KEMIK.size()): iskelet.set_bone_pose_rotation(i, poz_q[i])
 	iskelet.set_bone_pose_position(0, Vector3(0, ky, 0))
