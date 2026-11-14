@@ -8,7 +8,7 @@
 - Fiyat: Ücretsiz, reklamsız, uygulama içi satın alma yok
 - Yaş sınıflandırması: Şiddet yok. Beklenen: Google Play PEGI 3 / IARC 3+, Apple 4+
 - Veri toplama: Yok (kariyer ve ayarlar yalnızca cihazda saklanır)
-- Dil: Türkçe
+- Dil: Türkçe, İngilizce
 - Destek / iletişim e-postası: emreanduvart@gmail.com
 
 ---
@@ -16,27 +16,29 @@
 ## Türkçe
 
 **Kısa açıklama (Google Play, en fazla 80 karakter)**
-Retro futbol oyunu: 6 lig, 114 kulüp, lig kariyeri. İnternetsiz, reklamsız!
+Futbol oyunu: 3B stadyum, 28 lig, kupalar, düzenleme modu, haftalık kadrolar
 
 **Alt başlık (App Store, en fazla 30 karakter)**
-Nostaljik üstten futbol
+3B ve retro futbol, 28 lig
 
 **Anahtar kelimeler (App Store, en fazla 100 karakter)**
-futbol,retro,nostaljik,lig,kariyer,pixel,8-bit,maç,futbol oyunu,süper lig,klasik,arcade
+futbol,futbol oyunu,maç,lig,kupa,kariyer,retro,3d,stadyum,kadro,editör,penaltı,süper lig,kafa,çalım
 
 **Uzun açıklama**
-Kaptan Mecit, çocukluğumuzun kartuşlu futbol oyunlarından ilham alan üstten görünümlü, pixel çizimli bir retro futbol oyunu. Hızlı maç yap ya da lig kariyerinde kulübünü şampiyonluğa taşı: 6 lig, 114 kulüp, 34 diziliş, faul, kart, penaltı, ofsayt ve VAR. İnternetsiz, reklamsız ve ücretsiz.
+Kaptan Mecit, telefonda gerçek maç hissi veren bir futbol oyunu: üç boyutlu stadyumda 11'e 11 oyna ya da yukarıdan bakışlı retro Klasik görünümü seç. Dört kıtada 28 lig, kıta kupaları ve Kıtalar Arası Kupa, lig kariyeri ve her hafta güncellenen kadrolar.
 
-Sahada 11'e 11 oynarsın. Sol taraftan parmağını kaydırarak koşarsın, PAS ve ŞUT tuşlarıyla oyunu kurarsın. Top rakipteyken tuşlar SEÇ ve KAY olur: en yakın oyuncunu seçer, rakibin ayağına kayarsın. Gol olunca tribünler ayağa kalkar.
+Sahada top ayağına yapışık gider; rakibin önünde sert yön değiştirip çalım at, yüksek ortada kafaya çık, şuttan önce son adımı at ve köşeye gönder. Kaleci zamanında uzanır, yakaladığı topu elinde tutar. Gol olunca tribünler ayağa kalkar, golcü köşe bayrağına koşar.
 
-• Hızlı Maç: 114 kulüp arasından istediğin eşleşmeyi kur, farklı liglerden takımları bile karşılaştır
-• Lig Kariyeri: 6 lig, ligine göre 34 ya da 38 hafta. Puan durumu, fikstür ve gol krallığı
-• Anadolu Ligi, Ada Ligi, İber Ligi, Çizme Ligi, Ren Ligi ve Galya Ligi
-• Kolay, Orta ve Zor seviye; 2, 4, 6 ya da 8 dakikalık maçlar
-• Beş kamera: Klasik, Dinamik, Tele, Stadyum ve TV. Maçın ortasında bile değiştirebilirsin
-• Taç, korner, aut, devre arası; faul, sarı/kırmızı kart, penaltı, ofsayt ve VAR
-• Yeni oyunculara Rehber ve Nasıl Oynanır ekranı
-• Reklam yok, internet gerekmez, veri toplanmaz
+• Modern: 3B stadyum, yayın kamerası, gece / gün batımı / gündüz maçları, maç raporu ve gol tekrarı
+• Klasik: yukarıdan bakışlı, pixel çizimli retro futbol
+• 28 lig, 496 kulüp; Avrupa, Amerika, Asya ve Afrika kupaları, Kıtalar Arası Kupa
+• Lig modu: puan durumu, fikstür, gol krallığı, kadro, ödüller, istatistikler, tarihçe
+• Düzenleme modu: kulüp ve oyuncu adlarını, renkleri, forma numaralarını değiştir; paketini arkadaşlarınla paylaş
+• Kadrolar her hafta güncellenir
+• 34 diziliş, oyun anlayışı (savunma / dengeli / hücum), takım konuşması, oyuncu değişikliği
+• Faul, kart, penaltı, ofsayt, VAR, duran toplarda baraj
+• Türkçe ve İngilizce; Rehber ve Nasıl Oynanır ekranı
+• Reklam yok, veri toplanmaz
 
 Tüm kulüp ve oyuncu adları kurmacadır.
 
@@ -65,13 +67,33 @@ Beş kamera: Klasik, Dinamik, Tele, Stadyum ve TV yayın açısı; dördü aynı
 ## English
 
 **Short description (≤80)**
-Retro football game: 6 leagues, 114 clubs, league career. Offline, no ads.
+Football game: 3D stadium, 28 leagues, cups, edit mode, weekly updated squads
 
 **Subtitle (≤30)**
-Top-down retro football
+3D and retro football
+
+**Keywords (≤100)**
+football,soccer,football game,league,cup,career,retro,3d,stadium,squad,editor,penalty,header,dribble
 
 **Full description**
-Kaptan Mecit is a top-down, pixel-art retro football game inspired by classic cartridge-era football: play a quick match or take your club to the title in a league career with 6 leagues, 114 clubs, 34 formations, fouls, cards, penalties, offside and VAR. Offline, ad-free and free. Five camera views: classic pixel-art top-down, dynamic, tele, a wide stadium view and a straight-on TV broadcast angle. Play 11-a-side with a virtual stick and two buttons: pass and shoot on the ball, select player and slide tackle off the ball. Quick Match with 114 fictional clubs, or a full-season league career in one of six leagues. No ads, no in-app purchases, no data collection, works offline. All club and player names are fictional. (Game language: Turkish.)
+Kaptan Mecit is a football game that feels like a real match on your phone: play 11-a-side in a 3D stadium or pick the top-down, retro Classic view. 28 leagues on four continents, continental cups and an Intercontinental Cup, a league career and squads updated every week.
+
+The ball stays at your feet; change direction sharply to feint past a defender, rise for headers from high crosses, plant your foot and pick your corner. Keepers dive on time and hold on to the ball they catch. When you score the stands erupt and your scorer runs to the corner flag.
+
+• Modern: 3D stadium, broadcast camera, night / sunset / day matches, match report and goal replays
+• Classic: top-down pixel-art retro football
+• 28 leagues, 496 clubs; continental cups for Europe, the Americas, Asia and Africa, plus an Intercontinental Cup
+• League mode: table, fixtures, top scorers, squad, awards, statistics, history
+• Edit mode: rename clubs and players, change colours and shirt numbers, share your pack with friends
+• Squads updated every week
+• 34 formations, playing style (defensive / balanced / attacking), team talks, substitutions
+• Fouls, cards, penalties, offside, VAR, defensive walls at set pieces
+• Turkish and English; a Guide and a How to Play screen
+• No ads, no data collection
+
+All club and player names are fictional.
+
+Made by Mr. Anduv!
 
 **What's new (1.7.1)**
 Headers in Modern: players leap for high crosses. Skill moves: change direction sharply in front of a defender to feint past him and keep the ball. Shoulder-to-shoulder battles, player faces and five hairstyles. Kick-off time: night, sunset or day. Edit mode and squads updated every week.
