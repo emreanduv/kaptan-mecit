@@ -255,6 +255,16 @@ func _poz_yordamsal(p, M, now: float, gol_takim: int) -> void:
 		_x("bacakR", -.25 if kay else .1); _x("dizR", .08 if kay else .4); _x("bacakL", .35 if kay else .2); _x("dizL", 1.1 if kay else .5)
 		_s("omuzL", Vector3(-.6, 0, -1.0)); _s("omuzR", Vector3(-.2, 0, 1.1)); _x("dirsekL", -.5); _x("bas", .6 if kay else .3)
 		_uygula(); return
+	if "kafa" in p and p.kafa > 0:
+		# kafa vuruşu: sıçra (yarım saniye), kollar dengede açık, baş önce geride sonra topa doğru vurur
+		var k: float = clampf(1.0 - p.kafa / .5, 0, 1)
+		var h := sin(k * PI)
+		_kok_y = .4 * h
+		_x("bacakL", -.55 * h); _x("bacakR", -.15 * h); _x("dizL", 1.05 * h); _x("dizR", .6 * h)
+		_s("omuzL", Vector3(-.35, 0, -.12 - 1.25 * h)); _s("omuzR", Vector3(-.35, 0, .12 + 1.25 * h)); _x("dirsekL", -.6); _x("dirsekR", -.6)
+		var vur := clampf((k - .3) / .25, 0, 1)
+		_x("gogus", -.25 + .45 * vur); _x("bas", -.4 + .95 * vur)
+		_uygula(); return
 	var kaleci: bool = p.role == "G"
 	if kaleci and p.ucus > 0:
 		_kaleci_ucus(p, M); return
@@ -405,7 +415,7 @@ func _poz_ham(p, M, now: float, gol_takim: int) -> void:
 	var kuruyor: bool = "kur" in p and p.kur > 0
 	var vuruyor: bool = (M.ball.kicker == p and p.cd > .1) or kuruyor
 	# yere düşme, kayma, kaleci duruşu/uçuşu, gol sevinci ve duran oyuncu: el yapımı hareketler
-	if _hareket.has("yok") or p.slide > 0 or p.stun > .3 or kaleci_hazir or (p.role == "G" and (p.dive == 1 or p.ucus > 0)) or spd < .45 and not vuruyor:
+	if _hareket.has("yok") or ("kafa" in p and p.kafa > 0) or p.slide > 0 or p.stun > .3 or kaleci_hazir or (p.role == "G" and (p.dive == 1 or p.ucus > 0)) or spd < .45 and not vuruyor:
 		_son_yol = p.anim
 		_poz_yordamsal(p, M, now, gol_takim); return
 	var dx: float = p.dx; var dy: float = p.dy

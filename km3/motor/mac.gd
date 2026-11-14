@@ -73,6 +73,8 @@ class Oy:
 	var kur_a := 0.0
 	var kur_g := 1.0
 	var kur_son := false
+	# kafa: yüksek ortayı karşılayan oyuncu sıçrar (sn, geri sayım); top o anda başından oynanır ya da göğüsten ayağa iner
+	var kafa := 0.0
 	var ayak := false          # geri pas: kaleci topu eline alamaz, ayağıyla oynar
 	var won := false
 	var sari := false
@@ -396,6 +398,7 @@ func step(dt: float) -> void:
 	kondisyon(dt); oto_degisiklik()
 	tactical_prep(dt)
 	for p: Oy in P:
+		if p.kafa > 0: p.kafa = maxf(0.0, p.kafa - dt)
 		if p.kur > 0:
 			p.kur -= dt
 			if p.kur <= 0:
@@ -1058,10 +1061,13 @@ func do_shoot(p: Oy, aim_x: float, pow := 1.0, kuruldu := false) -> void:
 	if human and pow > 1.1 and randf() < (pow - 1.1) * 2.5: tz = rnd(GH + .4, GH + 1.6)   # fazla güç: üstten auta gidebilir
 	var dx := ax - p.x; var dy := gy - p.y; var d := hyp(dx, dy)
 	var v: float = (22 + Tt.str * .5) * pow
+	var kafa := p.kafa > 0 and ball.z > 1.2
+	if kafa: v *= .7; tz = rnd(.2, 1.7)          # kafa: daha yavaş, başın hizasından aşağı doğru
 	var t := d / v
-	var vz := (tz + 9 * t * t) / t
+	var vz := (tz - (ball.z if kafa else 0.0) + 9 * t * t) / t
 	p.dx = dx / d; p.dy = dy / d
-	release(p, dx / d * v, dy / d * v, clampf(vz, 1, 8))
+	release(p, dx / d * v, dy / d * v, clampf(vz, -6.0 if kafa else 1.0, 8))
+	if kafa: olay("kafa")
 	ball.shot = true; ball.shot_team = p.team; ball.shot_t = 0; olay("vurus", 1.2); olay("sut", p.team, pow)
 
 func do_slide(p: Oy, dx: float, dy: float) -> void:
@@ -1151,7 +1157,8 @@ func ball_step(dt: float) -> void:
 			var kt := minf(1.0, dt * 15.0)
 			b.x += p.vx * dt; b.y += p.vy * dt
 			b.x += (hx - b.x) * kt; b.y += (hy - b.y) * kt
-		b.z = 0; b.vx = p.vx; b.vy = p.vy; b.vz = 0; b.last_team = p.team; b.last = p
+		b.z = 1.75 * clampf(p.kafa / KAFA_SURE, 0, 1) if p.kafa > 0 else 0.0
+		b.vx = p.vx; b.vy = p.vy; b.vz = 0; b.last_team = p.team; b.last = p
 		if set_piece == null and p.role != "G" and (b.x < -.15 or b.x > PW + .15 or b.y < -.15 or b.y > PL + .15):
 			b.owner = null; b.kicker = p
 			if out_of_play(b): return
@@ -1252,6 +1259,7 @@ func out_of_play(b: Top) -> bool:
 		throw_in(1 - b.last_team, clampf(b.x, 0, PW), clampf(b.y, 1, PL - 1)); return true
 	return false
 
+const KAFA_SURE := .5
 func take(p: Oy) -> void:
 	var b := ball
 	if not demo and b.last != null and b.last != p and b.last.team == p.team and b.intended != null:
@@ -1263,7 +1271,10 @@ func take(p: Oy) -> void:
 	if b.ofs != null and b.ofs.get("yakin", false) and b.ofs.q == p: yakin_ofs = {"team": p.team, "t": clock}
 	b.ofs = null
 	if b.cross and p.role != "G": p.first_time = true
-	b.cross = false; b.owner = p; p.hold = 0; b.intended = null; b.shot = false; b.vx = 0; b.vy = 0; b.vz = 0; b.z = 0
+	if b.cross and p.role != "G" and b.z > 1.3: p.kafa = KAFA_SURE; b.z = 1.75
+	else: p.kafa = 0.0
+	b.cross = false; b.owner = p; p.hold = 0; b.intended = null; b.shot = false; b.vx = 0; b.vy = 0; b.vz = 0
+	if p.kafa <= 0: b.z = 0
 	b.last_team = p.team; b.last = p; p.dec = rnd(.15, .35)
 
 # duran top kuralı: santra, taç, korner, aut, serbest vuruş ve penaltıda top oyuna girene (kullanan oyuncu

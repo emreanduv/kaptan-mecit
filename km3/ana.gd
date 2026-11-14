@@ -168,6 +168,15 @@ func _ready() -> void:
 				if p.role == "G" and p.ucus > 1.45 and M.ball.shot: uc = true
 			if uc: break
 		for i in int(float(_arg.dalis) * 60): _adim()
+	if _arg.has("kafa"):
+		# deneme: biri kafaya çıkana kadar oyna, sonra kafa = saniye ilerle
+		var n := 0
+		while n < 60 * 1800:
+			_adim(); n += 1
+			var var_mi := false
+			for p in M.P: if p.kafa > 0: var_mi = true
+			if var_mi: break
+		for i in int(float(_arg.kafa) * 60): _adim()
 	if _arg.has("tutus"):
 		# deneme: kaleci topu tutsun (tutus = yakalamadan sonra geçen saniye)
 		var n := 0
