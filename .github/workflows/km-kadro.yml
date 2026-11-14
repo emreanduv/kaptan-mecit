@@ -17,8 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-        with: { ref: main }
+      - uses: actions/checkout@v4      # zamanlanmış çalışmada main; elle denemede seçilen dal
       - name: CBM dünyası (geçmişiyle)
         uses: actions/checkout@v4
         with:
@@ -54,4 +53,4 @@ jobs:
           git config user.name "Mr. Anduv! veri"; git config user.email "actions@users.noreply.github.com"
           git add km3/veri www/klasik araclar/cbm-veri/KAYNAK
           git commit -qm "Kadrolar güncellendi (Champion Battle Manager haftalık verisi: ${{ steps.g.outputs.sonuc }})"
-          for i in 1 2 3; do git pull -q --rebase origin main && git push -q origin main && break; sleep 5; done
+          for i in 1 2 3; do git pull -q --rebase origin ${{ github.ref_name }} && git push -q origin HEAD:${{ github.ref_name }} && break; sleep 5; done
