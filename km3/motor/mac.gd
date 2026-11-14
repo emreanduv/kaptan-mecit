@@ -140,7 +140,16 @@ var faul := [0, 0]
 var ofsayt := [0, 0]
 var kartlar: Array = []   # [takım, ad, "S"/"K"]
 # maç raporu (Champion Battle Manager 4.5.1'deki gibi): istatistik + oyuncu başına
-var ist := {"sut": [0, 0], "isabet": [0, 0], "pas": [0, 0], "pas_ok": [0, 0], "top": [0.0, 0.0], "kurtar": [0, 0]}
+var ist := {"sut": [0, 0], "isabet": [0, 0], "pas": [0, 0], "pas_ok": [0, 0], "top": [0.0, 0.0], "kurtar": [0, 0], "xg": [0.0, 0.0]}
+const XG_K := 2.4     # bu motorun gol oranına göre ayar (dene/xg_dene.gd ile ölçülür)
+# gol beklentisi: kaleye uzaklık ve açı (CBM ile aynı model), baskı altında düşer
+func xg_hesap(p: Oy, gy: float) -> float:
+	var dl := absf(gy - p.y); var lat := PW / 2 - p.x; var d := sqrt(dl * dl + lat * lat)
+	var aci := absf(atan2(7.32 * dl, dl * dl + lat * lat - 13.4))
+	var g := 1.0 / (1.0 + exp(-(-1.05 + 1.35 * aci - 0.115 * d)))
+	var bs: float = nearest_opp(p)[1]
+	g *= .55 if bs < 1.3 else (.8 if bs < 2.8 else 1.0)
+	return clampf(g * XG_K, .01, .9)
 var oy_ist := {}
 var konus := {}         # takım konuşması: {"once"/"devre": sonuç, "sonuc": son metin}
 # an: "once" | "devre", sec: 0..2 (mola.gd KONUSMA sırası). Etki duruma bağlı; iyi karşılanırsa takım biraz daha hızlı ve isabetli.
@@ -1043,8 +1052,8 @@ func do_shoot(p: Oy, aim_x: float, pow := 1.0, kuruldu := false) -> void:
 		# FIFA hissi: şut anında topa son adım + bacağı geri çekme, top sonra çıkar (bu arada araya girilebilir)
 		p.kur = KURULMA; p.kur_a = aim_x; p.kur_g = pow; p.kur_son = true; return
 	p.kur = 0.0
-	if not demo: ist.sut[p.team] += 1; oy_k(p).s += 1
 	var gy := goal_y_of(p.team)
+	if not demo: ist.sut[p.team] += 1; oy_k(p).s += 1; ist.xg[p.team] += xg_hesap(p, gy)
 	var f := fwd_of(p.team)
 	var Tt: Dictionary = T[p.team]
 	var dG := hyp(PW / 2 - p.x, gy - p.y)
@@ -1799,6 +1808,7 @@ func rapor_metni(ev := 0) -> String:
 		for k in kartlar: t += "  %s  %s  %s\n" % ["SARI" if k[2] == "S" else "KIRMIZI", T[k[0]].t.kisa, k[1]]
 	t += "\nİSTATİSTİK  (%s - %s)\n" % [T[ev].t.kisa, T[dep].t.kisa]
 	for ad in R.ist: t += "  %s:  %d - %d\n" % [ad, R.ist[ad][ev], R.ist[ad][dep]]
+	t += "  %s:  %.2f - %.2f\n" % [Dil.cevir("Gol beklentisi (xG)"), ist.xg[ev], ist.xg[dep]]
 	for ti in [ev, dep]:
 		t += "\nNOTLAR · %s\n" % T[ti].t.kisa
 		var sat := []
