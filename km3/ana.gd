@@ -539,10 +539,10 @@ func _girdi() -> void:
 	if M == null or M.demo or menu_acik: return
 	if vr: vr.girdi(M); return
 	var v := Vector2(Input.get_axis("ui_left", "ui_right"), Input.get_axis("ui_up", "ui_down"))
-	if Input.is_key_pressed(KEY_A): v.x -= 1
-	if Input.is_key_pressed(KEY_D): v.x += 1
-	if Input.is_key_pressed(KEY_W): v.y -= 1
-	if Input.is_key_pressed(KEY_S): v.y += 1
+	if Input.is_physical_key_pressed(KEY_A): v.x -= 1
+	if Input.is_physical_key_pressed(KEY_D): v.x += 1
+	if Input.is_physical_key_pressed(KEY_W): v.y -= 1
+	if Input.is_physical_key_pressed(KEY_S): v.y += 1
 	var joy := Vector2(Input.get_joy_axis(0, JOY_AXIS_LEFT_X), Input.get_joy_axis(0, JOY_AXIS_LEFT_Y))
 	if joy.length() > .2: v = joy
 	if dok and dok.vec != Vector2.ZERO: v = dok.vec
@@ -561,7 +561,7 @@ func _girdi() -> void:
 func _unhandled_input(e: InputEvent) -> void:
 	if e is InputEventKey and e.pressed and lig_ekran.visible:
 		var n := lig.satirlar().size()
-		match e.keycode:
+		match e.physical_keycode:
 			KEY_UP, KEY_W: lig_ekran.satir = posmod(lig_ekran.satir - 1, n); lig_ekran.ciz(); return
 			KEY_DOWN, KEY_S: lig_ekran.satir = posmod(lig_ekran.satir + 1, n); lig_ekran.ciz(); return
 			KEY_LEFT, KEY_A: lig_kay(lig_ekran.satir, -1); return
@@ -569,7 +569,7 @@ func _unhandled_input(e: InputEvent) -> void:
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE: lig_bas(lig_ekran.satir); return
 			KEY_ESCAPE, KEY_M: lig_goster(false); return
 	if e is InputEventKey and e.pressed and mola_panel.visible:
-		match e.keycode:
+		match e.physical_keycode:
 			KEY_UP, KEY_W: mola_satir = Mola.SIRA[posmod(Mola.SIRA.find(mola_satir) - 1, Mola.SIRA.size())]; return
 			KEY_DOWN, KEY_S: mola_satir = Mola.SIRA[posmod(Mola.SIRA.find(mola_satir) + 1, Mola.SIRA.size())]; return
 			KEY_LEFT, KEY_A: mola.kay(mola_satir, -1); return
@@ -577,7 +577,7 @@ func _unhandled_input(e: InputEvent) -> void:
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE: mola.bas(mola_satir); return
 	# bırakınca: basılı tutulan PAS / ŞUT çıkar
 	if M and e is InputEventKey and not e.pressed:
-		match e.keycode:
+		match e.physical_keycode:
 			KEY_X, KEY_K: M.tus_birak("pas")
 			KEY_Z, KEY_SPACE, KEY_L: M.tus_birak("sut")
 	elif M and e is InputEventJoypadButton and not e.pressed:
@@ -585,11 +585,11 @@ func _unhandled_input(e: InputEvent) -> void:
 			JOY_BUTTON_A: M.tus_birak("pas")
 			JOY_BUTTON_B, JOY_BUTTON_X: M.tus_birak("sut")
 	if e is InputEventKey and e.pressed and not e.echo:
-		match e.keycode:
+		match e.physical_keycode:
 			KEY_X, KEY_K: if M: M.tus_bas("pas")
 			KEY_Z, KEY_SPACE, KEY_L: if M: M.tus_bas("sut")
 			KEY_C: _kamera((kam_mod + 1) % KAMERALAR.size())
-			KEY_ESCAPE, KEY_M: if M and not M.demo: menu_goster(not menu_acik)
+			KEY_ESCAPE, KEY_M, KEY_P: if M and not M.demo: menu_goster(not menu_acik)
 	elif e is InputEventJoypadButton and e.pressed:
 		match e.button_index:
 			JOY_BUTTON_A: if M: M.tus_bas("pas")
