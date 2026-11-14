@@ -22,6 +22,29 @@ lig = lig.replace(/export const LIG_SIRASI = .*;/, `export const LIG_SIRASI = ${
 fs.writeFileSync(TMP + '/src/data/ligler.js', lig);
 let du = fs.readFileSync(TMP + '/src/core/dunya.js', 'utf8');
 du = du.replace(/export const LIG_ITIBAR = \{[^}]*\};/, `export const LIG_ITIBAR = ${JSON.stringify(ITIBAR)};`);
+/* CBM 4.8 "oyuncu gücü gerçek kariyerden" (CBM 4.8.0, 14 Kas 2026; CBM paketindeki ld/md'nin aynısı): kulüp içindeki sıra artık
+   yalnız ün (un) değil, ün + A milli maç + son 5 yılda oynadığı liglerin düzeyi + forvet/orta sahada maç başına gol karışımı (v).
+   Hedef yetenek: kulüp tabanı × (1.12 − 0.36 × sıra) + (v − ortalama v) × 40. */
+const KM_LD = `
+const KM_YD = {TR:"tr",GB:"en",EN:"en",DE:"de",ES:"es",IT:"it",FR:"fr",NL:"nl",PT:"pt",BE:"be",AT:"at",GR:"gr",AR:"ar",BR:"br",MX:"mx",US:"us",JP:"jp",KR:"kr",SA:"sa",QA:"qa",CN:"cn",AU:"au",EG:"eg",MA:"ma",ZA:"za",DZ:"dz",TN:"tn"};
+let KM_DIS = [];
+function kmRd(c) { if (typeof c === 'string') return ligItibar(c.split('-')[0]); const u = KM_YD[KM_DIS[c]?.ulke]; return u && LIG_ITIBAR[u] != null ? LIG_ITIBAR[u] * .9 : .45; }
+const KM_GOLCU = ['SF', 'SĞK', 'SLK'], KM_ORTA = ['OOS', 'SĞO', 'SLO', 'MOS'];
+function kmLd(o, mevki, sezon = SEZON) {
+  const mi = o.mi?.[0] > 0 ? o.mi[0] : 0, a = Math.min(1, Math.log1p(mi) / Math.log1p(80));
+  const k = (o.g || []).filter(S => (S[1] || sezon) >= sezon - 4 && S[3] > 0 && !S[5]), mac = k.reduce((s, c) => s + c[3], 0);
+  const y = mac ? clamp((k.reduce((s, c) => s + c[3] * kmRd(c[2]), 0) / mac - .45) / .55, 0, 1) * Math.min(1, mac / 60) : null;
+  const gol = k.reduce((s, c) => s + Math.max(0, c[4]), 0), gm = mac >= 10 ? gol / mac : 0;
+  const r = KM_GOLCU.includes(mevki) ? Math.min(1, gm / .55) : KM_ORTA.includes(mevki) ? Math.min(1, gm / .25) : 0, un = o.un || 0;
+  return y == null ? .7 * un + .3 * a : .45 * un + .25 * a + .22 * y + .08 * r;
+}`;
+du += KM_LD;
+du = du.replace("const sahip = [...c.kaynak.oyuncular].sort((a, b) => (b.un || 0) - (a.un || 0));",
+  "const kmv = new Map(c.kaynak.oyuncular.map(o => [o, kmLd(o, o.mevki)])); const sahip = [...c.kaynak.oyuncular].sort((a, b) => kmv.get(b) - kmv.get(a));");
+du = du.replace("unOrt = atanan.reduce((s, [o]) => s + (o.un || 0), 0) / Math.max(1, n);", "unOrt = atanan.reduce((s, [o]) => s + kmv.get(o), 0) / Math.max(1, n);");
+du = du.replace("const ca = hedef * (1.12 - 0.36 * rk) + ((o.un || 0) - unOrt) * 34;", "const ca = hedef * (1.12 - 0.36 * rk) + (kmv.get(o) - unOrt) * 40;");
+du = du.replace("export function dunyaUret(tohum = Date.now() >>> 0, kaynak = null) {", "export function dunyaUret(tohum = Date.now() >>> 0, kaynak = null) {\n  KM_DIS = kaynak?.disKulup || [];");
+for (const z of ['kmv.get(b) - kmv.get(a)', 'kmv.get(o), 0)', '(kmv.get(o) - unOrt) * 40', 'KM_DIS = kaynak']) if (!du.includes(z)) throw new Error('CBM 4.8 güç yaması tutmadı: ' + z);
 fs.writeFileSync(TMP + '/src/core/dunya.js', du);
 let hv = fs.readFileSync(TMP + '/src/data/names/havuz.js', 'utf8');
 const yerli = Object.fromEntries(Object.entries(kaynak.ligler).map(([k, l]) => { const c = {}; for (const cl of l.kulupler) for (const o of cl.oyuncular) if (o.uyruk) c[o.uyruk] = (c[o.uyruk] || 0) + 1; return [k, Object.entries(c).sort((a, b) => b[1] - a[1])[0]?.[0] || 'EN']; }));

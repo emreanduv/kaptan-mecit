@@ -73,6 +73,7 @@ func kare(f: Dictionary, dt: float) -> void:
 			# dururken topa döner
 			var b := Vector2(ball.x - p.x, ball.y - p.y)
 			if b.length() > .5: p.dx = lerpf(p.dx, b.normalized().x, .1); p.dy = lerpf(p.dy, b.normalized().y, .1)
+		p.kafa = maxf(0, p.kafa - dt)
 		p.cd = maxf(0, p.cd - dt); p.slide = maxf(0, p.slide - dt); p.stun = maxf(0, p.stun - dt); p.ucus = maxf(0, p.ucus - dt)
 		if p.ucus <= 0: p.dive = 0
 	var b: Array = f.get("b", [])
@@ -87,6 +88,8 @@ func olay(o: Array) -> Array:
 			var p: Mac.Oy = P[int(o[1])] if int(o[1]) < P.size() else null
 			if p:
 				p.cd = .35; ball.kicker = p
+				# top baş hizasındaysa CBM'deki vuruş kafa vuruşudur: Kaptan Mecit'teki sıçrama hareketi
+				if ball.z > 1.2 and p.role != "G": p.kafa = Mac.KAFA_SURE
 				# vuran oyuncu topun gittiği yöne bakar; top yavaşsa hücum ettiği kaleye
 				var v := Vector2(ball.vx, ball.vy)
 				if v.length() < 1.0: v = Vector2(PW / 2 - p.x, goal_y_of(p.team) - p.y)
