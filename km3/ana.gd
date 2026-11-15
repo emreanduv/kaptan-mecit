@@ -18,6 +18,12 @@ var kam: Camera3D
 var kam_mod := 0
 var _kam_hedef := Vector3.ZERO
 var _birikim := 0.0
+# Çizim ara değeri: motor 60 Hz sabit adımla ilerler, ekran ise kendi hızında (telefonda 30–120 Hz, düzensiz) çizer.
+# Her adımdan önceki konumlar saklanır, çizimde iki adım arası kalan süre oranında harmanlanır; böylece bir karede
+# 0, ötekinde 2 adım düşse de oyuncular ve top titremeden akar (CBM izleme modu bunu kareler arasında zaten yapıyordu).
+var _onceki: PackedVector2Array = PackedVector2Array()
+var _onceki_top := Vector3.ZERO
+var _ara := 1.0
 var ses: Ses
 var sec := {"lig": 0, "ev": 0, "dep": 1, "sure": 1, "zor": 1}
 var menu_acik := true
@@ -432,6 +438,7 @@ func _process(dt: float) -> void:
 	while _birikim >= ADIM and adim < 2 and not _donuk and not tekrarda:
 		_birikim -= ADIM; adim += 1
 		_adim()
+	_ara = 1.0 if (tekrarda or _donuk or (menu_acik and M != null and not M.demo)) else clampf(_birikim / ADIM, 0.0, 1.0)
 	_ciz(dt)
 	if not _arg.has("temiz"): mola.rehber(dt, 1 if vr != null else (2 if dokunmatik else 0))
 	if mola_panel.visible: _mola_ciz()
@@ -450,6 +457,9 @@ func _process(dt: float) -> void:
 func _adim() -> void:
 	if M == null: return
 	if not menu_acik or M.demo:
+		_onceki.resize(M.P.size())
+		for i in M.P.size(): _onceki[i] = Vector2(M.P[i].x, M.P[i].y)
+		_onceki_top = Vector3(M.ball.x, M.ball.y, M.ball.z)
 		M.step(ADIM)
 		tekrar.adim(M)
 	for o in M.olaylar: _olay(o)
@@ -600,6 +610,19 @@ func _unhandled_input(e: InputEvent) -> void:
 
 static func W(x: float, y: float, z := 0.0) -> Vector3: return Vector3(x - PW / 2, z, y - PL / 2)
 
+# oyuncunun ekranda görüneceği yer (iki motor adımı arası harmanlanmış); ışınlanmada (serbest vuruş dizilişi, santra) atlamaz
+func _gorunen(i: int, p) -> Vector2:
+	var su := Vector2(p.x, p.y)
+	if dis or _ara >= 1.0 or i < 0 or i >= _onceki.size(): return su
+	var o := _onceki[i]
+	return su if o.distance_squared_to(su) > 4.0 else o.lerp(su, _ara)
+
+func _gorunen_top() -> Vector3:
+	var b = M.ball
+	var su := Vector3(b.x, b.y, b.z)
+	if dis or _ara >= 1.0 or _onceki.is_empty() or _onceki_top.distance_squared_to(su) > 9.0: return su
+	return _onceki_top.lerp(su, _ara)
+
 func _ciz(dt: float) -> void:
 	if M == null: return
 	var now := Time.get_ticks_msec() / 1000.0
@@ -607,10 +630,12 @@ func _ciz(dt: float) -> void:
 	for f: Futbolcu in oyuncular:
 		if not f.visible: continue
 		var p = f.get_meta("oy")
-		f.position = W(p.x, p.y)
+		var g := _gorunen(M.P.find(p), p)
+		f.position = W(g.x, g.y)
 		f.poz(p, M, now, gol)
 	var b = M.ball
-	top.position = W(b.x, b.y, b.z + .12)
+	var tg := _gorunen_top()
+	top.position = W(tg.x, tg.y, tg.z + .12)
 	# kaleci topu tutuyorsa top yerde değil ellerinin arasında görünür (yakalama, göğse alma, atlayıp tutma)
 	if b.owner != null and b.owner.role == "G" and not b.owner.ayak:
 		for f: Futbolcu in oyuncular:
@@ -626,11 +651,14 @@ func _ciz(dt: float) -> void:
 		var mm := golgeler.multimesh
 		for i in M.P.size():
 			var p = M.P[i]
-			mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3(.9, 1, .9) * (1.6 if p.slide > 0 else 1.0)), W(p.x, p.y, .03)))
-		mm.set_instance_transform(M.P.size(), Transform3D(Basis().scaled(Vector3(.28, 1, .28) * (1.0 / (1.0 + b.z * .4))), W(b.x, b.y, .03)))
+			var g := _gorunen(i, p)
+			mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3(.9, 1, .9) * (1.6 if p.slide > 0 else 1.0)), W(g.x, g.y, .03)))
+		mm.set_instance_transform(M.P.size(), Transform3D(Basis().scaled(Vector3(.28, 1, .28) * (1.0 / (1.0 + tg.z * .4))), W(tg.x, tg.y, .03)))
 		for i in range(M.P.size() + 1, mm.instance_count): mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3.ONE * .001), Vector3(0, -5, 0)))
 	isaret.visible = M.ctrl != null and not M.demo
-	if isaret.visible: isaret.position = W(M.ctrl.x, M.ctrl.y, .02)
+	if isaret.visible:
+		var ig := _gorunen(M.P.find(M.ctrl), M.ctrl)
+		isaret.position = W(ig.x, ig.y, .02)
 	# tribün heyecanı: gol, top kaleye yaklaştıkça
 	# her tribün kendi takımı için coşar: golde atan takımın taraftarı zıplar, diğeri yıkılır;
 	# hücumda top rakip kaleye yaklaştıkça hücum edenin taraftarı kıpırdanır
@@ -651,7 +679,8 @@ var _sarsinti := 0.0
 func _kamera_guncelle(dt: float) -> void:
 	if vr: return
 	var b = M.ball
-	var bw := W(b.x, b.y, b.z)
+	var tg := _gorunen_top()
+	var bw := W(tg.x, tg.y, tg.z)
 	var ileri_y := 1.0 if M.goal_y_of(0) == 0.0 else -1.0     # ev sahibinin hücum yönü (dünya Z'de ters)
 	var poz: Vector3; var bak: Vector3; var fov: float
 	var mod := 4 if tekrar.aktif else kam_mod     # tekrar: yakın yayın kamerası
