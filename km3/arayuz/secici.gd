@@ -8,6 +8,7 @@ signal item_selected(i: int)
 var _ogeler: PackedStringArray = []
 var selected := -1
 var _etiket: Label
+var _kutu: PanelContainer
 
 func _init() -> void:
 	add_theme_constant_override("separation", 6)
@@ -17,11 +18,13 @@ func _init() -> void:
 	add_child(sol)
 	var kutu := PanelContainer.new(); kutu.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var s := StyleBoxFlat.new(); s.bg_color = Color("#706b63"); s.set_corner_radius_all(8); s.set_content_margin_all(8)
+	s.content_margin_left = 4; s.content_margin_right = 4
 	kutu.add_theme_stylebox_override("panel", s)
 	_etiket = Label.new(); _etiket.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; _etiket.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_etiket.add_theme_font_size_override("font_size", 18); _etiket.add_theme_color_override("font_color", Color.WHITE)
 	_etiket.clip_text = true; _etiket.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	kutu.add_child(_etiket); add_child(kutu)
+	kutu.add_child(_etiket); add_child(kutu); _kutu = kutu
+	kutu.resized.connect(_sigdir)
 	var sag := _ok(">")
 	sag.pressed.connect(func(): _kay(1))
 	add_child(sag)
@@ -52,6 +55,22 @@ func select(i: int) -> void:
 	if _ogeler.is_empty(): return
 	selected = clampi(i, 0, _ogeler.size() - 1)
 	_etiket.text = _ogeler[selected]
+	_sigdir()
+
+# dar kutuda (telefonda üçlü sıra: Süre · Zorluk · Kamera) yazı kesilmesin: sığana kadar küçülür (en az 10)
+# dil çevirisi yazıyı select() dışında değiştirebilir: yazı değişince yeniden sığdır
+var _sigan := ""
+func _process(_dt: float) -> void:
+	if _etiket.tr(_etiket.text) != _sigan: _sigdir()
+
+func _sigdir() -> void:
+	if _kutu == null or _kutu.size.x <= 0: return
+	_sigan = _etiket.tr(_etiket.text)   # ekranda görünen (çevrilmiş) yazı
+	var yer := _kutu.size.x - 10.0
+	var yazi := _etiket.get_theme_font("font")
+	var b := 18
+	while b > 10 and yazi.get_string_size(_sigan, HORIZONTAL_ALIGNMENT_LEFT, -1, b).x > yer: b -= 1
+	_etiket.add_theme_font_size_override("font_size", b)
 
 func kay(d: int) -> void: _kay(d)
 func metin() -> String: return _etiket.text
