@@ -22,7 +22,7 @@ var mesaj := ""
 var _birak_onay := 0.0
 var son_hafta: Array = []       # en son oynanan haftanın maçları (ekranda "Haftanın sonuçları")
 var diz := ""                   # kullanıcının ana menüde seçtiği diziliş ("" = Otomatik); kadro görünümü maçtaki ilk 11'i gösterir
-var gorunum := "tablo"          # sol panel: "kadro" (kulübün kadrosu), "tablo" (puan durumu), "fikstur" (kulübün sezon fikstürü), "goller" (gol krallığı), "odul" (sezon ödülleri), "ist" (lig istatistikleri) ya da "tarih" (kulübün sezon sezon tarihçesi)
+var gorunum := "tablo"          # sol panel: "kadro" (kulübün kadrosu), "tablo" (puan durumu), "fikstur" (kulübün sezon fikstürü), "goller" (gol krallığı), "odul" (sezon ödülleri), "ist" (lig istatistikleri), "seyir" (sezon seyri: hafta hafta sıra) ya da "tarih" (kulübün sezon sezon tarihçesi)
 const GOL_AGIRLIK := {"F": 5.0, "O": 1.8, "D": .55, "G": 0.0}   # simüle maçta golü kimin attığı: mevkiye göre pay
 
 func _init(v: Dictionary) -> void:
@@ -297,7 +297,7 @@ func sezon_adi() -> String:
 func satirlar() -> Array:
 	if kip == "kupa": return kupa_satirlari()
 	if not var_mi(): return ["Lig", "Takımın", "SEZONA BAŞLA", "Kupalar", "Ana menü"]
-	var r: Array = ["YENİ SEZON", "Kadro", "Fikstür", "Gol krallığı", "İstatistik", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Rakip raporu", "Kadro", "Fikstür", "Gol krallığı", "İstatistik", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"]
+	var r: Array = ["YENİ SEZON", "Kadro", "Fikstür", "Gol krallığı", "İstatistik", "Sezon seyri", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Rakip raporu", "Kadro", "Fikstür", "Gol krallığı", "İstatistik", "Sezon seyri", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"]
 	if son_rapor != "": r.insert(r.find("Ana menü"), "Maç raporu")
 	r.insert(r.find("Ana menü"), "Kupalar")
 	return r
@@ -322,6 +322,7 @@ func satir_metni(i: int, sec := false) -> String:
 		"Ödüller": return ok + ("Puan durumu" if gorunum == "odul" else "Ödüller")
 		"İstatistik": return ok + ("Puan durumu" if gorunum == "ist" else "İstatistik")
 		"Rakip raporu": return ok + ("Puan durumu" if gorunum == "rakip" else "Rakip raporu")
+		"Sezon seyri": return ok + ("Puan durumu" if gorunum == "seyir" else "Sezon seyri")
 	return ok + s
 
 func kay(i: int, yon: int) -> void:
@@ -349,6 +350,7 @@ func bas(i: int) -> String:
 		"Ödüller": gorunum = "tablo" if gorunum == "odul" else "odul"
 		"İstatistik": gorunum = "tablo" if gorunum == "ist" else "ist"
 		"Rakip raporu": gorunum = "tablo" if gorunum == "rakip" else "rakip"
+		"Sezon seyri": gorunum = "tablo" if gorunum == "seyir" else "seyir"
 		"YENİ SEZON": sonraki_sezon()
 		"Ana menü": gorunum = "tablo"; return "menu"
 		"Maç raporu": return "rapor"
@@ -793,6 +795,92 @@ func rakip_raporu() -> Array:
 	r.append(["s", "İlk devredeki maç", onceki if onceki != "" else "—", true])
 	var fark := gb - gr + (3.0 if ev else -3.0)
 	r.append(["s", "Asistanın önerisi", "Oyun anlayışı: " + ("Hücum" if fark >= 6.0 else ("Savunma" if fark <= -6.0 else "Dengeli")), true])
+	return r
+
+# ---------- sezon seyri (menajer oyunlarının "lig sırası" grafiği): her haftanın sonundaki sıra ve puan ----------
+# Kayıt gerekmez: fikstürdeki skorlardan hafta hafta yeniden kurulur. Sıralama tablo() ile aynı (puan, averaj, atılan, ad).
+func sira_gecmisi() -> Array:   # [{"w": hafta, "s": [kulüp → sıra], "p": [kulüp → puan]}, ...] yalnız oynanan haftalar
+	var r: Array = []
+	if not var_mi(): return r
+	var n: int = (d.takimlar as Array).size()
+	var P: Array = []; var A: Array = []; var Y: Array = []
+	for i in n: P.append(0); A.append(0); Y.append(0)
+	var F: Array = d.fikstur
+	for w in mini(int(d.hafta), F.size()):
+		for mc in F[w]:
+			var ge := int(mc[2]); var gd := int(mc[3])
+			if ge < 0: continue
+			var e := int(mc[0]); var dp := int(mc[1])
+			A[e] += ge; Y[e] += gd; A[dp] += gd; Y[dp] += ge
+			if ge > gd: P[e] += 3
+			elif ge == gd: P[e] += 1; P[dp] += 1
+			else: P[dp] += 3
+		var s: Array = range(n)
+		s.sort_custom(func(x, y):
+			if P[x] != P[y]: return P[x] > P[y]
+			var ax: int = A[x] - Y[x]; var ay: int = A[y] - Y[y]
+			if ax != ay: return ax > ay
+			if A[x] != A[y]: return A[x] > A[y]
+			return takim(x).ad < takim(y).ad)
+		var sira: Array = []; sira.resize(n)
+		for k in n: sira[s[k]] = k + 1
+		r.append({"w": w + 1, "s": sira, "p": P.duplicate()})
+	return r
+
+# grafik için: {"n": kulüp sayısı, "biz": [sıra...], "lider": [sıra...], "lider_ad": kısa ad, "hedef": hedef sırası, "hafta": toplam hafta}
+func seyir_grafik() -> Dictionary:
+	var G := sira_gecmisi()
+	if G.is_empty(): return {}
+	var lid := int(tablo()[0].i)
+	var b: Array = []; var l: Array = []
+	for x in G: b.append(int(x.s[biz()])); l.append(int(x.s[lid]))
+	return {"n": (d.takimlar as Array).size(), "biz": b, "lider": l if lid != biz() else [], "lider_ad": takim(lid).kisa, "hedef": hedef_sira(), "hafta": hafta_sayisi()}
+
+# sezon seyri satırları (ekran ve VR; istatistik() biçimi): [[tür, etiket, değer, vurgu], ...]
+func sezon_seyri() -> Array:
+	var r: Array = []
+	var G := sira_gecmisi()
+	if G.is_empty(): return r
+	var b := biz()
+	var en_iyi := 99; var en_iyi_w := 0; var en_kotu := 0; var en_kotu_w := 0; var zirve := 0
+	for x in G:
+		var s := int(x.s[b])
+		if s < en_iyi: en_iyi = s; en_iyi_w = int(x.w)
+		if s > en_kotu: en_kotu = s; en_kotu_w = int(x.w)
+		if s == 1: zirve += 1
+	var T := tablo()
+	var sira := sira_biz(); var biz_p := int(T[sira - 1].P); var oyn := maxi(1, int(T[sira - 1].O))
+	var hf := func(w: int) -> String: return ("week %d" % w) if Dil.en else ("%d. hafta" % w)
+	r.append(["b", "SEZON SEYRİ  ·  " + takim(b).ad, "", true])
+	r.append(["s", "Şu anki sıra · puan", "%d.  ·  %d" % [sira, biz_p], true])
+	r.append(["s", "En iyi sıra", "%d.  ·  %s" % [en_iyi, hf.call(en_iyi_w)], true])
+	r.append(["s", "En kötü sıra", "%d.  ·  %s" % [en_kotu, hf.call(en_kotu_w)], true])
+	r.append(["s", "Zirvede geçen hafta", str(zirve), true])
+	if sira == 1:
+		var fk: int = biz_p - int(T[1].P) if T.size() > 1 else 0
+		r.append(["s", "Lidere fark (puan)", ("leader  ·  %+d over 2nd" if Dil.en else "lider  ·  ikinciyle %+d") % fk, true])
+	else:
+		r.append(["s", "Lidere fark (puan)", "%d  ·  %s" % [int(T[0].P) - biz_p, takim(int(T[0].i)).ad], true])
+	var hs := clampi(hedef_sira(), 1, T.size())
+	var hd := ""
+	if sira <= hs:
+		var alt: int = biz_p - int(T[hs].P) if hs < T.size() else biz_p
+		hd = ("on track  ·  %+d over place %d" if Dil.en else "tutuyor  ·  %d.'ye %+d") % ([alt, hs + 1] if Dil.en else [hs + 1, alt])
+	else:
+		hd = ("%d points behind place %d" if Dil.en else "%d. sıranın %d puan gerisinde") % ([int(T[hs - 1].P) - biz_p, hs] if Dil.en else [hs, int(T[hs - 1].P) - biz_p])
+	r.append(["s", "Hedef (" + hedef_adi() + ")", hd, true])
+	var toplam := fikstur_biz().size()
+	r.append(["s", "Puan ortalaması · sezon sonu tahmini", "%s  ·  %d" % [_ondalik(float(biz_p) / oyn), roundi(float(biz_p) / oyn * toplam)], true])
+	r.append(["b", "HAFTA HAFTA SIRA", "", false])
+	var k := 0
+	while k < G.size():
+		var son := mini(k + 6, G.size())
+		var parca: PackedStringArray = []
+		for j in range(k, son): parca.append(str(int(G[j].s[b])))
+		var et := ("Weeks %d–%d" % [k + 1, son]) if Dil.en else ("%d.–%d. hafta" % [k + 1, son])
+		if son == k + 1: et = hf.call(k + 1)
+		r.append(["s", et, "  ".join(parca), false])
+		k = son
 	return r
 
 # kulübün sezon fikstürü (ekran ve VR): her hafta için [hafta, iç saha mı, rakip, bizim gol, rakip gol] (oynanmadıysa gol -1)

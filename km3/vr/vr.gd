@@ -298,7 +298,7 @@ func _lazer_guncelle() -> void:
 					var l: Label3D = _menu_satirlar[i]
 					if not l.visible: continue
 					var dy := absf(yerel.y - l.position.y)
-					var genis := .32 if ana.lig_acik else .72
+					var genis := (.16 if _lig_iki_sutun else .32) if ana.lig_acik else .72
 					if dy < en_iyi and absf(yerel.x - l.position.x) < genis:
 						en_iyi = dy; _lazer_satir = i; _lazer_yan = yerel.x - l.position.x
 				if _lazer_satir >= 0 and not ana.yardim_acik: _satir = _lazer_satir
@@ -307,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language", "Maç saati"]
-const SURUM := "0.10.4"
+const SURUM := "0.10.5"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -317,6 +317,7 @@ var _imza: Label3D
 var _yardim_alt: Label3D
 var menu3d: Node3D
 var _menu_satirlar: Array = []
+var _lig_iki_sutun := false
 var _satir := 8
 var afis3d: Label3D
 
@@ -335,7 +336,7 @@ func _menu3d_kur() -> void:
 	zemin.material_override = zm; menu3d.add_child(zemin)
 	var bas := _yazi(96, Color.WHITE); bas.text = "Kaptan Mecit 3"; bas.position = Vector3(0, .44, .001); menu3d.add_child(bas); _bas = bas
 	var imza := _yazi(36, Color("#cfe3d6")); imza.text = "Bir Mr. Anduv! yapımıdır.  ·  sürüm " + SURUM; imza.position = Vector3(0, .36, .001); menu3d.add_child(imza); _imza = imza
-	for i in maxi(14, maxi(SATIRLAR.size(), Mola.SATIRLAR.size())):   # lig menüsü 13 satıra çıkabiliyor (Rakip raporu + Maç raporu + Kupalar)
+	for i in maxi(15, maxi(SATIRLAR.size(), Mola.SATIRLAR.size())):   # lig menüsü 14 satıra çıkabiliyor (Rakip raporu + Sezon seyri + Maç raporu + Kupalar)
 		var l := _yazi(52, Color.WHITE); l.position = Vector3(0, .25 - i * .085, .001); menu3d.add_child(l)
 		_menu_satirlar.append(l)
 	var ipucu := _yazi(32, Color(1, 1, 1, .75))
@@ -494,11 +495,11 @@ func _lig_ciz() -> void:
 		for x in L.sezonun_11i():
 			var v := ["", Lig.mevki_adi(x[1]) + "  ·  " + x[2] + "  ·  " + x[3], "", "", "", "", "", str(x[4])]
 			for j in v.size(): sutun[j] += "\n" + v[j]
-	elif L.var_mi() and L.gorunum in ["ist", "rakip"]:
-		var rk: bool = L.gorunum == "rakip"
-		if L.mesaj == "": _mesaj.text = ("RAKİP RAPORU  ·  " if rk else "İSTATİSTİKLER  ·  ") + L.lig_veri().ad + "  ·  " + L.sezon_adi()
-		sutun = ["", "RAKİP RAPORU" if rk else "İSTATİSTİKLER", "", "", "", "", "", ""]
-		for x in (L.rakip_raporu() if rk else L.istatistik()).slice(0, 18):
+	elif L.var_mi() and L.gorunum in ["ist", "rakip", "seyir"]:
+		var rk: bool = L.gorunum == "rakip"; var sy: bool = L.gorunum == "seyir"
+		if L.mesaj == "": _mesaj.text = ("SEZON SEYRİ  ·  " if sy else ("RAKİP RAPORU  ·  " if rk else "İSTATİSTİKLER  ·  ")) + L.lig_veri().ad + "  ·  " + L.sezon_adi()
+		sutun = ["", "SEZON SEYRİ" if sy else ("RAKİP RAPORU" if rk else "İSTATİSTİKLER"), "", "", "", "", "", ""]
+		for x in (L.sezon_seyri() if sy else (L.rakip_raporu() if rk else L.istatistik())).slice(0, 18):
 			var v := ["", (("\u2014 " + x[1] + " \u2014") if x[0] == "b" else (x[1] + ":  " + x[2])), "", "", "", "", "", ""]
 			for j in v.size(): sutun[j] += "\n" + v[j]
 	elif L.var_mi() and L.gorunum == "goller":
@@ -557,9 +558,13 @@ func _lig_eylemler(L: Lig) -> void:
 		if not l.visible: continue
 		var sec := i == _satir
 		l.text = L.satir_metni(i, sec)
-		var adim := minf(.07, .30 / maxf(1.0, n - 1.0))     # satır çoğalınca (Tarihçe, Kupalar, Maç raporu) alttaki yazıların üstüne taşmasın
+		# satır çoğalınca (Rakip raporu, Sezon seyri, Kupalar, Maç raporu) üst üste binmesin: 10'dan fazlaysa iki sütun
+		_lig_iki_sutun = n > 10
+		var ss := ceili(n / 2.0) if _lig_iki_sutun else n
+		var adim := minf(.07, .30 / maxf(1.0, ss - 1.0))
 		l.font_size = 38 if adim >= .07 else int(clampf(adim / .07 * 44.0, 28.0, 36.0))
-		l.position = Vector3(.45, -.08 - i * adim, .001)
+		if _lig_iki_sutun: l.position = Vector3(.26 if i < ss else .62, -.08 - (i % ss) * adim, .001)
+		else: l.position = Vector3(.45, -.08 - i * adim, .001)
 		l.modulate = Color("#f3d35a") if sec else (Color("#e5722f") if L.satirlar()[i] in ["MAÇA ÇIK", "SEZONA BAŞLA", "YENİ SEZON", "KUPAYA BAŞLA"] else Color.WHITE)
 
 # kupa (lig ekranının kupa kipi): eşleşmeler tablo sütunlarında, özet altta

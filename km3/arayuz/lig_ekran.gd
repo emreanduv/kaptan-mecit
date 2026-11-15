@@ -56,6 +56,7 @@ func yenile() -> void:
 	elif lig.var_mi() and lig.gorunum == "odul": sol = _odul_panel()
 	elif lig.var_mi() and lig.gorunum == "ist": sol = _ist_panel()
 	elif lig.var_mi() and lig.gorunum == "rakip": sol = _ist_panel(true)
+	elif lig.var_mi() and lig.gorunum == "seyir": sol = _ist_panel(false, true)
 	if dikey:
 		hb.add_child(_sag_panel()); hb.add_child(sol)
 	else:
@@ -72,7 +73,7 @@ func ciz() -> void:
 		b.text = lig.satir_metni(i, sec)
 		if S[i] in ["Lig", "Takımın", "Kupa"]: b.text = b.text.trim_prefix("‹  ").trim_suffix("  ›")   # okları yandaki düğmeler gösterir
 		var ana_eylem: bool = S[i] in ["MAÇA ÇIK", "SEZONA BAŞLA", "YENİ SEZON"]
-		if ((S[i] == "Kadro" and lig.gorunum == "kadro") or (S[i] == "Fikstür" and lig.gorunum == "fikstur") or (S[i] == "Gol krallığı" and lig.gorunum == "goller") or (S[i] == "Tarihçe" and lig.gorunum == "tarih") or (S[i] == "Ödüller" and lig.gorunum == "odul") or (S[i] == "İstatistik" and lig.gorunum == "ist") or (S[i] == "Rakip raporu" and lig.gorunum == "rakip")) and not sec:   # açık görünüm sekmesi
+		if ((S[i] == "Kadro" and lig.gorunum == "kadro") or (S[i] == "Fikstür" and lig.gorunum == "fikstur") or (S[i] == "Gol krallığı" and lig.gorunum == "goller") or (S[i] == "Tarihçe" and lig.gorunum == "tarih") or (S[i] == "Ödüller" and lig.gorunum == "odul") or (S[i] == "İstatistik" and lig.gorunum == "ist") or (S[i] == "Rakip raporu" and lig.gorunum == "rakip") or (S[i] == "Sezon seyri" and lig.gorunum == "seyir")) and not sec:   # açık görünüm sekmesi
 			b.add_theme_stylebox_override("normal", _kutu(Color("#3d4a5c"), 6, 7)); b.add_theme_color_override("font_color", ALTIN); continue
 		var c := ALTIN if sec else (Color("#e5722f") if ana_eylem else SERIT)
 		b.add_theme_stylebox_override("normal", _kutu(c, 6, 7))
@@ -299,15 +300,20 @@ func _odul_panel() -> Control:
 
 # lig istatistikleri: ligin rekorları (en golcü, en sağlam savunma, iç saha / deplasman, form, seriler, en farklı skor) + kulübün karnesi
 # rakip=true: sıradaki rakibin raporu (aynı satır biçimi)
-func _ist_panel(rakip := false) -> Control:
+# seyir=true: sezon seyri (üstte hafta hafta sıra grafiği, altında özet satırları)
+func _ist_panel(rakip := false, seyir := false) -> Control:
 	var p := PanelContainer.new(); p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	p.add_theme_stylebox_override("panel", _kutu(PANEL, 6, 0))
 	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 0); p.add_child(v)
-	v.add_child(_serit(("RAKİP RAPORU  ·  %s  ·  %s sezonu" if rakip else "İSTATİSTİKLER  ·  %s  ·  %s sezonu") % [lig.lig_veri().ad, lig.sezon_adi()]))
-	var R := lig.rakip_raporu() if rakip else lig.istatistik()
+	var bas := "SEZON SEYRİ  ·  %s  ·  %s sezonu" if seyir else ("RAKİP RAPORU  ·  %s  ·  %s sezonu" if rakip else "İSTATİSTİKLER  ·  %s  ·  %s sezonu")
+	v.add_child(_serit(bas % [lig.lig_veri().ad, lig.sezon_adi()]))
+	var R := lig.sezon_seyri() if seyir else (lig.rakip_raporu() if rakip else lig.istatistik())
 	if R.is_empty():
-		v.add_child(_ic(_etiket("Sezon bitti; rakip raporu yeni sezonda." if rakip else "İstatistikler ilk hafta oynanınca dolar.", 15, SOLUK)))
+		v.add_child(_ic(_etiket("Sezon seyri ilk hafta oynanınca başlar." if seyir else ("Sezon bitti; rakip raporu yeni sezonda." if rakip else "İstatistikler ilk hafta oynanınca dolar."), 15, SOLUK)))
 		return p
+	if seyir:
+		var gr := SeyirGrafik.new(); gr.g = lig.seyir_grafik(); gr.custom_minimum_size = Vector2(0, 170 if dikey else 210)
+		v.add_child(gr)
 	var k := 0
 	for x in R:
 		var b: bool = x[0] == "b"
@@ -603,3 +609,57 @@ func _kupa_panel() -> Control:
 			hb.add_child(a); hb.add_child(sk); hb.add_child(b)
 			v.add_child(r); k += 1
 	return p
+
+# sezon seyri grafiği: yatayda haftalar, dikeyde sıra (1. en üstte). Mavi kalın çizgi biz, soluk çizgi lider, kesikli altın çizgi yönetimin hedefi.
+class SeyirGrafik extends Control:
+	var g: Dictionary = {}
+	func _draw() -> void:
+		draw_rect(Rect2(Vector2.ZERO, size), Color("#20252c"))
+		if g.is_empty(): return
+		var yazi := ThemeDB.fallback_font
+		var fs := 13
+		var n: int = maxi(2, int(g.n)); var hw: int = maxi(2, int(g.hafta))
+		var sol := 34.0; var sag := 14.0; var ust := 26.0; var alt := 22.0
+		var w := size.x - sol - sag; var h := size.y - ust - alt
+		var nokta := func(hafta: int, sira: int) -> Vector2:
+			return Vector2(sol + w * float(hafta - 1) / float(hw - 1), ust + h * float(sira - 1) / float(n - 1))
+		# yatay çizgiler ve sıra etiketleri
+		var adim := maxi(1, int(ceil(n / 5.0)))
+		var siralar: Array = [1]
+		var k := 1 + adim
+		while k <= n - maxi(2, adim / 2): siralar.append(k); k += adim   # son sıraya çok yakın etiket üst üste binmesin
+		siralar.append(n)
+		for s in siralar:
+			var y: float = nokta.call(1, s).y
+			draw_line(Vector2(sol, y), Vector2(sol + w, y), Color(1, 1, 1, .07), 1.0)
+			draw_string(yazi, Vector2(4, y + 5), "%d." % s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, LigEkran.SOLUK)
+		# hafta etiketleri
+		var ha := maxi(1, int(ceil(hw / 8.0)))
+		var hk := 1
+		while hk <= hw:
+			var x: float = nokta.call(hk, 1).x
+			draw_string(yazi, Vector2(x - 6, size.y - 6), str(hk), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, LigEkran.SOLUK)
+			hk += ha
+		# hedef çizgisi (kesikli)
+		var hs := clampi(int(g.get("hedef", 0)), 1, n)
+		var hy: float = nokta.call(1, hs).y
+		var xx := sol
+		while xx < sol + w:
+			draw_line(Vector2(xx, hy), Vector2(minf(xx + 8, sol + w), hy), Color(LigEkran.ALTIN, .55), 1.5); xx += 14
+		# lider ve biz
+		for kim in [["lider", Color(1, 1, 1, .35), 2.0], ["biz", Color("#5aa9f0"), 3.0]]:
+			var L: Array = g.get(kim[0], [])
+			if L.is_empty(): continue
+			var pts := PackedVector2Array()
+			for i in L.size(): pts.append(nokta.call(i + 1, int(L[i])))
+			if pts.size() > 1: draw_polyline(pts, kim[1], kim[2], true)
+			draw_circle(pts[pts.size() - 1], 4.5 if kim[0] == "biz" else 3.0, kim[1])
+		# lejant: çizgi örneği + ad
+		var lx := sol
+		var ogeler: Array = [[Color("#5aa9f0"), Dil.cevir("Biz")]]
+		if not (g.get("lider", []) as Array).is_empty(): ogeler.append([Color(1, 1, 1, .5), Dil.cevir("Lider") + ": " + str(g.lider_ad)])
+		ogeler.append([Color(LigEkran.ALTIN, .8), Dil.cevir("Hedef")])
+		for o in ogeler:
+			draw_line(Vector2(lx, 11), Vector2(lx + 16, 11), o[0], 3.0)
+			draw_string(yazi, Vector2(lx + 22, 16), o[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, LigEkran.YAZI)
+			lx += 22 + yazi.get_string_size(o[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x + 18
