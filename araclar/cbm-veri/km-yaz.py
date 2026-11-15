@@ -33,13 +33,14 @@ for lg, l in D['ligler'].items():
 
 # 2) Klasik verisi
 LG_ORDER = ['tr', 'en', 'es', 'it', 'de', 'fr']
-KITA_SIRA = ['Avrupa', 'Amerika', 'Asya', 'Afrika']
+KITA_SIRA = ['Avrupa', 'Amerika', 'Asya', 'Afrika', 'Milli']
 digerleri = sorted([k for k in K['LG'] if k not in LG_ORDER], key=lambda k: (KITA_SIRA.index(K['LG'][k]['kita']), -K['LG'][k]['itibar']))
 LG_ORDER += digerleri
 LEAGUES, HAVUZ = {}, {}
 for lg in LG_ORDER:
-    L = K['LG'][lg]; m = esle[lg]
+    L = K['LG'][lg]; m = esle.get(lg, {})   # 'mt' (milli takımlar) dunya.json'da lig değil
     if lg in eskiL: fn, ln = eskiL[lg]['fn'], eskiL[lg]['ln']
+    elif lg not in D['ligler']: fn, ln = LEAGUES['tr']['fn'] if 'tr' in LEAGUES else [], LEAGUES['tr']['ln'] if 'tr' in LEAGUES else []
     else:
         a = collections.Counter(); s = collections.Counter()
         for c in D['ligler'][lg]['kulupler']:

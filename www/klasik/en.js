@@ -104,7 +104,7 @@
   ['Arjantin','Argentina'],['Avusturya','Austria'],['Avustralya','Australia'],['Belçika','Belgium'],['Brezilya','Brazil'],['Çin','China'],['Kolombiya','Colombia'],['Cezayir','Algeria'],['Mısır','Egypt'],
   ['Yunanistan','Greece'],['Japonya','Japan'],['Güney Kore','South Korea'],['Fas','Morocco'],['Meksika','Mexico'],['Hollanda','Netherlands'],['Portekiz','Portugal'],['Katar','Qatar'],['Suudi Arabistan','Saudi Arabia'],
   ['İskoçya','Scotland'],['Tunus','Tunisia'],['ABD','USA'],['Güney Afrika','South Africa'],
-  ['Avrupa','Europe'],['Amerika','Americas'],['Asya','Asia'],['Afrika','Africa'],
+  ['Avrupa','Europe'],['Amerika','Americas'],['Asya','Asia'],['Afrika','Africa'],['Milli','National teams'],['Milli Takımlar','National Teams'],['Dünya','World'],
   // paylaşım
   ['Kaptan Mecit: üstten görünümlü nostaljik futbol. Dört kıtada 28 lig, 496 kulüp, internetsiz. Bir maç yapalım mı?','Kaptan Mecit: top-down classic football. 28 leagues on four continents, 496 clubs, no internet needed. Fancy a match?'],
   ['Sıra sende, bir maç yapalım mı?','Your turn, fancy a match?'],['Kaptan Mecit\'te','In Kaptan Mecit,'],['şampiyonu oldum!','champion!'],['ile','with'],

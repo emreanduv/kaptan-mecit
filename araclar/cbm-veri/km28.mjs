@@ -91,6 +91,50 @@ for (const lk of sira) {
       if (g.length || k.mi) KARIYER[lk + ':' + id + ':' + o.no] = k.mi ? [g, k.mi] : [g]; }
   }
 }
+/* Milli takımlar (CBM 4.11 milli takım menajerliğinin KM karşılığı, Gelişim Defteri G47): dünyanın bütün oyuncuları uyruklarına göre;
+   en güçlü 32 ülke 'mt' ligi olur (Kaptan Mecit'te hazırlık maçı, lig ve turnuva). Kadro: en iyi 2 kaleci + 20 saha oyuncusu, forma no 1–23. */
+const { uyrukBilgi } = await import(pathToFileURL(TMP + '/src/data/names/havuz.js'));
+const FORMA = { TR: ['#e30a17', '#ffffff'], EN: ['#ffffff', '#1d2d5c'], DE: ['#ffffff', '#111111'], FR: ['#1f3b8c', '#ffffff'], ES: ['#c60b1e', '#1d2d5c'], IT: ['#1f5fbf', '#ffffff'],
+  PT: ['#a5001e', '#0b6b3a'], NL: ['#f36c21', '#ffffff'], BE: ['#c8102e', '#111111'], BR: ['#ffdf00', '#1f5fbf'], AR: ['#75aadb', '#ffffff'], UY: ['#5ba3dc', '#111111'],
+  HR: ['#e8e8e8', '#d0021b'], JP: ['#1c2c6b', '#ffffff'], KR: ['#d0021b', '#111111'], US: ['#ffffff', '#1d2d5c'], MX: ['#0b6b3a', '#ffffff'], MA: ['#c1272d', '#0b6b3a'],
+  SN: ['#ffffff', '#0b8a3e'], NG: ['#0b8a3e', '#ffffff'], CO: ['#fcd116', '#1d2d5c'], SC: ['#1d2d5c', '#ffffff'], WL: ['#d0021b', '#ffffff'], CH: ['#d52b1e', '#ffffff'],
+  AT: ['#ed2939', '#ffffff'], DK: ['#c8102e', '#ffffff'], SE: ['#fecc00', '#1f5fbf'], NO: ['#ba0c2f', '#ffffff'], PL: ['#ffffff', '#dc143c'], RS: ['#c6363c', '#1d2d5c'],
+  GR: ['#0d5eaf', '#ffffff'], CI: ['#f77f00', '#ffffff'], DZ: ['#ffffff', '#006233'], EG: ['#ce1126', '#ffffff'], SA: ['#006c35', '#ffffff'], AU: ['#ffcd00', '#0b6b3a'],
+  CM: ['#007a5e', '#ce1126'], GH: ['#ffffff', '#111111'], TN: ['#e70013', '#ffffff'], UA: ['#ffd500', '#005bbb'], CZ: ['#d7141a', '#ffffff'], IE: ['#169b62', '#ffffff'] };
+const forma = uy => { if (FORMA[uy]) return FORMA[uy]; let h = 0; for (const c of 'forma' + uy) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const P = ['#c0392b', '#1f5fbf', '#0b6b3a', '#f1c40f', '#ffffff', '#111111', '#8e44ad', '#e67e22', '#16a085', '#2c3e50'], a = P[h % P.length]; let b = P[(h >> 4) % P.length]; if (b === a) b = a === '#ffffff' ? '#111111' : '#ffffff'; return [a, b]; };
+const ULKE_TR = { GR: 'Yunanistan', EC: 'Ekvador', HU: 'Macaristan', PY: 'Paraguay', CA: 'Kanada', ML: 'Mali', CD: 'Kongo DC', GE: 'Gürcistan', BA: 'Bosna-Hersek', SK: 'Slovakya',
+  IS: 'İzlanda', RO: 'Romanya', AL: 'Arnavutluk', CL: 'Şili', VE: 'Venezuela', BF: 'Burkina Faso', GN: 'Gine', ID: 'Endonezya', IL: 'İsrail', UA: 'Ukrayna', CZ: 'Çekya', IE: 'İrlanda',
+  CM: 'Kamerun', GH: 'Gana', TN: 'Tunus', EG: 'Mısır', SA: 'Suudi Arabistan', AU: 'Avustralya', NG: 'Nijerya', SN: 'Senegal', CI: 'Fildişi Sahili', DZ: 'Cezayir', RS: 'Sırbistan',
+  DK: 'Danimarka', CH: 'İsviçre', PL: 'Polonya', NO: 'Norveç', SE: 'İsveç', AT: 'Avusturya', HR: 'Hırvatistan', UY: 'Uruguay', CO: 'Kolombiya', KR: 'Güney Kore', JP: 'Japonya', MA: 'Fas', MX: 'Meksika', US: 'ABD' };
+const KISA = { TR: 'TÜR', EN: 'ING', DE: 'ALM', FR: 'FRA', ES: 'İSP', IT: 'İTA', PT: 'POR', NL: 'HOL', BE: 'BEL', BR: 'BRE', AR: 'ARJ', UY: 'URU', HR: 'HIR', JP: 'JAP', KR: 'KOR',
+  US: 'ABD', MX: 'MEK', MA: 'FAS', SN: 'SEN', NG: 'NİJ', CO: 'KOL', SC: 'İSK', WL: 'GAL', CH: 'İSV', AT: 'AVU', DK: 'DAN', SE: 'İSÇ', NO: 'NOR', PL: 'POL', RS: 'SIR',
+  GR: 'YUN', CI: 'FİL', DZ: 'CEZ', EG: 'MIS', SA: 'SUU', AU: 'AVS', CM: 'KAM', GH: 'GAN', TN: 'TUN', UA: 'UKR', CZ: 'ÇEK', IE: 'İRL', EC: 'EKV', HU: 'MAC', PY: 'PAR', CA: 'KAN', ML: 'MAL', CD: 'KON', GE: 'GÜR', BA: 'BOS', SK: 'SLK', IS: 'İZL', RO: 'ROM', AL: 'ARN', CL: 'ŞİL', VE: 'VEN', BF: 'BUR', GN: 'GİN', ID: 'END', IL: 'İSR' };
+{
+  const U = {};
+  for (const o of Object.values(D.oyuncular)) if (o.uyruk && o.kulup) (U[o.uyruk] ||= []).push(o);
+  const ulke = Object.entries(U).filter(([, L]) => L.length >= 16 && L.filter(o => o.mevki === 'KL').length >= 2)
+    .map(([k, L]) => { L.sort((a, b) => b.ca - a.ca); return [k, L, L.slice(0, 11).reduce((s, o) => s + o.ca, 0) / 11]; })
+    .sort((a, b) => b[2] - a[2]).slice(0, 32);
+  const gMax = ulke[0][2], gMin = ulke[ulke.length - 1][2];
+  LG.mt = { kurgu: 'Milli Takımlar', ad: 'Dünya', kita: 'Milli', itibar: 1, t: [] };
+  for (const [uy, L] of ulke) {
+    const id = uy.toLowerCase(), ad0 = uyrukBilgi(uy).ad, ad_ = ad0 && ad0 !== uy ? ad0 : (ULKE_TR[uy] || uy), [c1, c2] = forma(uy);
+    const guc = Math.max(4, Math.min(9, Math.round(4 + 5 * (ulke.find(x => x[0] === uy)[2] - gMin) / Math.max(1, gMax - gMin))));
+    LG.mt.t.push([id, ad_, KISA[uy] || ad_.toLocaleUpperCase('tr').slice(0, 3), c1, c2, guc, '']);
+    const kls = L.filter(o => o.mevki === 'KL').slice(0, 2), saha = L.filter(o => o.mevki !== 'KL').slice(0, 20);
+    const NO = [1, 12, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22], yeni = new Map([...kls, ...saha].map((o, i) => [o, { ...o, no: NO[i] }]));
+    const os = [...yeni.values()], xi = enIyi11(os), xiS = new Set(xi);
+    const yedek = os.filter(o => !xiS.has(o)).sort((a, b) => b.ca - a.ca);
+    const kl = yedek.find(o => o.mevki === 'KL'), yd = [kl, ...yedek.filter(o => o.mevki !== 'KL')].filter(Boolean).slice(0, 9);
+    KADRO['mt:' + id] = { k: xi.map(o => [o.no, ad(o)]), y: yd.map(o => [o.no, ad(o), HARF[o.mevki] || 'O']) };
+    HAVUZ['mt:' + id] = os.map(o => [o.no, ad(o), o.mevki, (o.ikinci || []).join(','), o.ca]);
+    for (const o of os) { const k = KAY.get(o.anahtar); if (!k) continue;
+      const g = (k.g || []).map(x => { const a = klupAd(x[2]); return a ? [x[0], x[1], klupNo(a), x[3] || 0, x[4] || 0, x[5] ? 1 : 0] : null; }).filter(Boolean);
+      if (g.length || k.mi) KARIYER['mt:' + id + ':' + o.no] = k.mi ? [g, k.mi] : [g]; }
+  }
+  sira.push('mt');
+}
 fs.writeFileSync(CIKTI_K, JSON.stringify({ LG, KADRO, HAVUZ, KARIYER, KLUP, sira, kaynak: kaynak.guncel, sezon: kaynak.sezon }));
 fs.rmSync(TMP, { recursive: true, force: true });
 console.log(sira.map(k => k + ':' + LG[k].t.length).join(' '), '| kulüp', Object.keys(KADRO).length, '| boyut', fs.statSync(CIKTI_K).size);
