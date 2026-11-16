@@ -158,6 +158,11 @@ func _ready() -> void:
 	if _arg.has("ligist"): lig.gorunum = "ist"
 	if _arg.has("ligrakip"): lig.gorunum = "rakip"
 	if _arg.has("ligseyir"): lig.gorunum = "seyir"
+	if _arg.has("milli"):
+		# deneme: Milletler Kupası, katılım listesindeki takımla; n maçımızı simüle et (milli=21:2)
+		var mp := str(_arg.milli).split(":")
+		lig.kip = "kupa"; lig.kupa_basla("mil", lig.kupa_katilim("mil")[int(mp[0])])
+		for i in int(mp[1]) if mp.size() > 1 else 0: lig.kupa_sim_mac()
 	if _arg.has("lig"): lig_goster(true)
 	if _arg.has("ligmac"): lig_mac_basla()
 	if _arg.has("mac"):
@@ -1154,6 +1159,17 @@ func duzen_ac() -> void:
 
 func lig_goster(v: bool) -> void:
 	if v and not lig.var_mi(): lig.kur_lig = sec_lig.selected; lig.kur_takim = sec_ev.selected
+	if v and str(lig.veri.ligler[lig.kur_lig].id) == "mt":
+		# milli takım seçiliyse: Milletler Kupası o takımla açılır (milli takımların ligi yok)
+		var mt_id := str(lig.veri.ligler[lig.kur_lig].takimlar[lig.kur_takim].id)
+		lig.kur_lig = 0; lig.kur_takim = 0
+		if not lig.kupa_var():
+			for k in Lig.KUPALAR.size():
+				if Lig.KUPALAR[k].id == "mil":
+					lig.kur_kupa = k; lig.kip = "kupa"
+					var KK: Array = lig.kupa_katilim("mil")
+					for j in KK.size():
+						if str(KK[j][1]) == mt_id: lig.kur_kupa_takim = j
 	if v: lig.diz = "" if sec_dz.selected <= 0 else sec_dz.metin()
 	if v: lig_ekran.satir = 0; lig_ekran.yenile()
 	else: lig.mesaj = ""

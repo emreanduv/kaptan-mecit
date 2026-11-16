@@ -307,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language", "Maç saati"]
-const SURUM := "0.10.5"
+const SURUM := "0.10.6"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -563,6 +563,9 @@ func _lig_eylemler(L: Lig) -> void:
 		var ss := ceili(n / 2.0) if _lig_iki_sutun else n
 		var adim := minf(.07, .30 / maxf(1.0, ss - 1.0))
 		l.font_size = 38 if adim >= .07 else int(clampf(adim / .07 * 44.0, 28.0, 36.0))
+		if Dil.cevir(l.text).length() > 34 and l.text.count("  ·  ") >= 2:   # uzun kupa satırı (EN "PLAY THE MATCH · Group 2/3 · …") panelden taşmasın: tur adı sağdaki özette
+			var pr := l.text.split("  ·  "); l.text = pr[0] + "  ·  " + pr[pr.size() - 1]
+		if Dil.cevir(l.text).length() > 24: l.font_size = mini(l.font_size, 30)
 		if _lig_iki_sutun: l.position = Vector3(.26 if i < ss else .62, -.08 - (i % ss) * adim, .001)
 		else: l.position = Vector3(.45, -.08 - i * adim, .001)
 		l.modulate = Color("#f3d35a") if sec else (Color("#e5722f") if L.satirlar()[i] in ["MAÇA ÇIK", "SEZONA BAŞLA", "YENİ SEZON", "KUPAYA BAŞLA"] else Color.WHITE)
@@ -583,6 +586,19 @@ func _kupa_ciz(L: Lig) -> void:
 		_lig_biz.visible = true
 		var satir_boy := 23 * .0011 * 1.39
 		_lig_biz.position = Vector3(-.27, .30 - satir_boy * (posmod(L.kur_kupa_takim, KK.size()) + 1.5), .001)
+	elif L.grupta():
+		# Milletler Kupası grup aşaması: bizim grubun puan durumu, altında grubun maçları
+		_lig_biz.visible = false
+		var G: Array = L.grup_satirlari()[0]
+		sutun = ["#", str(G[0]), "O", "G", "B", "M", "Av", "P"]
+		for r in G[1]:
+			var v := [str(r[0]), ("» " if r[10] else "") + str(r[1]), str(r[2]), str(r[3]), str(r[4]), str(r[5]), ("+" if int(r[8]) > 0 else "") + str(r[8]), str(r[9])]
+			for j in v.size(): sutun[j] += "\n" + v[j]
+		sutun[1] += "\n\nGRUBUMUZUN MAÇLARI"
+		for j in [0, 2, 3, 4, 5, 6, 7]: sutun[j] += "\n\n"
+		for m in L.grup_maclarim():
+			sutun[0] += "\n" + str(m[0]) + "."; sutun[1] += "\n" + ("» " if m[4] else "") + m[1] + "   " + m[2] + "   " + m[3]
+			for j in [2, 3, 4, 5, 6, 7]: sutun[j] += "\n"
 	else:
 		_lig_biz.visible = false
 		for tur in L.kupa_turlari():

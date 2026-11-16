@@ -9,7 +9,7 @@ func _init() -> void:
 		if t.size() != int(K.n): hata += 1; print("HATA katılım ", K.id, " ", t.size())
 		L.kupa_basla(K.id, t[0])
 		var g := 0
-		while L.kupa_benim_mac() != null and g < 6:
+		while L.kupa_benim_mac() != null and g < 10:
 			if g == 0: print("  ", K.id, " ilk maç sonucu: '", L.kupa_sonuc(1, 1), "'")
 			else: L.kupa_sim_mac()
 			g += 1

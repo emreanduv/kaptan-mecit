@@ -397,7 +397,7 @@ func _fik_satir(vals: Array, k: int, baslik: bool, vurgu: bool, harf: String) ->
 		hb.add_child(l)
 	return p
 
-func _tablo_satir(vals: Array, sira: int, baslik: bool, biz: bool, form: String, n := 0) -> Control:
+func _tablo_satir(vals: Array, sira: int, baslik: bool, biz: bool, form: String, n := 0, gec := false) -> Control:
 	var p := PanelContainer.new()
 	var c := SERIT if baslik else (BIZ_RENK if biz else (SATIR_A if sira % 2 == 1 else SATIR_B))
 	var st := _kutu(c, 0, 0); st.content_margin_top = 2; st.content_margin_bottom = 2; st.content_margin_left = 0; st.content_margin_right = 8
@@ -410,6 +410,7 @@ func _tablo_satir(vals: Array, sira: int, baslik: bool, biz: bool, form: String,
 		if sira == 1: cizgi.color = ALTIN
 		elif sira <= 4: cizgi.color = YESIL
 		elif sira > n - 3: cizgi.color = KIRMIZI
+	if gec: cizgi.color = YESIL     # Milletler Kupası: gruptan çıkan
 	hb.add_child(cizgi)
 	var boy := 14 if baslik else 15
 	var renk := SOLUK if baslik else YAZI
@@ -608,6 +609,20 @@ func _kupa_panel() -> Control:
 			var b := _etiket(m[2], 15, ALTIN if m[4] == 1 else YAZI); b.size_flags_horizontal = Control.SIZE_EXPAND_FILL; b.clip_text = true; b.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 			hb.add_child(a); hb.add_child(sk); hb.add_child(b)
 			v.add_child(r); k += 1
+	# Milletler Kupası: bizim grubun maçları, sonra bütün grupların puan durumu (bizim grup önce)
+	if lig.kupa.has("gruplar"):
+		if lig.grupta():
+			v.add_child(_serit("GRUBUMUZUN MAÇLARI"))
+			var k := 0
+			for m in lig.grup_maclarim():
+				v.add_child(_gol_satir([str(m[0]) + ".", m[1] + "   " + m[2] + "   " + m[3], "", ""], k + 1, false, m[4])); k += 1
+		for G in lig.grup_satirlari():
+			v.add_child(_serit(str(G[0])))
+			v.add_child(_tablo_satir(["#", "Takım"] + SUTUNLAR, -1, true, false, ""))
+			for r in G[1]:
+				var vals: Array = [str(r[0]), r[1]]
+				for j in range(2, 10): vals.append(("+" if j == 8 and int(r[j]) > 0 else "") + str(r[j]))
+				v.add_child(_tablo_satir(vals, int(r[0]), false, r[10], "", 0, r[11]))
 	return p
 
 # sezon seyri grafiği: yatayda haftalar, dikeyde sıra (1. en üstte). Mavi kalın çizgi biz, soluk çizgi lider, kesikli altın çizgi yönetimin hedefi.

@@ -331,7 +331,9 @@ func kay(i: int, yon: int) -> void:
 		if s == "Kupa": kur_kupa = posmod(kur_kupa + yon, KUPALAR.size()); kur_kupa_takim = 0
 		elif s == "Takımın": kur_kupa_takim = posmod(kur_kupa_takim + yon, kupa_katilim(KUPALAR[kur_kupa].id).size())
 		return
-	if s == "Lig": kur_lig = posmod(kur_lig + yon, veri.ligler.size()); kur_takim = 0
+	if s == "Lig":
+		kur_lig = posmod(kur_lig + yon, veri.ligler.size()); kur_takim = 0
+		if str(veri.ligler[kur_lig].id) == "mt": kur_lig = posmod(kur_lig + yon, veri.ligler.size())   # milli takımlar ligde değil, Milletler Kupası'nda
 	elif s == "Takımın": kur_takim = posmod(kur_takim + yon, veri.ligler[kur_lig].takimlar.size())
 
 # döndürür: "mac" (maça çık), "menu" (ana menüye dön) ya da ""
@@ -907,7 +909,10 @@ static func sonuc_harf(x: Array) -> String:
 # kulüp gücü × lig itibarına göre en iyiler (bir ligden en çok 4; az ligli kupada eşit pay). Kıtalar Arası: kıta kupalarının en güçlüleri.
 const KUPALAR := [{"id": "avr", "ad": "Şampiyonlar Ligi", "kita": "Avrupa", "n": 16}, {"id": "kon", "ad": "Kondor Kupası", "kita": "Güney Amerika", "lg": ["br", "ar", "co"], "n": 16},
 	{"id": "kuz", "ad": "Kuzey Yıldızı Kupası", "kita": "Kuzey Amerika", "lg": ["mx", "us"], "n": 16}, {"id": "ipe", "ad": "İpek Yolu Kupası", "kita": "Asya", "lg": ["sa", "jp", "kr", "qa", "cn", "au"], "n": 16},
-	{"id": "sav", "ad": "Savana Kupası", "kita": "Afrika", "lg": ["eg", "ma", "za", "dz", "tn"], "n": 16}, {"id": "kit", "ad": "Kıtalar Arası Kupa", "kita": "Dünya", "n": 8}]
+	{"id": "sav", "ad": "Savana Kupası", "kita": "Afrika", "lg": ["eg", "ma", "za", "dz", "tn"], "n": 16}, {"id": "kit", "ad": "Kıtalar Arası Kupa", "kita": "Dünya", "n": 8},
+	{"id": "mil", "ad": "Milletler Kupası", "kita": "Milli takımlar", "lg": ["mt"], "n": 32, "grup": true}]
+# Milletler Kupası (KM3 0.10.6): 32 milli takım, 8 grup × 4 (torbalar güce göre), tek devre; grubunda ilk iki olan
+# Son 16'ya çıkar (1A-2B, 1C-2D, … 1B-2A), sonra tek maçlık eleme. Grup durumu kupa.gruplar / kupa.gm / kupa.gtur
 
 func kupa_tanim(id: String) -> Dictionary:
 	for k in KUPALAR:
@@ -955,7 +960,10 @@ func kupa_katilim(id: String) -> Array:
 
 func kupa_var() -> bool: return not kupa.is_empty()
 
+func grupta() -> bool: return kupa_var() and kupa.has("gruplar") and (kupa.esle as Array).is_empty()
+
 func kupa_tur_adi(i: int) -> String:
+	if grupta(): return "Grup %d/3" % (int(kupa.get("gtur", 0)) + 1)
 	var n := (kupa.esle[0] as Array).size() * 2 >> i
 	return "Final" if n == 2 else ("Yarı final" if n == 4 else ("Çeyrek final" if n == 8 else "Son " + str(n)))
 
@@ -963,16 +971,119 @@ func kupa_basla(id: String, ben: Array) -> void:
 	var t := kupa_katilim(id)
 	for i in range(t.size() - 1, 0, -1):
 		var j := _krng.randi() % (i + 1); var x = t[i]; t[i] = t[j]; t[j] = x
+	if bool(kupa_tanim(id).get("grup", false)): _grup_kur(id, ben, t); kupa_kaydet(); return
 	var ilk := []
 	for i in range(0, t.size(), 2): ilk.append({"a": t[i], "b": t[i + 1], "s": []})
 	kupa = {"id": id, "ben": ben, "tur": 0, "esle": [ilk], "bitti": false, "elendi": false}
 	kupa_kaydet()
 
+const GRUP_HARF := "ABCDEFGH"
+const GRUP_TUR := [[[0, 1], [2, 3]], [[0, 2], [3, 1]], [[3, 0], [1, 2]]]   # dört takımlı grupta üç maç günü
+# kura: güce göre dört torba (her torbadan her gruba bir takım), torba içi karışık
+func _grup_kur(id: String, ben: Array, t: Array) -> void:
+	t = t.duplicate()
+	t.sort_custom(func(a, b): return float(kupa_takim(a).get("str", 0)) > float(kupa_takim(b).get("str", 0)))
+	var ng := t.size() / 4
+	var gruplar := []
+	for g in ng: gruplar.append([])
+	for tor in 4:
+		var torba: Array = t.slice(tor * ng, (tor + 1) * ng)
+		for i in range(torba.size() - 1, 0, -1):
+			var j := _krng.randi() % (i + 1); var x = torba[i]; torba[i] = torba[j]; torba[j] = x
+		for g in ng: gruplar[g].append(torba[g])
+	var gm := []
+	for r in 3:
+		var gun := []
+		for g in ng:
+			for e in GRUP_TUR[r]: gun.append({"g": g, "a": gruplar[g][e[0]], "b": gruplar[g][e[1]], "s": []})
+		gm.append(gun)
+	kupa = {"id": id, "ben": ben, "tur": 0, "esle": [], "bitti": false, "elendi": false, "gruplar": gruplar, "gm": gm, "gtur": 0}
+
+# grubun puan durumu: [{"t": takım, O, G, B, M, A, Y, Av, P}, ...] sıralı (puan, averaj, atılan gol, güç)
+func grup_tablosu(g: int) -> Array:
+	var T := []
+	for x in kupa.gruplar[g]: T.append({"t": x, "O": 0, "G": 0, "B": 0, "M": 0, "A": 0, "Y": 0, "Av": 0, "P": 0})
+	for gun in kupa.gm:
+		for m in gun:
+			if int(m.g) != g or (m.s as Array).is_empty(): continue
+			for r in T:
+				var yan := 0 if _ayni(r.t, m.a) else (1 if _ayni(r.t, m.b) else -1)
+				if yan < 0: continue
+				var a := int(m.s[yan]); var y := int(m.s[1 - yan])
+				r.O += 1; r.A += a; r.Y += y; r.Av = r.A - r.Y
+				if a > y: r.G += 1; r.P += 3
+				elif a == y: r.B += 1; r.P += 1
+				else: r.M += 1
+	T.sort_custom(func(x, y):
+		if x.P != y.P: return x.P > y.P
+		if x.Av != y.Av: return x.Av > y.Av
+		if x.A != y.A: return x.A > y.A
+		return float(kupa_takim(x.t).get("str", 0)) > float(kupa_takim(y.t).get("str", 0)))
+	return T
+
+func grubum() -> int:
+	if not kupa_var() or not kupa.has("gruplar"): return -1
+	for g in (kupa.gruplar as Array).size():
+		for x in kupa.gruplar[g]:
+			if _ayni(x, kupa.ben): return g
+	return -1
+
+# grup satırları (ekran ve VR): her grup için ["GRUP A", [[sıra, ad, O, G, B, M, A, Y, Av, P, biz, çıktı mı], ...]]; bizim grup önce
+func grup_satirlari() -> Array:
+	var out := []
+	if not kupa_var() or not kupa.has("gruplar"): return out
+	var sira := [grubum()]
+	for g in (kupa.gruplar as Array).size():
+		if g != sira[0]: sira.append(g)
+	var bitti_mi := not grupta()
+	for g in sira:
+		if g < 0: continue
+		var sat := []
+		var T := grup_tablosu(g)
+		for k in T.size():
+			var r: Dictionary = T[k]
+			sat.append([k + 1, str(kupa_takim(r.t).get("ad", "?")), r.O, r.G, r.B, r.M, r.A, r.Y, r.Av, r.P, _ayni(r.t, kupa.ben), bitti_mi and k < 2])
+		out.append(["GRUP " + GRUP_HARF[g], sat])
+	return out
+
+# bizim grubun maçları: [[gün, ev, skor, dep], ...]
+func grup_maclarim() -> Array:
+	var out := []; var g := grubum()
+	if g < 0: return out
+	for r in (kupa.gm as Array).size():
+		for m in kupa.gm[r]:
+			if int(m.g) != g: continue
+			var s: Array = m.s
+			out.append([r + 1, str(kupa_takim(m.a).get("kisa", "?")), "–" if s.is_empty() else "%d-%d" % [int(s[0]), int(s[1])], str(kupa_takim(m.b).get("kisa", "?")), _ayni(m.a, kupa.ben) or _ayni(m.b, kupa.ben)])
+	return out
+
+# grup maç günü bitti: sonraki gün ya da Son 16 eşleşmeleri (1A-2B, 1C-2D, 1E-2F, 1G-2H, 1B-2A, 1D-2C, 1F-2E, 1H-2G)
+func _grup_ilerle() -> void:
+	var gun: Array = kupa.gm[int(kupa.gtur)]
+	for m in gun:
+		if (m.s as Array).is_empty() and (kupa.elendi or not (_ayni(m.a, kupa.ben) or _ayni(m.b, kupa.ben))): m.s = _kupa_sim(m.a, m.b).slice(0, 2)
+	for m in gun:
+		if (m.s as Array).is_empty(): return
+	if int(kupa.gtur) < 2: kupa.gtur = int(kupa.gtur) + 1; return
+	var ilk2 := []
+	for g in (kupa.gruplar as Array).size():
+		var T := grup_tablosu(g); ilk2.append([T[0].t, T[1].t])
+	var ilk := []
+	for p in [[0, 1], [2, 3], [4, 5], [6, 7], [1, 0], [3, 2], [5, 4], [7, 6]]:
+		if p[0] < ilk2.size() and p[1] < ilk2.size(): ilk.append({"a": ilk2[p[0]][0], "b": ilk2[p[1]][1], "s": []})
+	var cikti := false
+	for m in ilk:
+		if _ayni(m.a, kupa.ben) or _ayni(m.b, kupa.ben): cikti = true
+	kupa.esle = [ilk]; kupa.tur = 0
+	if not cikti:
+		kupa.elendi = true; kupa_ilerle()
+
 static func _ayni(x, y) -> bool: return x is Array and y is Array and str(x[0]) == str(y[0]) and str(x[1]) == str(y[1])
 
 func kupa_benim_mac():
 	if not kupa_var() or kupa.bitti or kupa.elendi: return null
-	for m in kupa.esle[int(kupa.tur)]:
+	var liste: Array = kupa.gm[int(kupa.gtur)] if grupta() else kupa.esle[int(kupa.tur)]
+	for m in liste:
 		if (m.s as Array).is_empty() and (_ayni(m.a, kupa.ben) or _ayni(m.b, kupa.ben)): return m
 	return null
 
@@ -1000,6 +1111,7 @@ static func _penalti(x: int, y: int, fa: float, fb: float, rng: RandomNumberGene
 	return [lo + 1, lo] if rng.randf() < clampf(.5 + (fa - fb) * .05, .2, .8) else [lo, lo + 1]
 
 func kupa_ilerle() -> void:
+	if grupta(): _grup_ilerle(); return
 	var tur: Array = kupa.esle[int(kupa.tur)]
 	for m in tur:
 		if (m.s as Array).is_empty() and (kupa.elendi or not (_ayni(m.a, kupa.ben) or _ayni(m.b, kupa.ben))): m.s = _kupa_sim(m.a, m.b)
@@ -1024,6 +1136,10 @@ func kupa_sonuc(g_biz: int, g_rakip: int) -> String:
 	var biz_a := _ayni(m.a, kupa.ben)
 	var rng := _krng
 	var A := kupa_takim(kupa.ben); var R := kupa_takim(m.b if biz_a else m.a)
+	if grupta():
+		m.s = [g_biz, g_rakip] if biz_a else [g_rakip, g_biz]
+		kupa_ilerle(); kupa_kaydet()
+		return _grup_haberi()
 	var p := _penalti(g_biz, g_rakip, float(A.get("str", 6)), float(R.get("str", 6)), rng)
 	m.s = [g_biz, g_rakip, p[0], p[1]] if biz_a else [g_rakip, g_biz, p[1], p[0]]
 	kupa_ilerle(); kupa_kaydet()
@@ -1032,7 +1148,17 @@ func kupa_sonuc(g_biz: int, g_rakip: int) -> String:
 func kupa_sim_mac() -> void:
 	var m = kupa_benim_mac()
 	if m == null: return
-	m.s = _kupa_sim(m.a, m.b); kupa_ilerle(); kupa_kaydet()
+	var gr := grupta()
+	m.s = _kupa_sim(m.a, m.b)
+	if gr: m.s = (m.s as Array).slice(0, 2)
+	kupa_ilerle(); kupa_kaydet()
+	mesaj = _grup_haberi() if gr else ""
+
+# grup bitince kullanıcıya: çıktı mı, elendi mi
+func _grup_haberi() -> String:
+	if grupta() or not kupa.has("gruplar"): return ""
+	if kupa.elendi: return "Gruptan çıkamadın."
+	return "Gruptan çıktın! Son 16'dasın."
 
 func kupa_kaydet() -> void:
 	var f := FileAccess.open(KUPA_KAYIT, FileAccess.WRITE)
@@ -1100,11 +1226,18 @@ func kupa_turlari() -> Array:
 	return out
 
 func kupa_ozet() -> String:
-	if not kupa_var(): return "Kupanı ve kulübünü seç. Tek maçlık eleme; berabere biterse penaltılar. Kazanan bir sonraki tura çıkar."
+	if not kupa_var():
+		if bool(KUPALAR[kur_kupa].get("grup", false)): return "32 milli takım, 8 grup. Grubunda ilk iki olan Son 16'ya çıkar; sonrası tek maçlık eleme, berabere biterse penaltılar."
+		return "Kupanı ve kulübünü seç. Tek maçlık eleme; berabere biterse penaltılar. Kazanan bir sonraki tura çıkar."
 	var K := kupa_tanim(kupa.id); var ben: Dictionary = kupa_takim(kupa.ben)
 	if kupa.bitti:
 		if kupa_kazandi(): return "ŞAMPİYONSUN!  " + str(ben.ad) + " · " + K.ad
 		var f: Array = kupa.esle[(kupa.esle as Array).size() - 1]
 		return K.ad + " bitti · Şampiyon: " + str(kupa_takim(kupa_kazanan(f[0])).get("ad", "?"))
 	if kupa.elendi: return str(ben.ad) + " elendi."
+	if grupta():
+		var T := grup_tablosu(grubum()); var s := 0
+		for k in T.size():
+			if _ayni(T[k].t, kupa.ben): s = k + 1
+		return K.ad + " · Grup " + GRUP_HARF[grubum()] + " (%d/3) · " % (int(kupa.gtur) + 1) + str(ben.ad) + " %d. (%d puan)" % [s, int(T[s - 1].P)]
 	return K.ad + " · " + kupa_tur_adi(int(kupa.tur)) + " · " + str(ben.ad)
