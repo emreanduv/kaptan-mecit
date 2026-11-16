@@ -243,6 +243,7 @@ func hafta_bitir() -> void:
 			_gol_dagit(int(mc[0]), s[0], rng); _gol_dagit(int(mc[1]), s[1], rng)
 	son_hafta = h
 	d.hafta = int(d.hafta) + 1
+	_camia_ses()
 	if bitti():
 		if gorunum == "rakip": gorunum = "tablo"
 		d.sampiyon = tablo()[0].i
@@ -510,6 +511,66 @@ func sonraki_sezon() -> void:
 	if not var_mi(): return
 	if bitti(): _tarihe_yaz()
 	yeni_sezon(int(d.lig), int(d.takim), int(d.sezon) + 1, d.get("tarih", []))
+
+# ---------- camia (Champion Battle Manager ile aynı başkan; derbi ülkeye göre) ----------
+# veri/camia.json: "lig-kulüp" → [başkan, tarz, büyük kulüp mü (0/1), şehir]. Türkiye'de derbi yalnız dört büyük arasında;
+# başka ülkelerde aynı şehrin kulüpleri ya da en büyükler arası. Taraftar nabzı son maçlardan, başkanın sözü maçtan sonra.
+var _camia: Dictionary = {}
+const TARZ := {"sabirsiz": "Sabırsız", "mali": "Mali disiplinci", "populist": "Popülist", "altyapici": "Altyapıcı", "vizyoner": "Vizyoner"}
+const MEDYA := ["Manşet Spor", "Gol Gazetesi", "Saha Kenarı TV", "Tribün Sesi"]
+func camia_veri() -> Dictionary:
+	if _camia.is_empty():
+		var f := FileAccess.get_file_as_string("res://veri/camia.json")
+		var j = JSON.parse_string(f) if f != "" else null
+		_camia = j if j is Dictionary else {"_": 1}
+	return _camia
+func _ck(i: int) -> String: return "%s-%s" % [str(lig_veri().get("id", "")), str(takim(i).get("id", ""))]
+func baskan() -> Array:   # [ad, tarz adı]; veri yoksa boş
+	var x = camia_veri().get(_ck(biz()))
+	if x == null: return ["", ""]
+	return [str(x[0]), TARZ.get(str(x[1]), "")]
+func derbi_mi(a: int, b: int) -> bool:
+	if a == b: return false
+	var C := camia_veri(); var x = C.get(_ck(a)); var y = C.get(_ck(b))
+	if x == null or y == null: return false
+	if str(lig_veri().get("id", "")) == "tr": return int(x[2]) == 1 and int(y[2]) == 1
+	return (str(x[3]) != "" and str(x[3]) == str(y[3])) or (int(x[2]) == 1 and int(y[2]) == 1)
+func _son_sonuclar(n: int) -> Array:   # [[atılan, yenilen, derbi], ...] eskiden yeniye
+	var r: Array = []
+	for w in mini(int(d.hafta), hafta_sayisi()):
+		for mc in d.fikstur[w]:
+			var ev := int(mc[0]) == biz()
+			if (not ev and int(mc[1]) != biz()) or int(mc[2]) < 0: continue
+			r.append([int(mc[2]) if ev else int(mc[3]), int(mc[3]) if ev else int(mc[2]), derbi_mi(int(mc[0]), int(mc[1]))])
+	return r.slice(maxi(0, r.size() - n))
+func taraftar() -> int:   # taraftar nabzı (5–99)
+	if not var_mi(): return 0
+	var t := 55.0
+	for x in _son_sonuclar(6):
+		var f: int = clampi(int(x[0]) - int(x[1]), -3, 3)
+		t += f * 4.0 * (2.0 if x[2] else 1.0)
+	if int(d.hafta) * 2 >= hafta_sayisi(): t += (hedef_sira() - sira_biz()) * 1.5
+	return clampi(roundi(t), 5, 99)
+func _camia_ses() -> void:   # kullanıcının maçından sonra başkanın sözü
+	var S := _son_sonuclar(3); if S.is_empty(): return
+	var son: Array = S[S.size() - 1]; var ad: String = baskan()[0]
+	if ad == "": return
+	var a := int(son[0]); var y := int(son[1]); var soz := ""
+	if son[2] and a > y: soz = "%s soyunma odasına indi: \"Bu derbi bizim!\"" % ad
+	elif son[2] and a < y: soz = "%s derbiden sonra sessiz kaldı; yönetimden sızan bilgiye göre çok öfkeli." % ad
+	elif S.size() == 3 and S.all(func(x): return int(x[0]) < int(x[1])):
+		soz = ("%s: \"Herkes görevini sorgulamalı. Bu sonuçlar kabul edilemez.\"" % ad) if guven() < 45 or baskan()[1] == "Sabırsız" else ("%s: \"Hocamıza güvenimiz tam, bu kötü gidişi birlikte aşacağız.\"" % ad)
+	elif S.size() == 3 and S.all(func(x): return int(x[0]) > int(x[1])): soz = "%s: \"Takımımızla gurur duyuyoruz.\"" % ad
+	if soz != "": d.camia_soz = soz; d.camia_hafta = int(d.hafta)
+func camia_sozu() -> String:   # son 3 hafta içindeki söz
+	if not var_mi() or not d.has("camia_soz") or int(d.hafta) - int(d.get("camia_hafta", 0)) > 3: return ""
+	return str(d.camia_soz)
+func manset() -> String:   # haftanın manşeti
+	if not var_mi() or int(d.hafta) == 0: return ""
+	var ad: String = takim(biz()).ad; var g := guven(); var o: String = MEDYA[int(d.hafta) % MEDYA.size()]
+	if g >= 70: return "%s: \"%s uçuyor!\"" % [o, ad]
+	if g >= 45: return "%s: \"%s istikrar arıyor\"" % [o, ad]
+	return "%s: \"%s için zor günler\"" % [o, ad]
 
 # ---------- yönetim beklentisi (FM'deki yönetim kurulu hedefi ve güveni) ----------
 # Sezon başında kulübün güç sırasına göre hedef konur; güven, oynanan maçlarda alınan puanın
