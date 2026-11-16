@@ -709,7 +709,7 @@ func _kamera_guncelle(dt: float) -> void:
 		# Dik ekranda kamera topu ortalar ve görüş açısını ekran oranına göre genişletir.
 		var en_boy := get_viewport().get_visible_rect().size.aspect()
 		if en_boy < 1.0:
-			bak = Vector3(bw.x, bak.y, bw.z)
+			bak = Vector3(bw.x - (16.0 if mod == 5 else 0.0), bak.y, bw.z)   # taktik: yakın taç çizgisinin dışındaki boş zemin kadraja girmesin
 			fov = minf(fov / sqrt(maxf(en_boy, .35)) * .85, 72.0)
 	if _arg.has("golcu") and M.gol_atan != null:
 		var g := W(M.gol_atan.x, M.gol_atan.y)
