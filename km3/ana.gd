@@ -4,7 +4,7 @@ extends Node3D
 const PW := 68.0
 const PL := 105.0
 const ADIM := 1.0 / 60.0
-const KAMERALAR := ["Yayın", "Tele", "Dinamik", "Saha kenarı", "Yakın"]
+const KAMERALAR := ["Yayın", "Tele", "Dinamik", "Saha kenarı", "Yakın", "Taktik"]
 const SURELER := [2, 4, 6, 8]
 const ZORLUK := ["Kolay", "Orta", "Zor"]
 
@@ -698,6 +698,8 @@ func _kamera_guncelle(dt: float) -> void:
 			poz = Vector3(46, 24, 66); bak = Vector3(bw.x * .7, 0, bw.z * .85); fov = 34
 		2:  # dinamik: ev sahibinin arkasından, hücum yönüne bakar
 			poz = Vector3(bw.x * .55, 15, clampf(bw.z + ileri_y * 26, -PL / 2 - 14, PL / 2 + 14)); bak = Vector3(bw.x * .8, 0, bw.z - ileri_y * 8); fov = 48
+		5:  # taktik: yüksek ve geniş; sahanın üçte ikisi ve bütün diziliş görünür (CBM'de izlemenin varsayılanı)
+			poz = Vector3(70, 48, clampf(bw.z * .55, -26, 26)); bak = Vector3(bw.x * .25, 0, bw.z * .72); fov = 40
 		4:  # yakın yayın: topu yandan, yakından ve alçaktan izler (gerçek hareketler en iyi burada görünür)
 			poz = Vector3(39.5, 6.5, clampf(bw.z + 3, -48, 48)); bak = Vector3(bw.x, .8, bw.z); fov = clampf(46 - (39.5 - bw.x) * .38, 18, 46)
 		_:  # saha kenarı: göz hizası

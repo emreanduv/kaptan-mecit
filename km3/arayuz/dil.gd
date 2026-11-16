@@ -14,7 +14,7 @@ const SOZLUK := {
 	"Maç sırası ligin bu sezonki gerçek fikstürüdür.": "Matches follow this season's real league fixture list.",
 	"Kulübüne listeden dokun ya da ‹ › ile seç": "Tap your club in the list or use ‹ ›",
 	"Lazerle göster, tetikle seç  ·  çubukla da gezinebilirsin  ·  A: MAÇA BAŞLA": "Point with the laser, pull the trigger to select  ·  the stick works too  ·  A: KICK OFF",
-	"TEKRAR": "REPLAY", "Geçmek için dokun": "Tap to skip",
+	"TEKRAR": "REPLAY", "Taktik": "Tactical", "Geçmek için dokun": "Tap to skip",
 	# ana menü, seçiciler
 	"Bir Mr. Anduv! yapımıdır.": "Made by Mr. Anduv!",
 	"sürüm": "version",
