@@ -24,3 +24,9 @@ Kaptan Mecit (Klasik ve Modern) ligleri, kulüpleri ve kadroları Champion Battl
 Sonra: Klasik Playwright denemeleri, `km3/dene/lig_dene.gd` (bütün liglerde sezon), sürüm yükselt, KM3 web dışa aktar → Pages, derlemeler.
 
 (Eski 6 liglik `kmveri.mjs` kaldırıldı; git geçmişinde duruyor.)
+
+Camia (başkan, büyük kulüpler, şehir; KM3 lig modu): `km-camia.mjs` CBM'nin tam kaynağıyla çalışır (buradaki cbm-src yalnız 6 lig içerir):
+
+    node km-camia.mjs <CBM src (ör. ~/Documents/Champion-Battle-Manager/src)> <kaptan-mecit>   → km3/veri/camia.json
+
+Başkan adı ve tarzı kulüp kimliğinden türer; CBM'deki başkanla aynıdır. Yeni kulüp gelince yeniden çalıştırılır (yoksa o kulüpte başkan satırı görünmez).
