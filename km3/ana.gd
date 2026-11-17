@@ -699,7 +699,8 @@ func _kamera_guncelle(dt: float) -> void:
 		2:  # dinamik: ev sahibinin arkasından, hücum yönüne bakar
 			poz = Vector3(bw.x * .55, 15, clampf(bw.z + ileri_y * 26, -PL / 2 - 14, PL / 2 + 14)); bak = Vector3(bw.x * .8, 0, bw.z - ileri_y * 8); fov = 48
 		5:  # taktik: yüksek ve geniş; sahanın üçte ikisi ve bütün diziliş görünür (CBM'de izlemenin varsayılanı)
-			poz = Vector3(70, 48, clampf(bw.z * .55, -26, 26)); bak = Vector3(bw.x * .25, 0, bw.z * .72); fov = 40
+			# kamera çatının iç kenarının (x≈52) berisinde kalır: telefonda dik ekranda alt kısım çatının altına bakıp sahayı örtmesin
+			poz = Vector3(49, 54, clampf(bw.z * .55, -26, 26)); bak = Vector3(bw.x * .3, 0, bw.z * .72); fov = 46
 		4:  # yakın yayın: topu yandan, yakından ve alçaktan izler (gerçek hareketler en iyi burada görünür)
 			poz = Vector3(39.5, 6.5, clampf(bw.z + 3, -48, 48)); bak = Vector3(bw.x, .8, bw.z); fov = clampf(46 - (39.5 - bw.x) * .38, 18, 46)
 		_:  # saha kenarı: göz hizası
@@ -709,7 +710,7 @@ func _kamera_guncelle(dt: float) -> void:
 		# Dik ekranda kamera topu ortalar ve görüş açısını ekran oranına göre genişletir.
 		var en_boy := get_viewport().get_visible_rect().size.aspect()
 		if en_boy < 1.0:
-			bak = Vector3(bw.x - (16.0 if mod == 5 else 0.0), bak.y, bw.z)   # taktik: yakın taç çizgisinin dışındaki boş zemin kadraja girmesin
+			bak = Vector3(bw.x * (.55 if mod == 5 else 1.0), bak.y, bw.z)
 			fov = minf(fov / sqrt(maxf(en_boy, .35)) * .85, 72.0)
 	if _arg.has("golcu") and M.gol_atan != null:
 		var g := W(M.gol_atan.x, M.gol_atan.y)
