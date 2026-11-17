@@ -87,3 +87,6 @@ FIFA nesli W-A-S-D'ye alışkın; bütün oyun ve uygulamalarda klavye bu alış
 - Ortak düzen: **Boşluk** ana eylem (vur/atla/ateş/ileri), **Enter** onay, **Esc / P** mola-geri, **Shift** hassas/koşu, **Q / E** ikinci eylemler (güç, etkileşim), **1–9** seçenek/birlik. Oyun bunlardan birini başka işe kullanıyorsa yardım ekranında yazılır.
 - Klavyesiz oyun bırakılmaz: tıkla-gez oyunlarında da WASD ile yürüme, E/Boşluk ile yakındaki şeye dokunma olur (örnek: Kırmızı Yalı `www/js/motor.js` "Klavye (WASD + oklar)").
 - Yardım / "Nasıl Oynanır" ekranında tuşlar Türkçe ve İngilizce yazılır. Gelişim Defteri G43.
+
+### Gerçek isim, türetilmiş ad (Emre'nin kuralı, 17 Kasım 2026)
+Erişilebilir gerçek veri olduğu sürece oyundaki kişiler (oyuncu, başkan, teknik direktör, sportif direktör, ileride hakem, kurul üyesi vb.) gerçek kaynaktan (Vikipedi/Wikidata) çekilir ve **isim bozma yöntemiyle** oyuna girer (Lukaku → Lakaka, Oğuz Çetin → Oğaz Çatim; emreanduv.github.io `araclar/isim_turet.py`). Gerçek ad dosyaya yazılmaz, yalnız türetilmiş ad. Veri yoksa kurmaca isim kalır ve uydurma "gerçek" isim konmaz. Kaynak: emreanduv.github.io `araclar/kadro_turet.py` (`yonetim_coz`).
