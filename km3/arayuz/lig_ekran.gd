@@ -626,6 +626,7 @@ func _kupa_panel() -> Control:
 			var b := _etiket(m[2], 15, ALTIN if m[4] == 1 else YAZI); b.size_flags_horizontal = Control.SIZE_EXPAND_FILL; b.clip_text = true; b.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 			hb.add_child(a); hb.add_child(sk); hb.add_child(b)
 			v.add_child(r); k += 1
+	if not lig.grupta(): _kupa_gol_bolum(v)   # kupa gol krallığı (0.10.7): eleme turlarının altında; grup aşamasında en altta
 	# Milletler Kupası: bizim grubun maçları, sonra bütün grupların puan durumu (bizim grup önce)
 	if lig.kupa.has("gruplar"):
 		if lig.grupta():
@@ -640,7 +641,17 @@ func _kupa_panel() -> Control:
 				var vals: Array = [str(r[0]), r[1]]
 				for j in range(2, 10): vals.append(("+" if j == 8 and int(r[j]) > 0 else "") + str(r[j]))
 				v.add_child(_tablo_satir(vals, int(r[0]), false, r[10], "", 0, r[11]))
+	if lig.grupta(): _kupa_gol_bolum(v)
 	return p
+
+func _kupa_gol_bolum(v: VBoxContainer) -> void:
+	var GK := lig.kupa_gol_krallari(10)
+	if GK.is_empty(): return
+	v.add_child(_serit("GOL KRALLIĞI  ·  " + str(lig.kupa_tanim(lig.kupa.id).ad)))
+	v.add_child(_gol_satir(["#", "Oyuncu", "Kulüp", "Gol"], 0, true, false))
+	var k := 0
+	for r in GK:
+		v.add_child(_gol_satir([str(r[0]), r[1], r[3], str(r[4])], k, false, r[5])); k += 1
 
 # sezon seyri grafiği: yatayda haftalar, dikeyde sıra (1. en üstte). Mavi kalın çizgi biz, soluk çizgi lider, kesikli altın çizgi yönetimin hedefi.
 class SeyirGrafik extends Control:

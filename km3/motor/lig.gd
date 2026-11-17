@@ -1122,7 +1122,7 @@ func grup_maclarim() -> Array:
 func _grup_ilerle() -> void:
 	var gun: Array = kupa.gm[int(kupa.gtur)]
 	for m in gun:
-		if (m.s as Array).is_empty() and (kupa.elendi or not (_ayni(m.a, kupa.ben) or _ayni(m.b, kupa.ben))): m.s = _kupa_sim(m.a, m.b).slice(0, 2)
+		if (m.s as Array).is_empty() and (kupa.elendi or not (_ayni(m.a, kupa.ben) or _ayni(m.b, kupa.ben))): m.s = _kupa_sim(m.a, m.b).slice(0, 2); _kupa_gol_mac(m)
 	for m in gun:
 		if (m.s as Array).is_empty(): return
 	if int(kupa.gtur) < 2: kupa.gtur = int(kupa.gtur) + 1; return
@@ -1175,7 +1175,7 @@ func kupa_ilerle() -> void:
 	if grupta(): _grup_ilerle(); return
 	var tur: Array = kupa.esle[int(kupa.tur)]
 	for m in tur:
-		if (m.s as Array).is_empty() and (kupa.elendi or not (_ayni(m.a, kupa.ben) or _ayni(m.b, kupa.ben))): m.s = _kupa_sim(m.a, m.b)
+		if (m.s as Array).is_empty() and (kupa.elendi or not (_ayni(m.a, kupa.ben) or _ayni(m.b, kupa.ben))): m.s = _kupa_sim(m.a, m.b); _kupa_gol_mac(m)
 	for m in tur:
 		if (m.s as Array).is_empty(): return
 	var biz_var := false
@@ -1191,10 +1191,11 @@ func kupa_ilerle() -> void:
 	if kupa.elendi: kupa_ilerle()
 
 # kullanıcının kupa maçı bitti (biz motor T[0]); beraberlikte penaltılar güçlere göre
-func kupa_sonuc(g_biz: int, g_rakip: int) -> String:
+func kupa_sonuc(g_biz: int, g_rakip: int, golcuk: Array = []) -> String:
 	var m = kupa_benim_mac()
 	if m == null: return ""
 	var biz_a := _ayni(m.a, kupa.ben)
+	_kupa_gol_biz(m, g_biz, g_rakip, golcuk)
 	var rng := _krng
 	var A := kupa_takim(kupa.ben); var R := kupa_takim(m.b if biz_a else m.a)
 	if grupta():
@@ -1212,6 +1213,7 @@ func kupa_sim_mac() -> void:
 	var gr := grupta()
 	m.s = _kupa_sim(m.a, m.b)
 	if gr: m.s = (m.s as Array).slice(0, 2)
+	_kupa_gol_mac(m)
 	kupa_ilerle(); kupa_kaydet()
 	mesaj = _grup_haberi() if gr else ""
 
@@ -1292,9 +1294,11 @@ func kupa_ozet() -> String:
 		return "Kupanı ve kulübünü seç. Tek maçlık eleme; berabere biterse penaltılar. Kazanan bir sonraki tura çıkar."
 	var K := kupa_tanim(kupa.id); var ben: Dictionary = kupa_takim(kupa.ben)
 	if kupa.bitti:
-		if kupa_kazandi(): return "ŞAMPİYONSUN!  " + str(ben.ad) + " · " + K.ad
+		var gk := kupa_gol_krali_metni()
+		gk = ("\nGol kralı: " + gk) if gk != "" else ""
+		if kupa_kazandi(): return "ŞAMPİYONSUN!  " + str(ben.ad) + " · " + K.ad + gk
 		var f: Array = kupa.esle[(kupa.esle as Array).size() - 1]
-		return K.ad + " bitti · Şampiyon: " + str(kupa_takim(kupa_kazanan(f[0])).get("ad", "?"))
+		return K.ad + " bitti · Şampiyon: " + str(kupa_takim(kupa_kazanan(f[0])).get("ad", "?")) + gk
 	if kupa.elendi: return str(ben.ad) + " elendi."
 	if grupta():
 		var T := grup_tablosu(grubum()); var s := 0
@@ -1302,3 +1306,67 @@ func kupa_ozet() -> String:
 			if _ayni(T[k].t, kupa.ben): s = k + 1
 		return K.ad + " · Grup " + GRUP_HARF[grubum()] + " (%d/3) · " % (int(kupa.gtur) + 1) + str(ben.ad) + " %d. (%d puan)" % [s, int(T[s - 1].P)]
 	return K.ad + " · " + kupa_tur_adi(int(kupa.tur)) + " · " + str(ben.ad)
+
+# ---------- kupa gol krallığı (0.10.7) ----------
+# kupa.goller: "lig|kulüp|oyuncu" → gol. Simüle maçlarda goller kadroya mevkiye göre paylaştırılır (lig gibi);
+# kullanıcının maçında motorun gol olayları yazılır. Penaltı atışları sayılmaz.
+var _kupa_golcu := {}
+func _kupa_golculer(x: Array) -> Array:
+	var k := str(x[0]) + "|" + str(x[1])
+	if not _kupa_golcu.has(k):
+		var t := kupa_takim(x)
+		_kupa_golcu[k] = [] if t.is_empty() else _golcu_listesi(Taktik.kadro_kur(t, str(x[0])))
+	return _kupa_golcu[k]
+
+func _kupa_gol_yaz(x: Array, ad: String, n := 1) -> void:
+	if not kupa.has("goller"): kupa.goller = {}
+	var k := str(x[0]) + "|" + str(x[1]) + "|" + ad
+	kupa.goller[k] = int(kupa.goller.get(k, 0)) + n
+
+func _kupa_gol_dagit(x: Array, n: int) -> void:
+	var G := _kupa_golculer(x)
+	if G.is_empty(): return
+	var top := 0.0
+	for g in G: top += float(g[1])
+	for _k in n:
+		var r := _krng.randf() * top
+		for g in G:
+			r -= float(g[1])
+			if r <= 0.0: _kupa_gol_yaz(x, str(g[0])); break
+
+func _kupa_gol_mac(m: Dictionary) -> void:
+	var s: Array = m.s
+	if s.size() < 2: return
+	_kupa_gol_dagit(m.a, int(s[0])); _kupa_gol_dagit(m.b, int(s[1]))
+
+# kullanıcının maçı: motorun gol olayları (team 0 = biz); olay yoksa simüle maç gibi paylaştır
+func _kupa_gol_biz(m: Dictionary, g_biz: int, g_rakip: int, golcuk: Array) -> void:
+	var rk: Array = m.b if _ayni(m.a, kupa.ben) else m.a
+	if golcuk.is_empty():
+		_kupa_gol_dagit(kupa.ben, g_biz); _kupa_gol_dagit(rk, g_rakip); return
+	for e in golcuk:
+		var ad := str(e.get("n", ""))
+		if ad == "" or ad.begins_with("Kendi kalesine"): continue
+		_kupa_gol_yaz(kupa.ben if int(e.get("team", 0)) == 0 else rk, ad)
+
+# [sıra, oyuncu, kulüp kısa adı, kulüp, gol, biz mi] — eşit golde aynı sıra
+func kupa_gol_krallari(n := 10) -> Array:
+	var L: Array = []
+	if not kupa_var(): return L
+	for k in kupa.get("goller", {}):
+		var p := (k as String).split("|", true, 2)
+		if p.size() < 3: continue
+		L.append([[p[0], p[1]], p[2], int(kupa.goller[k])])
+	L.sort_custom(func(a, b): return a[2] > b[2] if a[2] != b[2] else a[1] < b[1])
+	var r: Array = []
+	var sira := 0
+	for k in mini(n, L.size()):
+		if k == 0 or L[k][2] != L[k - 1][2]: sira = k + 1
+		var t := kupa_takim(L[k][0])
+		r.append([sira, L[k][1], str(t.get("kisa", "?")), str(t.get("ad", "?")), L[k][2], _ayni(L[k][0], kupa.ben)])
+	return r
+
+func kupa_gol_krali_metni() -> String:
+	var g := kupa_gol_krallari(1)
+	if g.is_empty(): return ""
+	return "%s (%s) %d" % [g[0][1], g[0][2], g[0][4]]

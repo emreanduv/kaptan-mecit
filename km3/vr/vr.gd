@@ -307,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language", "Maç saati"]
-const SURUM := "0.10.6"
+const SURUM := "0.10.7"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -599,16 +599,33 @@ func _kupa_ciz(L: Lig) -> void:
 		for m in L.grup_maclarim():
 			sutun[0] += "\n" + str(m[0]) + "."; sutun[1] += "\n" + ("» " if m[4] else "") + m[1] + "   " + m[2] + "   " + m[3]
 			for j in [2, 3, 4, 5, 6, 7]: sutun[j] += "\n"
+		_vr_kupa_gol(L, sutun, 3)
 	else:
 		_lig_biz.visible = false
+		var tavan := 22 if L.kupa_gol_krallari(1).is_empty() else 9   # gol krallığına yer kalsın (bitince Son 16 yerine)
 		for tur in L.kupa_turlari():
-			if satir_say > 22: break
+			if satir_say > tavan: break
 			sutun[1] += ("\n" if satir_say > 0 else "") + str(tur[0]); satir_say += 1
 			for m in tur[1]:
 				sutun[1] += "\n" + ("» " if m[3] else "") + m[0] + "   " + m[1] + "   " + m[2]; satir_say += 1
+		if satir_say <= 18: _vr_kupa_gol(L, sutun, mini(5, 21 - satir_say))
 	for k in _lig_sutun.size(): _lig_sutun[k].text = sutun[k]
 	_lig_alt.text = L.kupa_ozet()
 	_lig_eylemler(L)
+
+# kupa gol krallığı (0.10.7): ilk n oyuncu, oyuncu sütun 1'de, gol sütun 7'de (öteki sütunlar boş satırla hizalanır)
+func _vr_kupa_gol(L: Lig, sutun: Array, n: int) -> void:
+	var GK := L.kupa_gol_krallari(n)
+	if GK.is_empty(): return
+	var hiza := func():   # bütün sütunlar 1. sütunun satır sayısına (eleme turlarında yalnız 1. sütun dolu)
+		var u: int = (sutun[1] as String).count("\n")
+		for j in sutun.size():
+			if j != 1: sutun[j] += "\n".repeat(maxi(0, u - (sutun[j] as String).count("\n")))
+	hiza.call()
+	sutun[1] += "\n\nGOL KRALLIĞI"; hiza.call()
+	for r in GK:
+		sutun[0] += "\n" + str(r[0]) + "."; sutun[1] += "\n" + ("» " if r[5] else "") + str(r[1]) + " (" + str(r[2]) + ")"; sutun[7] += "\n" + str(r[4])
+		hiza.call()
 
 func lig_acildi(v: bool) -> void:
 	_satir = 0 if v else 9

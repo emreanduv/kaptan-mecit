@@ -1280,7 +1280,7 @@ func _lig_bitir() -> void:
 	if kupa_maci:
 		kupa_maci = false
 		son_rapor = M.rapor_metni(0); lig.son_rapor = son_rapor
-		lig.mesaj = lig.kupa_sonuc(M.T[0].score, M.T[1].score)
+		lig.mesaj = lig.kupa_sonuc(M.T[0].score, M.T[1].score, M.events)
 		if lig.kupa_kazandi(): lig.mesaj = "ŞAMPİYONSUN!  " + lig.kupa_tanim(lig.kupa.id).ad
 		_gosterim_kur()
 		lig_goster(true)
