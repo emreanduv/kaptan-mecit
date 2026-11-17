@@ -1,5 +1,5 @@
 /* Champion Battle Manager — masaüstü (Steam) kabuğu. Oyun, mobil sürümle aynı tek dosyalık derlemedir (oyun/index.html). */
-const { app, BrowserWindow, ipcMain, shell, Menu, screen, protocol, net } = require('electron');
+const { app, powerSaveBlocker, BrowserWindow, ipcMain, shell, Menu, screen, protocol, net } = require('electron');
 const { pathToFileURL } = require('node:url');
 const path = require('node:path'), fs = require('node:fs');
 const STEAM = require('./steam.cjs');
@@ -40,6 +40,7 @@ ipcMain.handle('cbm:basarim', (_e, ad) => STEAM.basarim(ad));
 ipcMain.handle('cbm:steam', () => STEAM.durum());
 
 app.whenReady().then(() => {
+  try { powerSaveBlocker.start('prevent-display-sleep'); } catch (e) { /* ekran uyanık kalsın: maç izlerken kararmasın */ }
   const kok = path.join(__dirname, 'oyun');
   protocol.handle('app', req => {
     const yol = path.normalize(path.join(kok, decodeURIComponent(new URL(req.url).pathname)));
