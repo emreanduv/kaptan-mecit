@@ -56,6 +56,7 @@ func yenile() -> void:
 	elif lig.var_mi() and lig.gorunum == "odul": sol = _odul_panel()
 	elif lig.var_mi() and lig.gorunum == "ist": sol = _ist_panel()
 	elif lig.var_mi() and lig.gorunum == "rakip": sol = _ist_panel(true)
+	elif lig.var_mi() and lig.gorunum == "kulup": sol = _ist_panel(false, false, true)
 	elif lig.var_mi() and lig.gorunum == "seyir": sol = _ist_panel(false, true)
 	if dikey:
 		hb.add_child(_sag_panel()); hb.add_child(sol)
@@ -73,7 +74,7 @@ func ciz() -> void:
 		b.text = lig.satir_metni(i, sec)
 		if S[i] in ["Lig", "Takımın", "Kupa"]: b.text = b.text.trim_prefix("‹  ").trim_suffix("  ›")   # okları yandaki düğmeler gösterir
 		var ana_eylem: bool = S[i] in ["MAÇA ÇIK", "SEZONA BAŞLA", "YENİ SEZON"]
-		if ((S[i] == "Kadro" and lig.gorunum == "kadro") or (S[i] == "Fikstür" and lig.gorunum == "fikstur") or (S[i] == "Gol krallığı" and lig.gorunum == "goller") or (S[i] == "Tarihçe" and lig.gorunum == "tarih") or (S[i] == "Ödüller" and lig.gorunum == "odul") or (S[i] == "İstatistik" and lig.gorunum == "ist") or (S[i] == "Rakip raporu" and lig.gorunum == "rakip") or (S[i] == "Sezon seyri" and lig.gorunum == "seyir")) and not sec:   # açık görünüm sekmesi
+		if ((S[i] == "Kadro" and lig.gorunum == "kadro") or (S[i] == "Fikstür" and lig.gorunum == "fikstur") or (S[i] == "Gol krallığı" and lig.gorunum == "goller") or (S[i] == "Tarihçe" and lig.gorunum == "tarih") or (S[i] == "Ödüller" and lig.gorunum == "odul") or (S[i] == "İstatistik" and lig.gorunum == "ist") or (S[i] == "Rakip raporu" and lig.gorunum == "rakip") or (S[i] == "Kulüp raporu" and lig.gorunum == "kulup") or (S[i] == "Sezon seyri" and lig.gorunum == "seyir")) and not sec:   # açık görünüm sekmesi
 			b.add_theme_stylebox_override("normal", _kutu(Color("#3d4a5c"), 6, 7)); b.add_theme_color_override("font_color", ALTIN); continue
 		var c := ALTIN if sec else (Color("#e5722f") if ana_eylem else SERIT)
 		b.add_theme_stylebox_override("normal", _kutu(c, 6, 7))
@@ -302,13 +303,13 @@ func _odul_panel() -> Control:
 # lig istatistikleri: ligin rekorları (en golcü, en sağlam savunma, iç saha / deplasman, form, seriler, en farklı skor) + kulübün karnesi
 # rakip=true: sıradaki rakibin raporu (aynı satır biçimi)
 # seyir=true: sezon seyri (üstte hafta hafta sıra grafiği, altında özet satırları)
-func _ist_panel(rakip := false, seyir := false) -> Control:
+func _ist_panel(rakip := false, seyir := false, kulup := false) -> Control:
 	var p := PanelContainer.new(); p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	p.add_theme_stylebox_override("panel", _kutu(PANEL, 6, 0))
 	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 0); p.add_child(v)
-	var bas := "SEZON SEYRİ  ·  %s  ·  %s sezonu" if seyir else ("RAKİP RAPORU  ·  %s  ·  %s sezonu" if rakip else "İSTATİSTİKLER  ·  %s  ·  %s sezonu")
+	var bas := "KULÜP RAPORU  ·  %s  ·  %s sezonu" if kulup else "SEZON SEYRİ  ·  %s  ·  %s sezonu" if seyir else ("RAKİP RAPORU  ·  %s  ·  %s sezonu" if rakip else "İSTATİSTİKLER  ·  %s  ·  %s sezonu")
 	v.add_child(_serit(bas % [lig.lig_veri().ad, lig.sezon_adi()]))
-	var R := lig.sezon_seyri() if seyir else (lig.rakip_raporu() if rakip else lig.istatistik())
+	var R := lig.kulup_raporu() if kulup else lig.sezon_seyri() if seyir else (lig.rakip_raporu() if rakip else lig.istatistik())
 	if R.is_empty():
 		v.add_child(_ic(_etiket("Sezon seyri ilk hafta oynanınca başlar." if seyir else ("Sezon bitti; rakip raporu yeni sezonda." if rakip else "İstatistikler ilk hafta oynanınca dolar."), 15, SOLUK)))
 		return p
@@ -317,6 +318,9 @@ func _ist_panel(rakip := false, seyir := false) -> Control:
 		v.add_child(gr)
 	var k := 0
 	for x in R:
+		if x[0] == "n":   # not satırı (kulüp raporu): satıra sığmayan cümle, sarılır
+			var nl := _etiket(x[1], 14, YAZI); nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			v.add_child(_ic(nl)); continue
 		var b: bool = x[0] == "b"
 		var q := PanelContainer.new()
 		var c := SERIT if b else (BIZ_RENK if x[3] else (SATIR_A if k % 2 == 0 else SATIR_B))

@@ -1,16 +1,13 @@
+# Kulüp raporu denemesi: godot --headless --path km3 -s dene/rapor_dene.gd
 extends SceneTree
-# maç raporu: tam bir maç oynatılır, rapor metni basılır
 func _init() -> void:
-	var v = JSON.parse_string(FileAccess.open("res://veri/takimlar.json", FileAccess.READ).get_as_text())
-	var t0 = Taktik.kadro_kur(v.ligler[0].takimlar[0], "tr"); var t1 = Taktik.kadro_kur(v.ligler[0].takimlar[1], "tr")
-	var M = Mac.new(t0, t1, 4, 1, false)
-	M.T[0].human = false   # iki takım da yapay zekâ
-	var s0: float = M.T[0].spd
-	print("KONUSMA ", M.konus_yap("once", 1), " spd ", s0, " -> ", M.T[0].spd)
-	for i in 60 * 60 * 8:
-		M.step(1.0 / 60.0)
-		if M.state == "over": break
-	print(M.rapor_metni(0))
-	var R: Dictionary = M.rapor()
-	print("RAPOR oyuncu=", R.oy.size(), " yildiz=", R.yildiz.n if R.yildiz != null else "-", " state=", M.state)
-	quit()
+	var veri: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://veri/takimlar.json"))
+	var L := Lig.new(veri); L.sil(); L.yeni_sezon(0, 0)
+	for i in 10: L.haftayi_simule()
+	var R := L.kulup_raporu()
+	var hata := 0
+	if R.size() < 10: hata += 1
+	for x in R: print("  ", x[0], " | ", x[1], " | ", x[2])
+	L.sil()
+	print("kulüp raporu " + ("tamam" if hata == 0 else "HATA"))
+	quit(hata)

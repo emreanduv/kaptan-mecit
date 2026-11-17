@@ -495,12 +495,12 @@ func _lig_ciz() -> void:
 		for x in L.sezonun_11i():
 			var v := ["", Lig.mevki_adi(x[1]) + "  ·  " + x[2] + "  ·  " + x[3], "", "", "", "", "", str(x[4])]
 			for j in v.size(): sutun[j] += "\n" + v[j]
-	elif L.var_mi() and L.gorunum in ["ist", "rakip", "seyir"]:
-		var rk: bool = L.gorunum == "rakip"; var sy: bool = L.gorunum == "seyir"
-		if L.mesaj == "": _mesaj.text = ("SEZON SEYRİ  ·  " if sy else ("RAKİP RAPORU  ·  " if rk else "İSTATİSTİKLER  ·  ")) + L.lig_veri().ad + "  ·  " + L.sezon_adi()
-		sutun = ["", "SEZON SEYRİ" if sy else ("RAKİP RAPORU" if rk else "İSTATİSTİKLER"), "", "", "", "", "", ""]
-		for x in (L.sezon_seyri() if sy else (L.rakip_raporu() if rk else L.istatistik())).slice(0, 18):
-			var v := ["", (("\u2014 " + x[1] + " \u2014") if x[0] == "b" else (x[1] + ":  " + x[2])), "", "", "", "", "", ""]
+	elif L.var_mi() and L.gorunum in ["ist", "rakip", "seyir", "kulup"]:
+		var rk: bool = L.gorunum == "rakip"; var sy: bool = L.gorunum == "seyir"; var ku: bool = L.gorunum == "kulup"
+		if L.mesaj == "": _mesaj.text = ("KULÜP RAPORU  ·  " if ku else "SEZON SEYRİ  ·  " if sy else ("RAKİP RAPORU  ·  " if rk else "İSTATİSTİKLER  ·  ")) + L.lig_veri().ad + "  ·  " + L.sezon_adi()
+		sutun = ["", "KULÜP RAPORU" if ku else "SEZON SEYRİ" if sy else ("RAKİP RAPORU" if rk else "İSTATİSTİKLER"), "", "", "", "", "", ""]
+		for x in (L.kulup_raporu() if ku else L.sezon_seyri() if sy else (L.rakip_raporu() if rk else L.istatistik())).slice(0, 18):
+			var v := ["", (("\u2014 " + x[1] + " \u2014") if x[0] == "b" else (x[1] if x[0] == "n" else x[1] + ":  " + x[2])), "", "", "", "", "", ""]
 			for j in v.size(): sutun[j] += "\n" + v[j]
 	elif L.var_mi() and L.gorunum == "goller":
 		sutun = ["#", "GOL KRALLIĞI", "", "", "", "", "", "Gol"]

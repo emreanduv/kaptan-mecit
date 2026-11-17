@@ -298,7 +298,7 @@ func sezon_adi() -> String:
 func satirlar() -> Array:
 	if kip == "kupa": return kupa_satirlari()
 	if not var_mi(): return ["Lig", "Takımın", "SEZONA BAŞLA", "Kupalar", "Ana menü"]
-	var r: Array = ["YENİ SEZON", "Kadro", "Fikstür", "Gol krallığı", "İstatistik", "Sezon seyri", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Rakip raporu", "Kadro", "Fikstür", "Gol krallığı", "İstatistik", "Sezon seyri", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"]
+	var r: Array = ["YENİ SEZON", "Kulüp raporu", "Kadro", "Fikstür", "Gol krallığı", "İstatistik", "Sezon seyri", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Rakip raporu", "Kulüp raporu", "Kadro", "Fikstür", "Gol krallığı", "İstatistik", "Sezon seyri", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"]
 	if son_rapor != "": r.insert(r.find("Ana menü"), "Maç raporu")
 	r.insert(r.find("Ana menü"), "Kupalar")
 	return r
@@ -353,6 +353,7 @@ func bas(i: int) -> String:
 		"Ödüller": gorunum = "tablo" if gorunum == "odul" else "odul"
 		"İstatistik": gorunum = "tablo" if gorunum == "ist" else "ist"
 		"Rakip raporu": gorunum = "tablo" if gorunum == "rakip" else "rakip"
+		"Kulüp raporu": gorunum = "tablo" if gorunum == "kulup" else "kulup"
 		"Sezon seyri": gorunum = "tablo" if gorunum == "seyir" else "seyir"
 		"YENİ SEZON": sonraki_sezon()
 		"Ana menü": gorunum = "tablo"; return "menu"
@@ -858,6 +859,53 @@ func rakip_raporu() -> Array:
 	r.append(["s", "İlk devredeki maç", onceki if onceki != "" else "—", true])
 	var fark := gb - gr + (3.0 if ev else -3.0)
 	r.append(["s", "Asistanın önerisi", "Oyun anlayışı: " + ("Hücum" if fark >= 6.0 else ("Savunma" if fark <= -6.0 else "Dengeli")), true])
+	return r
+
+# ---------- kulüp raporu (Champion Battle Manager'ın aylık kulüp raporunun karşılığı): her birim kendi bölümünü yazar ----------
+# Yönetim, taraftar ve medya, teknik ekip (kadro), maç önü ve senden beklenenler. Satırlar istatistik ekranıyla aynı biçimde.
+func kulup_raporu() -> Array:
+	var r: Array = []
+	if not var_mi(): return r
+	var g := guven(); var t := taraftar(); var sira := sira_biz(); var hs := hedef_sira()
+	var bk := baskan()
+	r.append(["b", "YÖNETİM", "", false])
+	if bk[0] != "": r.append(["s", "Başkan", "%s  ·  %s" % [bk[0], bk[1]], false])
+	r.append(["s", "Güven", "%s  ·  %s" % [guven_adi(g), yuzde(g)], false])
+	r.append(["s", "Hedef · şu an", "%s  ·  %d." % [hedef_adi(), sira], false])
+	r.append(["b", "TARAFTAR VE MEDYA", "", false])
+	r.append(["s", "Taraftar nabzı", yuzde(t), false])
+	var S := _son_sonuclar(5); var f := ""
+	for x in S: f += "G" if int(x[0]) > int(x[1]) else ("B" if int(x[0]) == int(x[1]) else "M")
+	r.append(["s", "Son 5 maç", form_metni(f) if f != "" else "—", false])
+	var dg := 0; var dk := 0
+	for x in _son_sonuclar(99):
+		if x[2]: dk += 1; dg += 1 if int(x[0]) > int(x[1]) else 0
+	if dk > 0: r.append(["s", "Derbiler (kazanılan · oynanan)", "%d  ·  %d" % [dg, dk], false])
+	var ms := manset(); if ms != "": r.append(["n", "📰 " + ms, "", false])
+	r.append(["b", "TEKNİK EKİP", "", true])
+	var K := kadro_satirlari(); var en_iyi := ""; var ey := -1
+	for x in K:
+		if int(x[3]) > ey: ey = int(x[3]); en_iyi = "%s · %s · %d" % [mevki_adi(str(x[1])), str(x[2]), int(x[3])]
+	r.append(["s", "Diziliş · ilk 11", kadro_ozet() if kadro_ozet() != "" else "—", true])
+	r.append(["s", "Takımın yıldızı", en_iyi if en_iyi != "" else "—", true])
+	var gk := gol_krallari(999); var golcu := "—"
+	for x in gk:
+		if x[2] == takim(biz()).kisa and x[3] == takim(biz()).ad: golcu = "%s  ·  %d" % [x[1], x[4]]; break
+	r.append(["s", "En golcümüz", golcu, true])
+	var mc := sonraki_mac()
+	if not mc.is_empty():
+		var ev := int(mc[0]) == biz(); var rk: int = int(mc[1]) if ev else int(mc[0])
+		var ol := olasiliklar(int(mc[0]), int(mc[1]))
+		r.append(["s", "Sıradaki maç", "%s  ·  %s%s" % [takim(rk).ad, "iç saha" if ev else "deplasman", "  ·  ⚔ DERBİ" if derbi_mi(int(mc[0]), int(mc[1])) else ""], true])
+		r.append(["s", "Kazanma olasılığı", yuzde(roundi(100 * (ol[0] if ev else ol[2]))), true])
+	r.append(["b", "SENDEN BEKLENENLER", "", false])
+	var bek: Array = []
+	if int(d.hafta) >= 5 and sira > hs: bek.append(("We are %d places behind the target; the board expects a recovery." if Dil.en else "Hedefin %d sıra gerisindeyiz; yönetim toparlanma bekliyor.") % (sira - hs))
+	if g < 40: bek.append("Board confidence is low; the next matches are critical." if Dil.en else "Yönetimin güveni düşük; önümüzdeki maçlar kritik.")
+	if t < 40: bek.append("The fans are restless; a home win is a must." if Dil.en else "Taraftar huzursuz; iç sahada galibiyet şart.")
+	if not mc.is_empty() and derbi_mi(int(mc[0]), int(mc[1])): bek.append("The next match is a derby: the game of the season for the club." if Dil.en else "Sıradaki maç derbi: camia için sezonun maçı.")
+	if bek.is_empty(): bek.append("Nothing pending; all in order." if Dil.en else "Şu an bekleyen bir şey yok; işler yolunda.")
+	for x in bek: r.append(["n", "• " + x, "", false])
 	return r
 
 # ---------- sezon seyri (menajer oyunlarının "lig sırası" grafiği): her haftanın sonundaki sıra ve puan ----------
