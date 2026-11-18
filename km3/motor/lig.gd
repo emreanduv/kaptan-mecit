@@ -701,7 +701,7 @@ func tablo_satirlari() -> Array:
 	var t := tablo()
 	for k in t.size():
 		var x: Dictionary = t[k]
-		r.append([k + 1, takim(x.i).kisa, takim(x.i).ad, x.O, x.G, x.B, x.M, x.A, x.Y, x.Av, x.P, x.i == biz(), x.form])
+		r.append([k + 1, takim(x.i).kisa, takim(x.i).ad, x.O, x.G, x.B, x.M, x.A, x.Y, x.Av, x.P, x.i == biz(), x.form, x.i])   # 13: takım sırası (arma için)
 	return r
 
 # ---------- lig istatistikleri (menajer oyunlarının "İstatistikler" sayfası gibi) ----------
