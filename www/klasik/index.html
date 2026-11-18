@@ -110,6 +110,10 @@ td.c,th.c{text-align:center}
 tr.z1 td:first-child{box-shadow:inset 4px 0 var(--gold)} tr.z4 td:first-child{box-shadow:inset 4px 0 var(--navy)} tr.zd td:first-child{box-shadow:inset 4px 0 var(--red)}
 .tname{display:flex;align-items:center;gap:6px}
 .tname .kit{width:18px;height:16px}
+.badge.arma{display:inline-flex;flex:none;width:22px;height:22px;vertical-align:middle}.badge.arma img{width:100%;height:100%;display:block}
+.badge.arma.lg{width:58px;height:58px;filter:drop-shadow(0 2px 3px #0004)}.tname .badge.arma{width:20px;height:20px}.pill .badge.arma{width:18px;height:18px;margin:-2px 0}
+.yildiz.sampiyon{display:flex;align-items:center;gap:10px;text-align:left;line-height:1.15}.yildiz.sampiyon>span:not(.badge){flex:1}.yildiz.sampiyon small{font-weight:700;opacity:.8}
+.yildiz.sampiyon .kupa-res{filter:drop-shadow(0 3px 4px #0005)}.yildiz.sampiyon .badge.arma.lg{width:44px;height:44px}
 .form{display:inline-flex;gap:3px}
 .form b{width:18px;height:18px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:#fff;background:#9a9384}
 .form b.G{background:var(--grass-d)} .form b.M{background:var(--red)}
@@ -295,7 +299,9 @@ function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S))}catch(e)
 
 function team(lg,id){const r=LEAGUES[lg]&&LEAGUES[lg].t.find(x=>x[0]===id);return r&&{lg,id:r[0],name:r[1],short:r[2],c1:r[3],c2:r[4],str:r[5],city:r[6]}}
 const teams=lg=>LEAGUES[lg].t.map(r=>team(lg,r[0]));
-const KIT=(t,cls='kit')=>`<svg class="${cls}" viewBox="0 0 100 90" aria-hidden="true"><path d="M30 4l-26 14 10 22 12-6v52h48V34l12 6 10-22L70 4c-4 8-12 12-20 12S34 12 30 4z" fill="${t.c1}" stroke="${t.c2}" stroke-width="6" stroke-linejoin="round"/></svg>`;
+const ARMA=(t,b)=>window.MAArma&&t?MAArma.etiket({id:t.id,ad:t.name,kisa:t.short,renk1:t.c1,renk2:t.c2,sehir:t.city},b):KIT(t),
+KUPA_IMG=(o,w,h)=>window.MAArma?`<img class="kupa-res" alt="" src="${MAArma.kupaUrl(o,w,h)}" width="${w}" height="${h}">`:'🏆',
+KIT=(t,cls='kit')=>`<svg class="${cls}" viewBox="0 0 100 90" aria-hidden="true"><path d="M30 4l-26 14 10 22 12-6v52h48V34l12 6 10-22L70 4c-4 8-12 12-20 12S34 12 30 4z" fill="${t.c1}" stroke="${t.c2}" stroke-width="6" stroke-linejoin="round"/></svg>`;
 const MASCOT=`<svg class="mascot" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="5" y="1" width="6" height="1" fill="#f6efe1"/><rect x="3" y="2" width="10" height="1" fill="#f6efe1"/><rect x="2" y="3" width="12" height="10" fill="#f6efe1"/><rect x="1" y="5" width="14" height="6" fill="#f6efe1"/><rect x="3" y="13" width="10" height="1" fill="#f6efe1"/><rect x="5" y="14" width="6" height="1" fill="#f6efe1"/><rect x="6" y="5" width="4" height="4" fill="#1d2b38"/><rect x="2" y="7" width="2" height="2" fill="#1d2b38"/><rect x="12" y="7" width="2" height="2" fill="#1d2b38"/><rect x="5" y="11" width="2" height="2" fill="#1d2b38"/><rect x="9" y="11" width="2" height="2" fill="#1d2b38"/><rect x="6" y="2" width="4" height="1" fill="#1d2b38"/></svg>`;
 
 /* ===================== KADROLAR (kurmaca) ===================== */
@@ -468,7 +474,8 @@ function finishWeek(myH,myA,scorers){
       else{addGoals(c,H,m.hs);addGoals(c,A,m.as)}}
     else{const[x,y]=simScore(H,A);m.hs=x;m.as=y;addGoals(c,H,x);addGoals(c,A,y)}}
   c.last=c.week;c.week++;
-  if(c.week>c.fx.length){c.done=true;const t=table(c);const pos=t.findIndex(r=>r.id===c.id)+1;c.history.push({year:c.year,team:c.id,lg:c.lg,pos,champ:team(c.lg,t[0].id).name});}
+  if(c.week>c.fx.length){c.done=true;const t=table(c);const pos=t.findIndex(r=>r.id===c.id)+1;c.history.push({year:c.year,team:c.id,lg:c.lg,pos,champ:team(c.lg,t[0].id).name});
+    if(pos===1)UI.kupaAni={tur:'lig',ad:LEAGUES[c.lg].kurgu,t:team(c.lg,c.id)};}
   persist();
 }
 function leaders(c,n=10){const all={};LEAGUES[c.lg].t.forEach(r=>{const t=team(c.lg,r[0]);[...squad(t),...bench(t)].forEach(p=>all[p.id]={p,t})});return Object.entries(c.goals).filter(([k])=>all[k]).map(([k,g])=>({...all[k],g})).sort((a,b)=>b.g-a.g||a.p.n.localeCompare(b.p.n,'tr')).slice(0,n)}
@@ -483,6 +490,7 @@ const stars=n=>`<span class="stars">${'★'.repeat(Math.round(n/2))}</span>`;
 const KUPA_TANIM=[{id:'avr',ad:'Şampiyonlar Ligi',kita:'Avrupa',n:16},{id:'kon',ad:'Kondor Kupası',kita:'Güney Amerika',lg:['br','ar','co'],n:16},
   {id:'kuz',ad:'Kuzey Yıldızı Kupası',kita:'Kuzey Amerika',lg:['mx','us'],n:16},{id:'ipe',ad:'İpek Yolu Kupası',kita:'Asya',lg:['sa','jp','kr','qa','cn','au'],n:16},
   {id:'sav',ad:'Savana Kupası',kita:'Afrika',lg:['eg','ma','za','dz','tn'],n:16},{id:'kit',ad:'Kıtalar Arası Kupa',kita:'Dünya',n:8}];
+const kupaKod=id=>({avr:'ucl',kit:'kik'})[id]||id;   /* arma.js kupa biçimi: Şampiyonlar Ligi kulaklı, Kıtalar Arası küreli */
 const kupaTanim=id=>KUPA_TANIM.find(k=>k.id===id)||KUPA_TANIM[0];
 const kupaTakim=x=>team(x[0],x[1]);
 function kupaHavuz(id,n){const K=kupaTanim(id),lg=K.lg||(id==='avr'?LG_ORDER.filter(k=>LEAGUES[k].kita==='Avrupa'):[]),say={};
@@ -500,7 +508,7 @@ function kupaIlerle(){const k=S.kupa,tur=k.esle[k.tur];
   for(const m of tur)if(!m.s&&(k.elendi||!(ayni(m.a,k.ben)||ayni(m.b,k.ben))))m.s=kupaSimSonuc(m.a,m.b);
   if(tur.some(m=>!m.s))return;
   if(!tur.some(m=>ayni(kupaKazanan(m),k.ben)))k.elendi=true;
-  if(tur.length===1){k.bitti=true;return}
+  if(tur.length===1){k.bitti=true;if(kupaKazandi(k))UI.kupaAni={kod:kupaKod(k.id),ad:kupaTanim(k.id).ad,t:kupaTakim(k.ben)};return}
   const w=tur.map(kupaKazanan),yeni=[];for(let i=0;i<w.length;i+=2)yeni.push({a:w[i],b:w[i+1],s:null});k.esle.push(yeni);k.tur++;
   if(k.elendi)kupaIlerle()}
 function kupaSonucYaz(gb,gr,pen){const k=S.kupa,m=kupaBenimMac(k);if(!m)return;const bizA=ayni(m.a,k.ben);
@@ -521,7 +529,7 @@ function kupaScreen(){if(S.kupa&&(!kupaTakim(S.kupa.ben)||S.kupa.esle.some(t=>t.
   const satir=m=>{const A=kupaTakim(m.a),B=kupaTakim(m.b),w=kupaKazanan(m),biz=ayni(m.a,k.ben)||ayni(m.b,k.ben);
     return `<div class="km ${biz?'biz':''}"><span class="${w&&ayni(w,m.a)?'w':''}">${esc(A.name)}</span><b>${m.s?`${m.s[0]}-${m.s[1]}${m.s[2]?` <small>(p ${m.s[2][0]}-${m.s[2][1]})</small>`:''}`:'–'}</b><span class="${w&&ayni(w,m.b)?'w':''}">${esc(B.name)}</span></div>`};
   const turlar=k.esle.map((t,i)=>`<h3>${kupaTurAdi(k,i).toLocaleUpperCase('tr')}</h3>${t.map(satir).join('')}`).reverse().join('');
-  const son=k.bitti?(kupaKazandi(k)?`<div class="yildiz" style="margin:0 0 10px">🏆 ŞAMPİYONSUN! ${esc(ben.name)} · ${esc(K.ad)}</div>`:`<p style="font-weight:800;text-align:center">Şampiyon: ${esc(kupaTakim(kupaKazanan(k.esle[k.esle.length-1][0])).name)}</p>`):k.elendi?`<p style="font-weight:800;text-align:center">${esc(ben.name)} elendi.</p>`:'';
+  const son=k.bitti?(kupaKazandi(k)?`<div class="yildiz sampiyon" style="margin:0 0 10px">${KUPA_IMG({kod:kupaKod(k.id),k1:ben.c1,k2:ben.c2},48,60)}<span>ŞAMPİYONSUN!<br><small>${esc(ben.name)} · ${esc(K.ad)}</small></span>${ARMA(ben,1)}</div>`:(()=>{const T=kupaTakim(kupaKazanan(k.esle[k.esle.length-1][0]));return `<p style="font-weight:800;text-align:center;display:flex;gap:8px;align-items:center;justify-content:center">${KUPA_IMG({kod:kupaKod(k.id),k1:T.c1,k2:T.c2},26,32)}Şampiyon: ${ARMA(T)} ${esc(T.name)}</p>`})()):k.elendi?`<p style="font-weight:800;text-align:center">${esc(ben.name)} elendi.</p>`:'';
   return `<section class="screen">${topbar(K.ad.toLocaleUpperCase('tr'),esc(ben.name)+' · '+(k.bitti?'kupa bitti':k.elendi?'elendin':kupaTurAdi(k,k.tur)),'home')}
    <div class="card kupa">${son}${turlar}</div>
    <div class="stack">${bm?`<button class="big" data-act="kmac">MAÇA ÇIK<small>${kupaTurAdi(k,k.tur)} · ${esc(ben.short)} - ${esc(rak.short)}</small></button><button class="alt dark" data-act="ksim">MAÇI SİMÜLE ET</button>`:''}
@@ -531,7 +539,7 @@ function homeScreen(){
   const c=S.car;
   const carSub=c?(c.done?`${esc(team(c.lg,c.id).short)} · sezon bitti`:`${esc(team(c.lg,c.id).short)} · ${Math.min(c.week,c.fx.length)}. hafta`):LG_ORDER.length+' lig · '+LG_ORDER.reduce((a,k)=>a+LEAGUES[k].t.length,0)+' kulüp';
   let meta='';
-  if(c){const t=table(c),pos=t.findIndex(r=>r.id===c.id)+1,tm=team(c.lg,c.id);meta=`<div class="meta"><div class="pill"><i style="background:${tm.c1}"></i>${esc(tm.name)}</div><div class="pill">${pos}. sıra · ${t[pos-1].p} puan</div></div>`}
+  if(c){const t=table(c),pos=t.findIndex(r=>r.id===c.id)+1,tm=team(c.lg,c.id);meta=`<div class="meta"><div class="pill">${ARMA(tm)}${esc(tm.name)}</div><div class="pill">${pos}. sıra · ${t[pos-1].p} puan</div></div>`}
   return `<section class="screen veil">
    <div class="logo">${BALL}<h1>KAPTAN<br>MEC<span class="idot">I</span>T</h1><div class="ribbon">NOSTALJ<span class="idot">I</span>K FUTBOL</div></div>
    <div class="spacer"></div>
@@ -555,7 +563,7 @@ function quickScreen(){
   const H=team(UI.qlg,UI.qh),A=A0,pickMe=UI.qside!=='op';
   const lg=pickMe?UI.qlg:UI.qalg;
   return `<section class="screen">${topbar('HIZLI MAÇ','Takımını ve rakibini seç')}
-   <div class="card"><div class="vs"><div class="side">${KIT(H)}${esc(H.name)}<span class="tag">SEN</span></div><div class="mid">VS</div><div class="side">${KIT(A)}${esc(A.name)}<span class="tag o">RAKİP</span></div></div>
+   <div class="card"><div class="vs"><div class="side">${ARMA(H,1)}${esc(H.name)}<span class="tag">SEN</span></div><div class="mid">VS</div><div class="side">${ARMA(A,1)}${esc(A.name)}<span class="tag o">RAKİP</span></div></div>
     <div class="seg2"><button class="${pickMe?'on':''}" data-act="qside" data-v="me">${KIT(H)}<span>Takımım</span></button><button class="${pickMe?'':'on o'}" data-act="qside" data-v="op">${KIT(A)}<span>Rakip</span></button></div></div>
    <div class="card"><h3>${pickMe?'TAKIMINI SEÇ':'RAKİBİ SEÇ'}</h3>${leagueChips(lg,pickMe?'qlg':'qalg')}${teamGrid(lg,pickMe?UI.qh:null,pickMe?'qh':'qa',pickMe?(UI.qalg===UI.qlg?UI.qa:null):UI.qa)}</div>
    <div class="sticky"><button class="big" data-act="qplay" style="width:100%">MAÇA ÇIK</button></div></section>`;
@@ -568,20 +576,20 @@ function careerNewScreen(){
 function tableHtml(c){
   const t=table(c);
   return `<div class="tw"><table><thead><tr><th class="c">#</th><th>Kulüp</th><th class="c">O</th><th class="c">G</th><th class="c">B</th><th class="c">M</th><th class="c">AV</th><th class="c">P</th></tr></thead><tbody>
-  ${t.map((r,i)=>{const tm=team(c.lg,r.id);return `<tr class="${r.id===c.id?'me':''} ${i===0?'z1':i<4?'z4':i>=t.length-3?'zd':''}"><td class="c pos">${i+1}</td><td><span class="tname">${KIT(tm)}${esc(tm.short)}</span></td><td class="c">${r.o}</td><td class="c">${r.g}</td><td class="c">${r.b}</td><td class="c">${r.m}</td><td class="c">${r.a-r.y>0?'+':''}${r.a-r.y}</td><td class="c pts">${r.p}</td></tr>`}).join('')}</tbody></table></div>`;
+  ${t.map((r,i)=>{const tm=team(c.lg,r.id);return `<tr class="${r.id===c.id?'me':''} ${i===0?'z1':i<4?'z4':i>=t.length-3?'zd':''}"><td class="c pos">${i+1}</td><td><span class="tname">${ARMA(tm)}${esc(tm.short)}</span></td><td class="c">${r.o}</td><td class="c">${r.g}</td><td class="c">${r.b}</td><td class="c">${r.m}</td><td class="c">${r.a-r.y>0?'+':''}${r.a-r.y}</td><td class="c pts">${r.p}</td></tr>`}).join('')}</tbody></table></div>`;
 }
 function careerScreen(){
   const c=S.car;if(!c)return careerNewScreen();
   const me=team(c.lg,c.id),t=table(c),pos=t.findIndex(r=>r.id===c.id)+1,row=t[pos-1];
   let next;
-  if(c.done){const h=c.history[c.history.length-1];next=`<div class="card"><h3>SEZON BİTTİ</h3><p><b>${esc(me.name)}</b> ligi <b>${pos}.</b> sırada bitirdi. Şampiyon: <b>${esc(h.champ)}</b>.</p><button class="big" data-act="newseason">YENİ SEZON</button>${pos<=3?`<button class="alt dark" data-act="paylasSezon">${pos===1?'🏆 ŞAMPİYONLUĞU PAYLAŞ':'📣 SEZONU PAYLAŞ'}</button>`:''}</div>`}
+  if(c.done){const h=c.history[c.history.length-1];next=`<div class="card"><h3>SEZON BİTTİ</h3>${pos===1?`<div class="yildiz sampiyon">${KUPA_IMG({tur:'lig',k1:me.c1,k2:me.c2},48,60)}<span>ŞAMPİYONSUN!<br><small>${esc(me.name)} · ${esc(LEAGUES[c.lg].kurgu)}</small></span>${ARMA(me,1)}</div>`:''}<p><b>${esc(me.name)}</b> ligi <b>${pos}.</b> sırada bitirdi. Şampiyon: <b>${esc(h.champ)}</b>.</p><button class="big" data-act="newseason">YENİ SEZON</button>${pos<=3?`<button class="alt dark" data-act="paylasSezon">${pos===1?'🏆 ŞAMPİYONLUĞU PAYLAŞ':'📣 SEZONU PAYLAŞ'}</button>`:''}</div>`}
   else{const m=myMatch(c),H=team(c.lg,m.h),A=team(c.lg,m.a),isH=m.h===c.id;
-    next=`<div class="card"><h3>${c.week}. HAFTA · ${isH?'İÇ SAHA':'DEPLASMAN'}</h3><div class="vs"><div class="side">${KIT(H)}${esc(H.name)}</div><div class="mid">VS</div><div class="side">${KIT(A)}${esc(A.name)}</div></div>
+    next=`<div class="card"><h3>${c.week}. HAFTA · ${isH?'İÇ SAHA':'DEPLASMAN'}</h3><div class="vs"><div class="side">${ARMA(H,1)}${esc(H.name)}</div><div class="mid">VS</div><div class="side">${ARMA(A,1)}${esc(A.name)}</div></div>
      <button class="big" data-act="cplay">MAÇA ÇIK</button><button class="alt dark" data-act="csim">SİMÜLE ET</button></div>`}
   const tabs=[['tablo','Puan Durumu'],['fikstur','Fikstür'],['kral','Gol Krallığı']];
   let body='';
   if(UI.tab==='fikstur')body=`<div class="res">${c.fx.map((w,i)=>{const m=w.find(x=>x.h===c.id||x.a===c.id);return `<div class="${i+1===c.week?'me':''}"><span>${i+1}. ${esc(team(c.lg,m.h).short)}</span><b>${m.hs===null?'–':m.hs+'-'+m.as}</b><span>${esc(team(c.lg,m.a).short)}</span></div>`}).join('')}</div>`;
-  else if(UI.tab==='kral'){const L=leaders(c,15);body=L.length?`<div class="tw"><table><tbody>${L.map((x,i)=>`<tr class="${x.t.id===c.id?'me':''}"><td class="c pos">${i+1}</td><td>${esc(x.p.n)}</td><td><span class="tname">${KIT(x.t)}${esc(x.t.short)}</span></td><td class="c pts">${x.g}</td></tr>`).join('')}</tbody></table></div>`:'<p class="dim">Henüz gol yok.</p>'}
+  else if(UI.tab==='kral'){const L=leaders(c,15);body=L.length?`<div class="tw"><table><tbody>${L.map((x,i)=>`<tr class="${x.t.id===c.id?'me':''}"><td class="c pos">${i+1}</td><td>${esc(x.p.n)}</td><td><span class="tname">${ARMA(x.t)}${esc(x.t.short)}</span></td><td class="c pts">${x.g}</td></tr>`).join('')}</tbody></table></div>`:'<p class="dim">Henüz gol yok.</p>'}
   else body=tableHtml(c);
   return `<section class="screen">${topbar(esc(me.name),esc(LEAGUES[c.lg].kurgu)+' · '+c.year+'/'+String(c.year+1).slice(2))}
    <div class="card"><div class="kv"><div><small>SIRA</small><b>${pos}.</b></div><div><small>PUAN</small><b>${row.p}</b></div><div><small>FORM</small><span class="form">${row.form.slice(-5).map(f=>`<b class="${f}">${f}</b>`).join('')||'–'}</span></div></div></div>
@@ -592,7 +600,7 @@ function careerScreen(){
 function resultScreen(){
   const r=UI.result,won=r.mine.me>r.mine.op,draw=r.mine.me===r.mine.op;
   return `<section class="screen">${topbar('MAÇ SONU',r.kupa?esc(r.kupa):r.career?esc(LEAGUES[S.car.lg].kurgu)+' · '+r.week+'. hafta':'Hızlı Maç',r.kupa?'kupa':r.career?'career':'quick')}
-   <div class="card"><div class="vs"><div class="side">${KIT(r.H)}${esc(r.H.name)}</div><div class="mid sc">${r.hs}-${r.as}</div><div class="side">${KIT(r.A)}${esc(r.A.name)}</div></div>
+   <div class="card"><div class="vs"><div class="side">${ARMA(r.H,1)}${esc(r.H.name)}</div><div class="mid sc">${r.hs}-${r.as}</div><div class="side">${ARMA(r.A,1)}${esc(r.A.name)}</div></div>
    <span class="verdict ${won?'w':draw?'':'l'}">${won?'GALİBİYET':draw?'BERABERLİK':'MAĞLUBİYET'}</span>
    ${r.events.length?`<div class="res">${r.events.map(e=>`<div><span>${e.side==='h'?`${e.min}' ${esc(e.n)}${e.as?`<small> (${esc(e.as)})</small>`:''}`:''}</span><b>⚽</b><span>${e.side==='a'?`${e.as?`<small>(${esc(e.as)}) </small>`:''}${esc(e.n)} ${e.min}'`:''}</span></div>`).join('')}</div>`:'<p class="dim" style="text-align:center">Gol yok.</p>'}</div>
    ${raporHtml(r.rapor,r.tak||[0,1],r.tk)}
@@ -653,6 +661,8 @@ function render0(){
   if(kart)h=h.replace(/^(<section[^>]*>(?:<div class="topbar">.*?<\/h2><\/div>)?)/s,'$1'+kart);
   if(UI.puanAc&&UI.screen==='result')h+=kmPuanKutusu();
   $('#app').innerHTML=h;
+  if(UI.kupaAni&&(UI.screen==='result'||UI.screen==='career'||UI.screen==='kupa')&&window.MAArma){const a=UI.kupaAni;UI.kupaAni=null;
+    setTimeout(()=>{try{MAArma.kupaAni({tur:a.tur,kod:a.kod,ad:a.ad,en:window.KM_DIL==='en',kulup:{id:a.t.id,ad:a.t.name,kisa:a.t.short,renk1:a.t.c1,renk2:a.t.c2,sehir:a.t.city}})}catch(e){console.warn('kupa',e)}},650)}
 }
 function go(s){UI.screen=s;render();window.scrollTo(0,0)}
 document.addEventListener('change',e=>{const t=e.target;if(!t||!t.id)return;
@@ -2120,6 +2130,6 @@ if(/[?&#]demo/.test(location.href)){startMatch(team('tr','gs'),team('tr','fb'),n
 window.__RL={get M(){return M},startMatch,team,S:()=>S,step,draw,endMatch};
 </script>
 <script>window.SesKurtarici&&SesKurtarici.yenidenKur(()=>{SND.ctx=null});</script>
-<script src="yuz.js"></script><script src="kumanda.js"></script>
+<script src="yuz.js"></script><script src="arma.js"></script><script src="kumanda.js"></script>
 </body>
 </html>
