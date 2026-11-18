@@ -3,7 +3,7 @@
 ## 18 Kas: 1.7.5 / KM3 0.10.8 — App Store başvurusu yenileniyor
 - CBM'den: başkan ve teknik direktör adları gerçek veriden isim bozmayla (G78; `km-yaz.py` 5. adım, camia.json 5. alan), iOS'ta arka plandan dönünce Modern'de ses (G77, KM3 web kabuğu), güncel kadrolar (349f5b1). Oyun içi ad her yerde "Kaptan Mecit" (menü, VR, Bize yaz).
 - iOS 1.7.5 (43) TestFlight'a gönderildi. App Store: reddedilen 1.0.0 sürümü 1.7.5'e çevrildi, derleme 43 bağlı, yeni TR/EN metinler, 26 görsel (iPhone 6.7" + iPad 13", Modern + Klasik), CBM'den farkı anlatan inceleme notu, fiyat 0 (`store/km/metin.json`, `araclar/asc_sayfa.py` artık KM'yi de doldurur).
-- İncelemeye gönderim Apple'ın iki uyum formunda durdu (yalnız Çin anakarası: Security Assessment, AI Generated or Synthetic Content). Seçenekler Emre'de: Çin anakarasını satıştan çıkarmak (önerilen) ya da formları doldurmak. Karardan sonra `asc-durum.yml kip=gonder version=1.7.5`.
+- Gönderim iki Çin anakarası uyum formunda (Security Assessment, AI Generated or Synthetic Content) durdu; Emre'nin kararıyla Çin anakarası satıştan çıkarıldı (174 ülke). **18 Kas: 1.7.5 (43) WAITING_FOR_REVIEW.** Emre TestFlight'ta 1.7.5'i gözle doğrulayacak; sorun çıkarsa `asc-durum.yml kip=iptal` ile geri çekilir. Not: bundan sonraki her yeni ürün başvurusunda Çin anakarası baştan kapalı tutulmalı (oyunlarda Çin oyun lisansı ve bu iki form gerekir).
 
 ## 1.5.0 — Klasik + Modern (5–6 Kas)
 - Uygulama açılınca önce dil (Türkçe / English), sonra oyun: **Klasik** (önceki Kaptan Mecit, `www/klasik/`) ya da **Modern** (Kaptan Mecit 3'ün en güncel web derlemesi, `www/modern/`). Seçilen dil hatırlanır; oyunlardan "Oyun seçimi" ile açılışa dönülür.
