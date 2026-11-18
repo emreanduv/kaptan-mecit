@@ -307,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language", "Maç saati"]
-const SURUM := "0.10.7"
+const SURUM := "0.10.8"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -334,7 +334,7 @@ func _menu3d_kur() -> void:
 	zm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA; zm.albedo_color = Color(0.05, 0.1, 0.11, .95)
 	zm.no_depth_test = true; zm.render_priority = 55; zm.cull_mode = BaseMaterial3D.CULL_DISABLED
 	zemin.material_override = zm; menu3d.add_child(zemin)
-	var bas := _yazi(96, Color.WHITE); bas.text = "Kaptan Mecit 3"; bas.position = Vector3(0, .44, .001); menu3d.add_child(bas); _bas = bas
+	var bas := _yazi(96, Color.WHITE); bas.text = "Kaptan Mecit"; bas.position = Vector3(0, .44, .001); menu3d.add_child(bas); _bas = bas
 	var imza := _yazi(36, Color("#cfe3d6")); imza.text = "Bir Mr. Anduv! yapımıdır.  ·  sürüm " + SURUM; imza.position = Vector3(0, .36, .001); menu3d.add_child(imza); _imza = imza
 	for i in maxi(15, maxi(SATIRLAR.size(), Mola.SATIRLAR.size())):   # lig menüsü 14 satıra çıkabiliyor (Rakip raporu + Sezon seyri + Maç raporu + Kupalar)
 		var l := _yazi(52, Color.WHITE); l.position = Vector3(0, .25 - i * .085, .001); menu3d.add_child(l)
@@ -382,7 +382,7 @@ func _menu_ciz() -> void:
 	if not yd: _yardim_alt.text = ""
 	_ipucu.visible = not yd; _mesaj.visible = not yd; _bas.visible = not yd; _imza.visible = not yd
 	var M = ana.M
-	_bas.text = ("MOLA  ·  %s  ·  %s'" % [ana.skor_yazi("-"), M.min_label()]) if mol else "Kaptan Mecit 3"
+	_bas.text = ("MOLA  ·  %s  ·  %s'" % [ana.skor_yazi("-"), M.min_label()]) if mol else "Kaptan Mecit"
 	_bas.font_size = 64 if mol else 96
 	_ipucu.text = "Çubuk yukarı/aşağı: satır  ·  sola/sağa: değiştir  ·  A ya da tetik: seç  ·  menü: maça dön" if mol \
 		else "Lazerle göster, tetikle seç  ·  çubukla da gezinebilirsin  ·  A: MAÇA BAŞLA"

@@ -493,7 +493,13 @@ func yilin_td() -> Array:
 func yilin_td_metni() -> String:
 	var y := yilin_td()
 	if y.is_empty(): return ""
-	return "%s  ·  güç sırası %d → ligde %d." % ["Sen · " + takim(y[0]).ad if y[0] == biz() else takim(y[0]).ad, y[1], y[2]]
+	var kim: String = "Sen · " + takim(y[0]).ad if y[0] == biz() else (td_adi(y[0]) + " · " if td_adi(y[0]) != "" else "") + takim(y[0]).ad
+	return "%s  ·  güç sırası %d → ligde %d." % [kim, y[1], y[2]]
+
+# kulübün teknik direktörü (CBM ile aynı: gerçek veriden isim bozmayla türetilmiş; veri yoksa boş)
+func td_adi(i: int) -> String:
+	var x = camia_veri().get(_ck(i))
+	return str(x[4]) if x is Array and x.size() > 4 else ""
 
 # ---------- tarihçe: kulübün sezon sezon karnesi (menajer oyunlarındaki kulüp geçmişi) ----------
 # Biten her sezon d.tarih'e yazılır; "YENİ SEZON" tarihçeyi yeni sezona taşır, "Ligi bırak" / "Verilerimi sil" siler.

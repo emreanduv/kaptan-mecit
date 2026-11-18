@@ -44,6 +44,9 @@ Tüm kulüp ve oyuncu adları kurmacadır.
 
 Bir Mr. Anduv! yapımıdır.
 
+**Bu sürümde yenilikler (1.7.5)** — App Store'a ilk çıkış metni: `store/km/metin.json` (açıklama, alt başlık, anahtar kelimeler, inceleme notu)
+Daha akıcı maç: oyuncular ve top titremeden akıyor. Milletler Kupası (32 milli takım), kupa gol krallığı, taktik kamera, lig modunda camia (başkan, taraftar, manşet), derbiler, kulüp raporu ve rakip raporu. Telefon arka plandan dönünce ses kaybolmuyor, maçta ekran kararmıyor.
+
 **Bu sürümde yenilikler (1.7.2) — App Store "Yenilikler" / Play "Sürüm notları" (en fazla 500 karakter)**
 Yeni menü: yan ekranda iki sütun, her şey tek bakışta ve Maça başla her zaman görünür; uzun ekranlar parmakla kaydırılır. Kafa vuruşu, çalım, omuz omuza mücadele, oyuncu yüzleri ve saç modelleri, maç saati, düzenleme modu ve her hafta güncellenen kadrolar.
 
@@ -97,6 +100,9 @@ The ball stays at your feet; change direction sharply to feint past a defender, 
 All club and player names are fictional.
 
 Made by Mr. Anduv!
+
+**What's new (1.7.5)**
+Smoother matches: players and the ball now move without stutter. Nations Cup (32 national teams), cup top scorers, a tactical camera, club life in league mode (chairman, fans, headlines), derbies, club and opponent reports. Sound comes back after the app returns from the background, and the screen stays on during matches.
 
 **What's new (1.7.2)**
 New menu: two columns in landscape so everything fits on one screen and Kick off is always visible; long screens scroll with your finger. Headers, skill moves, shoulder-to-shoulder battles, player faces and hairstyles, kick-off time, edit mode and weekly updated squads.

@@ -805,7 +805,7 @@ func _arayuz() -> void:
 	var mv := VBoxContainer.new(); mv.add_theme_constant_override("separation", 10)
 	var bas := PanelContainer.new(); bas.add_theme_stylebox_override("panel", _kutu(Color("#1f3b3c"), 12))
 	var bv := VBoxContainer.new()
-	var bl := Label.new(); bl.text = "Kaptan Mecit 3"; bl.add_theme_font_size_override("font_size", 34); bl.add_theme_color_override("font_color", Color.WHITE)
+	var bl := Label.new(); bl.text = "Kaptan Mecit"; bl.add_theme_font_size_override("font_size", 34); bl.add_theme_color_override("font_color", Color.WHITE)
 	var bl2 := Label.new(); bl2.text = "Bir Mr. Anduv! yapımıdır."; bl2.add_theme_font_size_override("font_size", 15); bl2.add_theme_color_override("font_color", Color("#cfe3d6"))
 	bv.add_child(bl); bv.add_child(bl2); bas.add_child(bv); mv.add_child(bas)
 	# yan ekranda iki sütun (solda seçimler, sağda düğmeler) ki menü telefon yüksekliğine sığsın; dikeyde tek sütun
@@ -1251,7 +1251,7 @@ func paylas() -> void:
 
 func bize_yaz() -> void:
 	var surum: String = str(load("res://vr/vr.gd").SURUM)
-	var url: String = "mailto:emreanduvart@gmail.com?subject=" + ("Kaptan Mecit 3 – Görüş ve öneri (" + surum + ", " + OS.get_name() + ")").uri_encode() + "&body=" + ("Merhaba, oyunla ilgili görüşüm:\n\n\n— " + OS.get_name() + (" · lig: " + lig.lig_veri().ad if lig.var_mi() else "")).uri_encode()
+	var url: String = "mailto:emreanduvart@gmail.com?subject=" + ("Kaptan Mecit – Görüş ve öneri (" + surum + ", " + OS.get_name() + ")").uri_encode() + "&body=" + ("Merhaba, oyunla ilgili görüşüm:\n\n\n— " + OS.get_name() + (" · lig: " + lig.lig_veri().ad if lig.var_mi() else "")).uri_encode()
 	if OS.has_feature("web"): JavaScriptBridge.eval("location.href=" + JSON.stringify(url))
 	else: OS.shell_open(url)
 

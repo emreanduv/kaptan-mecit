@@ -105,3 +105,22 @@ FX = json.load(open(fp)); FX['ligler'] = GFX; FX['sezon'] = K['sezon']
 json.dump(FX, open(fp, 'w'), ensure_ascii=False, separators=(',', ':'))
 print('ligler', len(LEAGUES), 'kulüp', sum(len(l['t']) for l in LEAGUES.values()), 'gerçek fikstür', list(GFX), 'kimliği korunan',
       sum(1 for lg in esle for a, b in esle[lg].items() if (lg, b) in {(l, c['id']) for l, ll in E['ligler'].items() for c in ll['kulupler']}))
+
+# 5) camia: başkan ve teknik direktör adları gerçek veriden (CBM 4.23.1: Vikipedi bilgi kutusu, isim bozmayla türetilmiş;
+#    dunya.json kulüp.yonetim). Veri yoksa camia.json'daki kurmaca başkan kalır. camia.json: [başkan, tarz, büyük, şehir, TD]
+cp = f'{kok}/km3/veri/camia.json'
+try: CM = json.load(open(cp))
+except Exception: CM = {}
+gb = gt = 0
+for lg, l in D['ligler'].items():
+    for c in l['kulupler']:
+        k = f"{lg}-{esle.get(lg, {}).get(c['id'], c['id'])}"
+        if k not in CM: continue
+        y = c.get('yonetim') or {}
+        while len(CM[k]) < 5: CM[k].append('')
+        if y.get('bas'): CM[k][0] = y['bas']; gb += 1
+        CM[k][4] = y.get('td', '') or ''
+        if CM[k][4]: gt += 1
+json.dump(CM, open(cp, 'w'), ensure_ascii=False, separators=(',', ':'))
+print('camia: gerçek başkan', gb, '· gerçek TD', gt, '/', len(CM))
+

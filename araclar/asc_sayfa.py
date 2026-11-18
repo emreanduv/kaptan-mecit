@@ -1,4 +1,4 @@
-# CBM App Store sayfası (CI): düzenlenebilir sürümün açıklama/anahtar kelime/tanıtım/yenilikler metinlerini,
+# App Store sayfası (CI; CBM ve Kaptan Mecit): düzenlenebilir sürümün açıklama/anahtar kelime/tanıtım/yenilikler metinlerini,
 # alt başlığı yazar; ekran görüntülerini (iPhone 6.9" + iPad 13") baştan yükler. İncelemeye GÖNDERMEZ.
 import jwt, time, json, os, hashlib, urllib.request, urllib.error
 KID=os.environ['ASC_KEY_ID']; ISS=os.environ['ASC_ISSUER_ID']; BUNDLE=os.environ.get('BUNDLE','com.championchess.manager')
@@ -12,10 +12,11 @@ def api(m,p,b=None):
     try:
         with urllib.request.urlopen(r) as f: t=f.read(); return json.loads(t) if t else {}
     except urllib.error.HTTPError as e: log.append(f'{m} {p} -> {e.code} {e.read().decode()[:700]}'); return None
-M=json.load(open('store/champion/metin.json'))
+KM=BUNDLE=='com.anduv.kaptanmecit'
+M=json.load(open('store/km/metin.json' if KM else 'store/champion/metin.json'))
 def dil(loc): return M['tr'] if loc.startswith('tr') else M['en']
 SIRA=['4-mac','8-macsonu','3-taktik','2-genel','6-sd','5-lig','7-posta','1-menu']
-AID=api('GET',f'v1/apps?filter[bundleId]={BUNDLE}')['data'][0]['id']
+APP=api('GET',f'v1/apps?filter[bundleId]={BUNDLE}')['data'][0]; AID=APP['id']; AD=APP['attributes']['name']
 vs=api('GET',f'v1/apps/{AID}/appStoreVersions?filter[platform]=IOS&limit=10')['data']
 v=next((x for x in vs if x['attributes']['appStoreState'] in ('PREPARE_FOR_SUBMISSION','DEVELOPER_REJECTED','REJECTED','METADATA_REJECTED')),None)
 if not v: raise SystemExit('düzenlenebilir sürüm yok (önce asc-surum)')
@@ -26,7 +27,7 @@ infos=api('GET',f'v1/apps/{AID}/appInfos')['data']
 info=next((i for i in infos if i['attributes'].get('appStoreState') not in ('READY_FOR_SALE',) and i['attributes'].get('state') not in ('READY_FOR_DISTRIBUTION',)),None)
 if not any(l['attributes']['locale'].startswith('en') for l in locs):   # İngilizce sayfa yoksa aç
     if info and not any(l['attributes']['locale'].startswith('en') for l in api('GET',f'v1/appInfos/{info["id"]}/appInfoLocalizations')['data']):
-        api('POST','v1/appInfoLocalizations',{'data':{'type':'appInfoLocalizations','attributes':{'locale':'en-US','name':'Champion Battle Manager','subtitle':M['en']['subtitle']},'relationships':{'appInfo':{'data':{'type':'appInfos','id':info['id']}}}}})
+        api('POST','v1/appInfoLocalizations',{'data':{'type':'appInfoLocalizations','attributes':{'locale':'en-US','name':AD,'subtitle':M['en']['subtitle']},'relationships':{'appInfo':{'data':{'type':'appInfos','id':info['id']}}}}})
     r=api('POST','v1/appStoreVersionLocalizations',{'data':{'type':'appStoreVersionLocalizations','attributes':{'locale':'en-US','description':M['en']['description'],'keywords':M['en']['keywords']},'relationships':{'appStoreVersion':{'data':{'type':'appStoreVersions','id':VID}}}}})
     if r: locs.append(r['data']); ok('en-US sayfası açıldı')
 TRL=next((l for l in locs if l['attributes']['locale'].startswith('tr')),None)
@@ -76,7 +77,10 @@ if EKRAN:
                 r=api('POST','v1/appScreenshotSets',{'data':{'type':'appScreenshotSets','attributes':{'screenshotDisplayType':disp},'relationships':{'appStoreVersionLocalization':{'data':{'type':'appStoreVersionLocalizations','id':l['id']}}}}})
                 if not r: continue
                 SID=r['data']['id']
-            n=yukle(SID,[f'store/champion/ekran/{on}-{k}.png' for k in SIRA])
+            if KM:
+                import glob
+                n=yukle(SID,sorted(glob.glob(f"store/km/ekran/{on}-{'tr' if l['attributes']['locale'].startswith('tr') else 'en'}-*.jpg")))
+            else: n=yukle(SID,[f'store/champion/ekran/{on}-{k}.png' for k in SIRA])
             ok(f'{l["attributes"]["locale"]} {on}: {n} görsel')
         time.sleep(1)
     # işlenme durumu
@@ -86,6 +90,17 @@ if EKRAN:
             for sc in api('GET',f'v1/appScreenshotSets/{s["id"]}/appScreenshots?limit=50')['data']:
                 st=(sc['attributes'].get('assetDeliveryState') or {}).get('state'); dur[st]=dur.get(st,0)+1
     out['gorsel_durum']=dur
+# inceleme notu (App Review Information → Notes) ve fiyat (ücretsiz)
+if M.get('inceleme_notu'):
+    rd=api('GET',f'v1/appStoreVersions/{VID}/appStoreReviewDetail')
+    at={'notes':M['inceleme_notu'],'demoAccountRequired':False}
+    if rd and rd.get('data'): r=api('PATCH',f"v1/appStoreReviewDetails/{rd['data']['id']}",{'data':{'type':'appStoreReviewDetails','id':rd['data']['id'],'attributes':at}})
+    else: r=api('POST','v1/appStoreReviewDetails',{'data':{'type':'appStoreReviewDetails','attributes':dict(at,contactFirstName='Emre',contactLastName='Anduv',contactEmail='emreanduvart@gmail.com'),'relationships':{'appStoreVersion':{'data':{'type':'appStoreVersions','id':VID}}}}})
+    if r is not None: ok('inceleme notu')
+    cur=api('GET',f'v1/appStoreReviewDetails/{rd["data"]["id"]}') if rd and rd.get('data') else None
+    if cur: out['inceleme_iletisim']={k:bool(cur['data']['attributes'].get(k)) for k in ('contactFirstName','contactLastName','contactPhone','contactEmail')}
+ps=api('GET',f'v1/apps/{AID}/appPriceSchedule/manualPrices?include=appPricePoint&limit=5')
+if ps: out['fiyat']=[x['attributes'].get('customerPrice') for x in ps.get('included',[]) if x['type']=='appPricePoints']
 out['urller']={l['attributes']['locale']:[l['attributes'].get('supportUrl')] for l in api('GET',f'v1/appStoreVersions/{VID}/appStoreVersionLocalizations')['data']}
 out['hatalar']=log
 json.dump(out,open('durum.json','w'),ensure_ascii=False,indent=1); print(json.dumps(out,ensure_ascii=False))
