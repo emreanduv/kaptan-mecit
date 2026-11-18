@@ -200,10 +200,14 @@ func _kadro_panel() -> Control:
 			yedek_yazildi = true
 			var ys := _etiket("YEDEKLER", 13, SOLUK); ys.custom_minimum_size = Vector2(0, 22)
 			v.add_child(_ic(ys))
-		v.add_child(_kadro_satir([str(x[0]), Lig.mevki_adi(x[1]), x[2], str(x[3]), str(x[4])], k, false, int(x[3]))); k += 1
+		var yz := {"ad": str(x[2]), "k1": str(biz.c1), "k2": str(biz.c2)}
+		if str(x[6]) != "": yz.ten = str(x[6])
+		if str(x[7]) != "": yz.sac = str(x[7])
+		if str(x[1]) in ["GK", "G", "KL"]: yz.k1 = "#f3d35a"; yz.k2 = "#1d1d1d"
+		v.add_child(_kadro_satir([str(x[0]), Lig.mevki_adi(x[1]), x[2], str(x[3]), str(x[4])], k, false, int(x[3]), yz)); k += 1
 	return p
 
-func _kadro_satir(vals: Array, k: int, baslik: bool, yet: int) -> Control:
+func _kadro_satir(vals: Array, k: int, baslik: bool, yet: int, yz := {}) -> Control:
 	var p := PanelContainer.new()
 	var c := SERIT if baslik else (SATIR_A if k % 2 == 0 else SATIR_B)
 	var st := _kutu(c, 0, 0); st.content_margin_top = 3; st.content_margin_bottom = 3; st.content_margin_left = 8; st.content_margin_right = 8
@@ -214,6 +218,7 @@ func _kadro_satir(vals: Array, k: int, baslik: bool, yet: int) -> Control:
 		if not baslik and i == 4 and int(vals[i]) > 0: renk = ALTIN
 		var l := _etiket(str(vals[i]), 14 if baslik else 15, renk)
 		if i == 2:
+			hb.add_child(_portre(yz, YUZ_KUCUK))   # ortak yüz çizicisi (F1): addan tohumlu portre
 			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL; l.clip_text = true
 			l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 			if not baslik: l.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED   # oyuncu adı çevrilmez ("D. Gol" → "D. Goals" olmasın)
@@ -289,15 +294,24 @@ func _odul_panel() -> Control:
 	var td := lig.yilin_td_metni()
 	var tdl := _etiket(("YILIN TEKNİK DİREKTÖRÜ:  " if bitti else "TEKNİK DİREKTÖR YARIŞINDA ÖNDE:  ") + td, 15, ALTIN)
 	tdl.custom_minimum_size = Vector2(0, 30); tdl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	v.add_child(_ic(tdl))
+	tdl.size_flags_horizontal = Control.SIZE_EXPAND_FILL; tdl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	var tdy := lig.yilin_td()
+	if not tdy.is_empty() and int(tdy[0]) != lig.biz() and lig.td_adi(tdy[0]) != "":
+		# yılın teknik direktörü: takım elbise + kulüp renginde kravat (CBM teknik ekip portresiyle aynı yüz)
+		var tt: Dictionary = lig.takim(tdy[0])
+		var th := HBoxContainer.new(); th.add_theme_constant_override("separation", 12)
+		th.add_child(_portre({"ad": lig.td_adi(tdy[0]), "rol": "td", "k1": str(tt.c1), "k2": str(tt.c2)}, Vector2(54, 65)))
+		th.add_child(tdl); v.add_child(_ic(th))
+	else:
+		v.add_child(_ic(tdl))
 	v.add_child(_odul_satir(["#", "YILIN OYUNCUSU" if bitti else "YILIN OYUNCUSU YARIŞI", "Mevki", "Kulüp", "Gol", "Puan"], 0, true, false))
 	var k := 0
 	for x in Y:
-		v.add_child(_odul_satir([("★" if (bitti and k == 0) else str(x[0])), x[1], Lig.mevki_adi(x[2]), x[4], str(x[5]), str(x[6])], k, false, x[7])); k += 1
+		v.add_child(_odul_satir([("★" if (bitti and k == 0) else str(x[0])), x[1], Lig.mevki_adi(x[2]), x[4], str(x[5]), str(x[6])], k, false, x[7], Yuz.oyuncu(lig.takim(x[8]), str(x[1]), str(x[2])))); k += 1
 	v.add_child(_odul_satir(["", "SEZONUN 11'İ  ·  4-3-3", "Mevki", "Kulüp", "", "Puan"], 0, true, false))
 	k = 0
 	for x in lig.sezonun_11i():
-		v.add_child(_odul_satir(["", x[2], Lig.mevki_adi(x[1]), x[6], "", str(x[4])], k, false, x[5])); k += 1
+		v.add_child(_odul_satir(["", x[2], Lig.mevki_adi(x[1]), x[6], "", str(x[4])], k, false, x[5], Yuz.oyuncu(lig.takim(x[7]), str(x[2]), str(x[1])))); k += 1
 	return p
 
 # lig istatistikleri: ligin rekorları (en golcü, en sağlam savunma, iç saha / deplasman, form, seriler, en farklı skor) + kulübün karnesi
@@ -339,7 +353,7 @@ func _ist_panel(rakip := false, seyir := false, kulup := false) -> Control:
 		k = 0 if b else k + 1
 	return p
 
-func _odul_satir(vals: Array, k: int, baslik: bool, biz: bool) -> Control:
+func _odul_satir(vals: Array, k: int, baslik: bool, biz: bool, yz := {}) -> Control:
 	var p := PanelContainer.new()
 	var c := SERIT if baslik else (BIZ_RENK if biz else (SATIR_A if k % 2 == 0 else SATIR_B))
 	var st := _kutu(c, 0, 0); st.content_margin_top = 3; st.content_margin_bottom = 3; st.content_margin_left = 8; st.content_margin_right = 8
@@ -350,6 +364,7 @@ func _odul_satir(vals: Array, k: int, baslik: bool, biz: bool) -> Control:
 		if not baslik and i == 0 and str(vals[0]) == "★": renk = ALTIN
 		if not baslik and i == 4 and str(vals[i]) not in ["", "0"]: renk = ALTIN
 		var l := _etiket(str(vals[i]), 14 if baslik else 15, renk)
+		if i == 1: hb.add_child(_portre(yz, YUZ_KUCUK))
 		if i == 1 or i == 3:
 			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL; l.clip_text = true
 			l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -549,7 +564,13 @@ func _yonetim_panel() -> Control:
 	# camia: başkan (CBM ile aynı kişi), taraftar nabzı, başkanın sözü, haftanın manşeti
 	var bk := lig.baskan()
 	if bk[0] != "":
-		var bl := _etiket("Başkan: %s  ·  %s" % [bk[0], bk[1]], 15, YAZI); bl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; v.add_child(_ic(bl))
+		var bl := _etiket("Başkan: %s  ·  %s" % [bk[0], bk[1]], 15, YAZI); bl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		bl.size_flags_horizontal = Control.SIZE_EXPAND_FILL; bl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		# başkan portresi: takım elbise, kulüp renginde kravat (ortak yüz çizicisi, CBM ile aynı ad = aynı yüz)
+		var bt: Dictionary = lig.takim(lig.biz())
+		var bh := HBoxContainer.new(); bh.add_theme_constant_override("separation", 10)
+		bh.add_child(_portre({"ad": str(bk[0]), "rol": "yonetim", "k1": str(bt.c1), "k2": str(bt.c2)}, YUZ_KUCUK)); bh.add_child(bl)
+		v.add_child(_ic(bh))
 	var t := lig.taraftar()
 	var tc := HBoxContainer.new(); tc.add_theme_constant_override("separation", 8)
 	tc.add_child(_etiket("Taraftar", 14, SOLUK))
@@ -563,6 +584,14 @@ func _yonetim_panel() -> Control:
 		if x == "": continue
 		var e := _etiket(("🏛 " if x == lig.camia_sozu() else "📰 ") + x, 14, YAZI); e.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; v.add_child(_ic(e))
 	return p
+
+# satır portresi (ortak yüz çizicisi); başlık satırında aynı genişlikte boşluk
+const YUZ_KUCUK := Vector2(36, 43)
+func _portre(yz: Dictionary, boy: Vector2) -> Control:
+	if yz.is_empty():
+		var bos := Control.new(); bos.custom_minimum_size = boy; return bos
+	if boy.x < 60 and not yz.has("yakin"): yz = yz.duplicate(); yz.yakin = 1.5   # küçük satır portresinde baş kutuyu doldursun
+	return Yuz.yeni(yz, boy)
 
 func _serit(t: String) -> Control:
 	var p := PanelContainer.new(); var st := _kutu(SERIT, 0, 0)

@@ -66,6 +66,7 @@ var mola_satir := 0
 var yardim_acik := false
 var yardim_metin := ""     # boş: Nasıl oynanır; dolu: maç raporu
 var son_rapor := ""
+var rapor_yildiz := {}   # maç raporundaki yıldızın portresi (ortak yüz çizicisi): ad, forma renkleri, ten/saç; not ve kulüp
 var _rapor_lig := false
 var _yardim_dugmeler: Array = []
 var yardim_panel: PanelContainer
@@ -235,6 +236,7 @@ func _ready() -> void:
 		if not _arg.has("lig"): menu_goster(_arg.has("menu"))
 		if _arg.has("yardim"): yardim_goster(true)
 		if _arg.has("rapor"):   # deneme: uzun maç raporu (kariyer satırı ekranı aşacak kadar uzun)
+			rapor_yildiz = {"ad": "I. Yokzek", "k1": "#1d3c8f", "k2": "#f3d35a", "_not": "8.1", "_kulup": "İstanbul Sarı-Lacivert"}
 			son_rapor = "MAÇ RAPORU\nAnkara Siyah  1 - 3  İstanbul Sarı-Lacivert\n\nMAÇIN YILDIZI:  I. Yokzek  (İSL)  ·  8.1\n  Kariyeri: " + " · ".join(range(8).map(func(i): return "2021–22 Bursa Spor (29 M · 3 G) kiralık")) + "\n" + "\nSATIR".repeat(40)
 			rapor_goster()
 		await get_tree().create_timer(float(_arg.get("bekle", "1.5"))).timeout
@@ -939,7 +941,9 @@ func _arayuz() -> void:
 	var yk2 := Button.new(); yk2.text = "Kapat  ×"; yk2.add_theme_font_size_override("font_size", 20); yk2.custom_minimum_size = Vector2(150, 52)
 	yk2.pressed.connect(func(): yardim_goster(false)); yu.add_child(yk2); _yardim_ust_dugme = yk2
 	yk.custom_minimum_size = Vector2(150, 52)
-	yv.add_child(yu); yv.add_child(yl); yv.add_child(yh); yardim_panel.add_child(yv)
+	# maç raporunda yıldız kartı: portre + ad, kulüp, not
+	_yildiz_kart = HBoxContainer.new(); _yildiz_kart.add_theme_constant_override("separation", 14); _yildiz_kart.visible = false
+	yv.add_child(yu); yv.add_child(_yildiz_kart); yv.add_child(yl); yv.add_child(yh); yardim_panel.add_child(yv)
 	ui.add_child(_kaydirmali(yardim_panel))
 
 # küçük ekranda sığmayan panel parmakla kaydırılır; panel gizliyken dokunuşları yutmasın diye kap da gizlenir
@@ -967,6 +971,7 @@ var _tp: Control
 var _imza: Control
 var _ak: Control
 var _yardim_yazi: Label
+var _yildiz_kart: HBoxContainer
 var _yardim_ust_dugme: Button
 var dikey := false
 
@@ -1045,6 +1050,7 @@ func yardim_goster(v: bool, metin := "") -> void:
 	if v and yardim_panel and yardim_panel.get_parent() and yardim_panel.get_parent().get_parent() is ScrollContainer:
 		(yardim_panel.get_parent().get_parent() as ScrollContainer).scroll_vertical = 0
 	for b in _yardim_dugmeler: b.visible = metin == ""
+	_yildiz_kart_kur(v and metin != "" and metin.begins_with("MAÇ RAPORU"))
 	yardim_panel.visible = v and vr == null
 	if not v and _rapor_lig:
 		# lig ekranından açılan maç raporu kapandı: lig ekranına dön
@@ -1056,6 +1062,22 @@ func yardim_goster(v: bool, metin := "") -> void:
 	var mol: bool = menu_acik and M != null and not M.demo
 	menu.visible = menu_acik and not mol and not v
 	mola_panel.visible = mol and vr == null and not v
+
+func _yildiz_kart_kur(goster: bool) -> void:
+	if not _yildiz_kart: return
+	for c in _yildiz_kart.get_children(): c.queue_free()
+	_yildiz_kart.visible = goster and not rapor_yildiz.is_empty()
+	if not _yildiz_kart.visible: return
+	var yz := rapor_yildiz.duplicate(); yz.erase("_not"); yz.erase("_kulup")
+	var cer := PanelContainer.new()
+	var st := _kutu(Color("#f3d35a"), 8); st.set_content_margin_all(3); cer.add_theme_stylebox_override("panel", st)
+	cer.add_child(Yuz.yeni(yz, Vector2(100, 120))); _yildiz_kart.add_child(cer)
+	var v := VBoxContainer.new(); v.alignment = BoxContainer.ALIGNMENT_CENTER; v.add_theme_constant_override("separation", 4)
+	var e1 := Label.new(); e1.text = "MAÇIN YILDIZI"; e1.add_theme_font_size_override("font_size", 15); e1.add_theme_color_override("font_color", Color("#f3d35a"))
+	var e2 := Label.new(); e2.text = str(rapor_yildiz.ad); e2.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	e2.add_theme_font_size_override("font_size", 26); e2.add_theme_color_override("font_color", Color.WHITE)
+	var e3 := Label.new(); e3.text = "%s  ·  %s" % [str(rapor_yildiz._kulup), str(rapor_yildiz._not)]; e3.add_theme_font_size_override("font_size", 17); e3.add_theme_color_override("font_color", Color("#93a3b5"))
+	v.add_child(e1); v.add_child(e2); v.add_child(e3); _yildiz_kart.add_child(v)
 
 func maci_birak() -> void:
 	yardim_goster(false)
@@ -1259,11 +1281,21 @@ func _hizli_bitir() -> void:
 	_lig_bitis = 0.0
 	var e: int = 1 if M.kul_dep else 0
 	var skor: String = M.T[e].t.kisa + " " + str(M.T[e].score) + " - " + str(M.T[1 - e].score) + " " + M.T[1 - e].t.kisa
-	son_rapor = M.rapor_metni(e); lig.son_rapor = ""
+	son_rapor = _rapor_al(e); lig.son_rapor = ""
 	maci_birak()
 	if vr: vr.mola_bilgi("MAÇ SONU  ·  " + skor)
 	afis_goster("MAÇ SONU", skor, 5.0)
 	rapor_goster()
+
+# maç raporu yazısı + maçın yıldızının portresi
+func _rapor_al(ev: int) -> String:
+	rapor_yildiz = {}
+	var Y = M.rapor().yildiz
+	if Y != null:
+		var t: Dictionary = M.T[Y.team].t
+		rapor_yildiz = Yuz.oyuncu(t, str(Y.n), "G" if str(Y.get("rol", "")) == "G" else "")
+		rapor_yildiz.merge({"_not": "%.1f" % float(Y.not_), "_kulup": str(t.ad)})
+	return M.rapor_metni(ev)
 
 # maç raporu: Nasıl oynanır panelinde (ekran) / menü panelinde (VR); lig ekranından açılırsa kapanınca oraya dönülür
 func rapor_goster() -> void:
@@ -1279,14 +1311,14 @@ func _lig_bitir() -> void:
 	lig_maci = false
 	if kupa_maci:
 		kupa_maci = false
-		son_rapor = M.rapor_metni(0); lig.son_rapor = son_rapor
+		son_rapor = _rapor_al(0); lig.son_rapor = son_rapor
 		lig.mesaj = lig.kupa_sonuc(M.T[0].score, M.T[1].score, M.events)
 		if lig.kupa_kazandi(): lig.mesaj = "ŞAMPİYONSUN!  " + lig.kupa_tanim(lig.kupa.id).ad
 		_gosterim_kur()
 		lig_goster(true)
 		rapor_goster()
 		return
-	son_rapor = M.rapor_metni(1 if M.kul_dep else 0); lig.son_rapor = son_rapor
+	son_rapor = _rapor_al(1 if M.kul_dep else 0); lig.son_rapor = son_rapor
 	lig.kullanici_sonuc(M.T[0].score, M.T[1].score, M.events)
 	_gosterim_kur()
 	lig_goster(true)

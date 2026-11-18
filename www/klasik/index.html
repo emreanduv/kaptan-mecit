@@ -75,6 +75,7 @@ button{font-family:var(--f);color:inherit;cursor:pointer}
 .kupa .km{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;font-size:13px;padding:4px 0;border-bottom:1px solid var(--paper-d)}.kupa .km span:last-child{text-align:right}.kupa .km b{min-width:52px;text-align:center}.kupa .km .w{font-weight:800}.kupa .km.biz{background:#ffd15c55;border-radius:6px}.kupa .yildiz{background:linear-gradient(90deg,#ffd15c,#f0b232);border-radius:10px;padding:8px 10px;font-weight:800}
 #okart{position:fixed;inset:0;z-index:60;background:#0009;display:flex;align-items:center;justify-content:center;padding:16px}#okart .ok{max-width:440px;width:100%;max-height:85vh;overflow:auto}
 .kar{width:100%;border-collapse:collapse;font-size:13px}.kar th,.kar td{text-align:left;padding:3px 4px;border-bottom:1px solid var(--paper-d)}.kar td:nth-child(3),.kar td:nth-child(4),.kar th:nth-child(3),.kar th:nth-child(4){text-align:right}.notlar li[data-act]{cursor:pointer}.konus b{display:block;font-size:12px;letter-spacing:.5px;margin-bottom:4px}
+.yz-k{width:40px;height:48px;border-radius:7px;flex:none;box-shadow:0 0 0 2px var(--ink)}.yz-b{width:84px;height:101px;border-radius:9px;flex:none;box-shadow:0 0 0 2px var(--ink),0 3px 8px rgba(0,0,0,.35)}.okb{display:flex;gap:12px;align-items:center;margin-bottom:6px}.okb h3{margin:0 0 4px}
 .rapor .yildiz{background:linear-gradient(90deg,#ffd15c,#f0b232);color:var(--ink);border-radius:10px;padding:8px 10px;font-weight:800;margin-bottom:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}.rapor .yildiz span{margin-left:auto;background:var(--ink);color:#fff;border-radius:6px;padding:1px 7px}
 .rstat .rs{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:6px;font-size:13px;margin:3px 0}.rstat .rs b{text-align:center}.rstat .rs span{text-align:center;font-weight:700}.rstat .rs i{display:block;height:5px;background:var(--paper-d);border-radius:3px;overflow:hidden;margin-top:2px}.rstat .rs em{display:block;height:100%;background:var(--navy)}
 .notlar{display:grid;grid-template-columns:1fr 1fr;gap:8px}.notlar ul{list-style:none;margin:0;padding:0;font-size:12.5px}.notlar li{display:flex;justify-content:space-between;gap:4px;padding:3px 0;border-bottom:1px solid var(--paper-d)}.notlar li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.notlar li.yz{font-weight:800}
@@ -1639,9 +1640,11 @@ function hud(){if(!M)return;const a=M.T[0],b=M.T[1];$('#sb').innerHTML=`<span cl
 /* ===================== MAÇ RAPORU (Champion Battle Manager 4.5.1'deki gibi): goller, asistler, kartlar, istatistik, oyuncu notları, maçın yıldızı ===================== */
 /* oyuncu kartı: kariyer geçmişi (Champion Battle Manager 4.5.0'daki gibi; yıl, kulüp, maç, gol, kiralık, A milli). Veri ayrı dosyada, ilk açılışta yüklenir. */
 function kmKariyerYukle(cb){if(window.KARIYER)return cb();const s=document.createElement('script');s.src='kariyer.js';s.onload=()=>cb();s.onerror=()=>cb();document.head.appendChild(s)}
+/* ortak yüz çizicisi (F1, yuz.js — Champion Battle Manager ve Kaptan Mecit 3 ile aynı: aynı ad = aynı yüz); kulüp renginde portre */
+function kmYuz(ad,tk,sinif,rol){if(!window.MAYuz)return '';const t=tk&&team(tk.lg,tk.id);return MAYuz.etiket({ad:String(ad||'?'),rol:rol||'oyuncu',k1:t?t.c1:'#c8102e',k2:t?t.c2:'#ffffff',yakin:1.4},sinif)}
 function oyuncuKart(lg,id,no,ad){kmKariyerYukle(()=>{const K=window.KARIYER,v=K&&K.K[lg+':'+id+':'+no],t=team(lg,id);const o=document.createElement('div');o.id='okart';o.dataset.act='okartKapat';
   const g=v?v[0]:[],mi=v&&v[1];const sat=g.slice().reverse().map(x=>`<tr><td>${x[0]}${x[1]===0?'–':x[1]!==x[0]?'–'+String(x[1]).slice(2):''}</td><td>${esc(K.KLUP[x[2]]||'?')}${x[5]?' <small>(kiralık)</small>':''}</td><td>${x[3]}</td><td>${x[4]}</td></tr>`).join('');
-  o.innerHTML=`<div class="card ok" data-act="okartKapat"><h3>${no} ${esc(ad)}</h3><p class="dim" style="margin:0 0 6px">${t?esc(t.name):''}</p>
+  o.innerHTML=`<div class="card ok" data-act="okartKapat"><div class="okb">${kmYuz(ad,{lg,id},'yz-b')}<div><h3>${no} ${esc(ad)}</h3><p class="dim" style="margin:0 0 6px">${t?esc(t.name):''}</p></div></div>
    ${g.length?`<table class="kar"><tr><th>Yıl</th><th>Kulüp</th><th>M</th><th>⚽</th></tr>${sat}</table>`:'<p class="dim">Kariyer bilgisi yok.</p>'}
    ${mi?`<p style="margin:8px 0 0"><b>A milli</b> · ${mi[0]} M · ${mi[1]} ⚽</p>`:''}<button class="alt dark" data-act="okartKapat" style="margin-top:10px">KAPAT</button></div>`;
   const e=$('#okart');if(e)e.remove();document.body.appendChild(o)})}
@@ -1663,7 +1666,7 @@ function raporHtml(rp,tak,tk){if(!rp)return '';const [h,a]=tak,I=rp.ist,sat=(ad,
   const pasY=[0,1].map(t=>I.pas[t]?Math.round(I.pasOk[t]/I.pas[t]*100):0);
   const not=t=>rp.oy.filter(o=>o.team===t).sort((x,y)=>(x.gir?1:0)-(y.gir?1:0)||x.no-y.no).map(o=>`<li class="${rp.yildiz&&o.n===rp.yildiz.n&&o.team===rp.yildiz.team?'yz':''}"${tk&&tk[t]&&tk[t].lg?` data-act="okart" data-lg="${tk[t].lg}" data-id="${tk[t].id}" data-no="${o.no}" data-ad="${esc(o.n)}"`:''}><span>${o.no} ${esc(o.n)}${o.g?' '+'⚽'.repeat(Math.min(o.g,3)):''}${o.a?' 👟':''}${/K/.test(o.kart)?' 🟥':/S/.test(o.kart)?' 🟨':''}${o.gir?` <small>${o.gir}'</small>`:''}</span><b class="nt" style="--n:${o.not}">${o.not.toFixed(1)}</b></li>`).join('');
   return `<div class="card rapor"><h3>MAÇ RAPORU</h3>
-   ${rp.yildiz?`<div class="yildiz">⭐ MAÇIN YILDIZI · <b>${esc(rp.yildiz.n)}</b> <span>${rp.yildiz.not.toFixed(1)}</span></div>`:''}
+   ${rp.yildiz?`<div class="yildiz">${kmYuz(rp.yildiz.n,tk&&tk[rp.yildiz.team],'yz-k')}⭐ MAÇIN YILDIZI · <b>${esc(rp.yildiz.n)}</b> <span>${rp.yildiz.not.toFixed(1)}</span></div>`:''}
    <div class="rstat">${sat('Topla oynama',I.top,1)}${sat('Şut',I.sut)}${sat('İsabetli şut',I.isabet)}${sat('Pas isabeti',pasY,1)}${sat('Korner',I.korner)}${sat('Faul',I.faul)}${sat('Ofsayt',I.ofs)}${sat('Kurtarış',I.kurtar)}${sat('Kart',I.kart)}</div>
    ${rp.kartlar.length?`<h3>KARTLAR</h3><div class="res">${rp.kartlar.map(k=>`<div><span>${k.team===h?esc(k.n):''}</span><b>${k.k==='S'?'🟨':'🟥'}</b><span>${k.team===a?esc(k.n):''}</span></div>`).join('')}</div>`:''}
    <h3>OYUNCU NOTLARI</h3><div class="notlar"><ul>${not(h)}</ul><ul>${not(a)}</ul></div>
@@ -2117,6 +2120,6 @@ if(/[?&#]demo/.test(location.href)){startMatch(team('tr','gs'),team('tr','fb'),n
 window.__RL={get M(){return M},startMatch,team,S:()=>S,step,draw,endMatch};
 </script>
 <script>window.SesKurtarici&&SesKurtarici.yenidenKur(()=>{SND.ctx=null});</script>
-<script src="kumanda.js"></script>
+<script src="yuz.js"></script><script src="kumanda.js"></script>
 </body>
 </html>

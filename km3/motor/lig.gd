@@ -387,7 +387,7 @@ func kadro_satirlari() -> Array:
 	for grup in [[k.get("oy", []), true], [k.get("yedek", []), false]]:
 		var G: Array = []
 		for o in grup[0]:
-			G.append([int(o.get("no", 0)), str(o.get("mk", "")), str(o.n), yetenek(float(o.get("ca", 0.0))), int(d.goller.get(str(biz()) + "|" + str(o.n), 0)), grup[1]])
+			G.append([int(o.get("no", 0)), str(o.get("mk", "")), str(o.n), yetenek(float(o.get("ca", 0.0))), int(d.goller.get(str(biz()) + "|" + str(o.n), 0)), grup[1], str(o.get("ten", "")), str(o.get("sac", ""))])   # 6-7: yüz çizicisi için ten / saç
 		G.sort_custom(func(a, b): return MEVKI_SIRA.find(a[1]) < MEVKI_SIRA.find(b[1]) if a[1] != b[1] else a[3] > b[3])
 		r.append_array(G)
 	return r
@@ -456,7 +456,7 @@ func yilin_oyuncusu_adaylari(n := 10) -> Array:
 	var P := odul_puanlari()
 	for k in mini(n, P.size()):
 		var x: Array = P[k]
-		r.append([k + 1, x[1], x[3], takim(x[4]).kisa, takim(x[4]).ad, x[5], roundi(x[0]), x[4] == biz()])
+		r.append([k + 1, x[1], x[3], takim(x[4]).kisa, takim(x[4]).ad, x[5], roundi(x[0]), x[4] == biz(), x[4]])   # 8: kulüp (yüz çizicisi)
 	return r
 
 func yilin_oyuncusu_metni() -> String:
@@ -471,7 +471,7 @@ func sezonun_11i() -> Array:
 		var rol := str(x[2])
 		if int(kota.get(rol, 0)) <= 0: continue
 		kota[rol] = int(kota[rol]) - 1
-		r.append([rol, x[3], x[1], takim(x[4]).kisa, roundi(x[0]), x[4] == biz(), takim(x[4]).ad])
+		r.append([rol, x[3], x[1], takim(x[4]).kisa, roundi(x[0]), x[4] == biz(), takim(x[4]).ad, x[4]])   # 7: kulüp (yüz çizicisi)
 	var sira := ["G", "D", "O", "F"]
 	r.sort_custom(func(a, b): return sira.find(a[0]) < sira.find(b[0]) if a[0] != b[0] else a[4] > b[4])
 	return r
