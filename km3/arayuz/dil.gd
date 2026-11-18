@@ -267,4 +267,13 @@ static func ayarla(ingilizce: bool, kaydet := true) -> void:
 		var c := ConfigFile.new(); c.load(AYAR)
 		c.set_value("ayar", "dil", "en" if en else "tr"); c.save(AYAR)
 
+# tablo başlığı ve sonuç harfleri (0.10.9): tek harfler genel sözlükte çevrilmez (G = galibiyet de kaleci de olabilir),
+# bu yüzden çağıran yer hangi anlamda kullandığını seçer.
+const SUTUN_EN := {"O": "P", "G": "W", "B": "D", "M": "L", "A": "F", "Y": "A", "Av": "GD", "P": "Pts"}
+const HARF_EN := {"G": "W", "B": "D", "M": "L"}
+const YER_EN := {"İ": "H", "D": "A"}
+static func sutun(s: String) -> String: return SUTUN_EN.get(s, s) if en else s
+static func harf(s: String) -> String: return HARF_EN.get(s, s) if en else s
+static func yer(s: String) -> String: return YER_EN.get(s, s) if en else s
+
 static func ad() -> String: return "English" if en else "Türkçe"

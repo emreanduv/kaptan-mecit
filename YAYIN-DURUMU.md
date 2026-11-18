@@ -5,6 +5,9 @@
 - iOS 1.7.5 (43) TestFlight'a gönderildi. App Store: reddedilen 1.0.0 sürümü 1.7.5'e çevrildi, derleme 43 bağlı, yeni TR/EN metinler, 26 görsel (iPhone 6.7" + iPad 13", Modern + Klasik), CBM'den farkı anlatan inceleme notu, fiyat 0 (`store/km/metin.json`, `araclar/asc_sayfa.py` artık KM'yi de doldurur).
 - Gönderim iki Çin anakarası uyum formunda (Security Assessment, AI Generated or Synthetic Content) durdu; Emre'nin kararıyla Çin anakarası satıştan çıkarıldı (174 ülke). **18 Kas: 1.7.5 (43) WAITING_FOR_REVIEW.** Emre TestFlight'ta 1.7.5'i gözle doğrulayacak; sorun çıkarsa `asc-durum.yml kip=iptal` ile geri çekilir. Not: bundan sonraki her yeni ürün başvurusunda Çin anakarası baştan kapalı tutulmalı (oyunlarda Çin oyun lisansı ve bu iki form gerekir).
 
+## 18 Kas (günlük görev): KM3 0.10.9 — İngilizce tablo başlıkları
+- EN'de puan tablosu, kupa grup tabloları, tarihçe ve VR panelindeki O G B M A Y Av P başlıkları artık P W D L F A GD Pts; form ve fikstür sonuç harfleri W/D/L, iç saha/deplasman H/A, fikstür başlığı "10W 1D 1M" yerine W/D/L (`Dil.sutun()`, `Dil.harf()`, `Dil.yer()`; tek harfler genel sözlüğe konmadı, G kaleci de olabilir). lig/milli/kupa/ist denemeleri TAMAM; 844×390, 390×844, VR EN ekran görüntüsü kontrol. Meta KM3 v1 (0.7.5) hâlâ "Pending release" (Onaylandı 9 Kas; yayın tarihi Emre'de).
+
 ## 1.5.0 — Klasik + Modern (5–6 Kas)
 - Uygulama açılınca önce dil (Türkçe / English), sonra oyun: **Klasik** (önceki Kaptan Mecit, `www/klasik/`) ya da **Modern** (Kaptan Mecit 3'ün en güncel web derlemesi, `www/modern/`). Seçilen dil hatırlanır; oyunlardan "Oyun seçimi" ile açılışa dönülür.
 - `www/modern/` depoya girmez: `ios.yml` / `android.yml` derlerken `araclar/modern-al.sh` ile emreanduv.github.io'daki `kaptan-mecit-3/` alınır. Yani KM3 web'e her gönderimde bir sonraki mağaza derlemesi otomatik güncel Modern'i taşır.

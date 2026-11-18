@@ -111,7 +111,7 @@ func _tablo_panel() -> Control:
 	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 0); p.add_child(v)
 	v.add_child(_serit("PUAN DURUMU" if lig.var_mi() else "KULÜPLER  ·  güç sırasıyla"))
 	if lig.var_mi():
-		v.add_child(_tablo_satir(["#", "Takım"] + SUTUNLAR + ["Form"], -1, true, false, ""))
+		v.add_child(_tablo_satir(["#", "Takım"] + SUTUNLAR.map(Dil.sutun) + ["Form"], -1, true, false, ""))
 		var R := lig.tablo_satirlari()
 		for r in R:
 			var vals: Array = [str(r[0]), r[2]]
@@ -151,7 +151,7 @@ func _fikstur_panel() -> Control:
 			"G": G += 1
 			"B": B += 1
 			"M": M += 1
-	v.add_child(_serit("FİKSTÜR  ·  %s  ·  %dG %dB %dM" % [lig.takim(lig.biz()).ad, G, B, M]))
+	v.add_child(_serit("FİKSTÜR  ·  %s  ·  %d%s %d%s %d%s" % [lig.takim(lig.biz()).ad, G, Dil.harf("G"), B, Dil.harf("B"), M, Dil.harf("M")]))
 	var sira := {}
 	for r in lig.tablo_satirlari(): sira[r[1]] = int(r[0])
 	var iki := BoxContainer.new(); iki.vertical = dikey; iki.add_theme_constant_override("separation", 0 if dikey else 10)
@@ -168,7 +168,7 @@ func _fikstur_panel() -> Control:
 			var rad: String = rk.ad + "  (%d.)" % int(sira.get(rk.kisa, 0))
 			if lig.derbi_mi(lig.biz(), int(x[2])): rad += "  ⚔ DERBİ"
 			var skor := "%d - %d" % [int(x[3]), int(x[4])] if int(x[3]) >= 0 else ("–" if int(x[0]) != simdi else "SIRADA")
-			dvv.add_child(_fik_satir([str(x[0]), "İ" if x[1] else "D", rad, skor, Lig.sonuc_harf(x)], k, false, int(x[0]) == simdi and not lig.bitti(), Lig.sonuc_harf(x)))
+			dvv.add_child(_fik_satir([str(x[0]), Dil.yer("İ" if x[1] else "D"), rad, skor, Dil.harf(Lig.sonuc_harf(x))], k, false, int(x[0]) == simdi and not lig.bitti(), Lig.sonuc_harf(x)))
 	return p
 
 # gol krallığı: ligin en golcü 20 oyuncusu (kendi oyuncuların vurgulu), menajer oyunlarının istatistik listesi gibi
@@ -240,7 +240,7 @@ func _tarih_panel() -> Control:
 	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 0); p.add_child(v)
 	var biz: Dictionary = lig.takim(lig.biz())
 	v.add_child(_serit("TARİHÇE  ·  %s  ·  %s" % [biz.ad, lig.tarih_ozet()]))
-	v.add_child(_tarih_satir(["Sezon", "Sıra", "O", "G", "B", "M", "Av", "P", "Şampiyon", "Gol kralı", "Yönetim"], 0, true, false, false))
+	v.add_child(_tarih_satir(["Sezon", "Sıra", Dil.sutun("O"), Dil.sutun("G"), Dil.sutun("B"), Dil.sutun("M"), Dil.sutun("Av"), Dil.sutun("P"), "Şampiyon", "Gol kralı", "Yönetim"], 0, true, false, false))
 	var k := 0
 	for x in lig.tarih_satirlari():
 		var sam: String = "sürüyor" if x[13] else x[10]
@@ -432,7 +432,7 @@ func _tablo_satir(vals: Array, sira: int, baslik: bool, biz: bool, form: String,
 			var rt := RichTextLabel.new(); rt.bbcode_enabled = true; rt.fit_content = true; rt.scroll_active = false
 			rt.custom_minimum_size = Vector2(96, 0); rt.add_theme_font_size_override("normal_font_size", 14)
 			var s := "[center]"
-			for h in form: s += "[color=%s]%s[/color] " % [("#3ec46d" if h == "G" else ("#d9b34f" if h == "B" else "#d9534f")), h]
+			for h in form: s += "[color=%s]%s[/color] " % [("#3ec46d" if h == "G" else ("#d9b34f" if h == "B" else "#d9534f")), Dil.harf(h)]
 			rt.text = s + "[/center]"
 			hb.add_child(rt); continue
 		if k == 9 and not baslik: l.add_theme_color_override("font_color", ALTIN if biz else Color.WHITE)
@@ -640,7 +640,7 @@ func _kupa_panel() -> Control:
 				v.add_child(_gol_satir([str(m[0]) + ".", m[1] + "   " + m[2] + "   " + m[3], "", ""], k + 1, false, m[4])); k += 1
 		for G in lig.grup_satirlari():
 			v.add_child(_serit(str(G[0])))
-			v.add_child(_tablo_satir(["#", "Takım"] + SUTUNLAR, -1, true, false, ""))
+			v.add_child(_tablo_satir(["#", "Takım"] + SUTUNLAR.map(Dil.sutun), -1, true, false, ""))
 			for r in G[1]:
 				var vals: Array = [str(r[0]), r[1]]
 				for j in range(2, 10): vals.append(("+" if j == 8 and int(r[j]) > 0 else "") + str(r[j]))

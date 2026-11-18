@@ -307,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language", "Maç saati"]
-const SURUM := "0.10.8"
+const SURUM := "0.10.9"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -454,7 +454,7 @@ func _lig_ciz() -> void:
 	if L.kip == "kupa": _kupa_ciz(L); return
 	# tablo
 	var sutun: Array = []
-	for c in LIG_SUTUN: sutun.append(c[0])
+	for c in LIG_SUTUN: sutun.append(Dil.sutun(c[0]))
 	var biz_sira := -1
 	if L.var_mi() and L.gorunum == "fikstur":
 		# kulübün fikstürü: sıradaki maçın bulunduğu devre (sezon bittiyse ikinci devre)
@@ -466,12 +466,12 @@ func _lig_ciz() -> void:
 		for k in range(dv * yari, mini((dv + 1) * yari, F.size())):
 			var x: Array = F[k]
 			var skor := "%d-%d" % [int(x[3]), int(x[4])] if int(x[3]) >= 0 else "–"
-			var v := [str(x[0]), ("İ  " if x[1] else "D  ") + L.takim(int(x[2])).ad, "", "", "", "", skor, Lig.sonuc_harf(x)]
+			var v := [str(x[0]), (Dil.yer("İ" if x[1] else "D") + "  ") + L.takim(int(x[2])).ad, "", "", "", "", skor, Dil.harf(Lig.sonuc_harf(x))]
 			for j in v.size(): sutun[j] += "\n" + v[j]
 			if int(x[0]) == simdi and not L.bitti(): biz_sira = k - dv * yari + 1
 	elif L.var_mi() and L.gorunum == "tarih":
 		if L.mesaj == "": _mesaj.text = "TARİHÇE  ·  " + L.tarih_ozet()
-		sutun = ["", "TARİHÇE", "Sıra", "G", "B", "M", "Av", "P"]
+		sutun = ["", "TARİHÇE", "Sıra", Dil.sutun("G"), Dil.sutun("B"), Dil.sutun("M"), Dil.sutun("Av"), Dil.sutun("P")]
 		for x in L.tarih_satirlari().slice(0, 18):
 			var sam: String = ("sürüyor  ·  hedef: " + x[14]) if x[13] else ("★ " if x[12] else "") + "Şampiyon: " + x[9] + (("  ·  " + x[14]) if x[14] != "" else "")
 			var v := ["", x[0] + "  ·  " + sam, "%d." % int(x[1]), str(x[4]), str(x[5]), str(x[6]), ("+" if int(x[7]) > 0 else "") + str(x[7]), str(x[8])]
@@ -590,7 +590,7 @@ func _kupa_ciz(L: Lig) -> void:
 		# Milletler Kupası grup aşaması: bizim grubun puan durumu, altında grubun maçları
 		_lig_biz.visible = false
 		var G: Array = L.grup_satirlari()[0]
-		sutun = ["#", str(G[0]), "O", "G", "B", "M", "Av", "P"]
+		sutun = ["#", str(G[0]), Dil.sutun("O"), Dil.sutun("G"), Dil.sutun("B"), Dil.sutun("M"), Dil.sutun("Av"), Dil.sutun("P")]
 		for r in G[1]:
 			var v := [str(r[0]), ("» " if r[10] else "") + str(r[1]), str(r[2]), str(r[3]), str(r[4]), str(r[5]), ("+" if int(r[8]) > 0 else "") + str(r[8]), str(r[9])]
 			for j in v.size(): sutun[j] += "\n" + v[j]
