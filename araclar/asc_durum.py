@@ -8,7 +8,7 @@ def api(m,p,b=None):
     r=urllib.request.Request('https://api.appstoreconnect.apple.com/'+p,method=m,data=json.dumps(b).encode() if b is not None else None,headers={'Authorization':'Bearer '+tok(),'Content-Type':'application/json'})
     try:
         with urllib.request.urlopen(r) as f: t=f.read(); return json.loads(t) if t else {}
-    except urllib.error.HTTPError as e: log.append(f'{m} {p} -> {e.code} {e.read().decode()[:600]}'); return None
+    except urllib.error.HTTPError as e: log.append(f'{m} {p} -> {e.code} {e.read().decode()[:6000]}'); return None
 app=api('GET',f'v1/apps?filter[bundleId]={BUNDLE}')['data'][0]; AID=app['id']
 out={'app':app['attributes']['name'],'kip':KIP,'surumler':[]}
 vs=api('GET',f'v1/apps/{AID}/appStoreVersions?limit=8&include=build')
