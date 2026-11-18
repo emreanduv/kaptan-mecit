@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{margin:0;background:#efe6d2;font:12px sans-serif}.g{display:flex;flex-wrap:wrap;gap:8px;padding:8px}.k{text-align:center}.yuz-p{width:100px;height:120px;border-radius:8px;display:block}</style>
+<div class="g" id="g"></div>
+<script src="../www/yuz.js"></script>
+<script>
+const A=[["U. Çakel",24,"oyuncu","#A90432","#FDB912"],["R. Sarrae",29,"oyuncu","#A90432","#FDB912"],["D. Sánkhaz",21,"oyuncu","#004b9b","#ffffff"],["A. Bordokcı",33,"oyuncu","#ffed00","#00205b"],["M. Ardıç",19,"oyuncu","#1a1a1a","#ffffff"],["K. Yılmaz",27,"oyuncu","#e30613","#ffffff"],["Lakaka",31,"oyuncu","#003da5","#ffd200"],["Oğaz Çatim",52,"td","#A90432","#FDB912"],["T. Merkan",61,"td","#004b9b","#ffffff"],["S. Ünar",44,"asistan","#1a1a1a","#ffffff"],["Ajans muhabiri",38,"gazeteci","#5b6b7a","#fff"],["Spor gazetesi muhabiri",29,"gazeteci","#5b6b7a","#fff"],["E. Duran",58,"yonetim","#e30613","#ffffff"],["H. Kaçar",40,"hakem","#111","#ff0"],["J. Mbeki",23,"oyuncu","#006633","#ffffff"],["P. Novak",35,"oyuncu","#c8102e","#ffffff"]];
+const g=document.getElementById('g');
+for(const [ad,yas,rol,k1,k2] of A){const d=document.createElement('div');d.className='k';d.innerHTML=MAYuz.etiket({ad,yas,rol,k1,k2})+ad+' · '+rol;g.appendChild(d);}
+for(let i=0;i<5;i++){const d=document.createElement('div');d.className='k';d.innerHTML=MAYuz.etiket({ad:'Stil '+i,yas:25,stil:i,k1:'#2e9e44',k2:'#fff'})+'stil '+i;g.appendChild(d);}
+</script>
