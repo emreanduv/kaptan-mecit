@@ -99,7 +99,7 @@ if M.get('inceleme_notu'):
     if r is not None: ok('inceleme notu')
     cur=api('GET',f'v1/appStoreReviewDetails/{rd["data"]["id"]}') if rd and rd.get('data') else None
     if cur: out['inceleme_iletisim']={k:bool(cur['data']['attributes'].get(k)) for k in ('contactFirstName','contactLastName','contactPhone','contactEmail')}
-ps=api('GET',f'v1/apps/{AID}/appPriceSchedule/manualPrices?include=appPricePoint&limit=5')
+ps=api('GET',f'v1/appPriceSchedules/{AID}/manualPrices?include=appPricePoint&limit=5')
 if ps: out['fiyat']=[x['attributes'].get('customerPrice') for x in ps.get('included',[]) if x['type']=='appPricePoints']
 out['urller']={l['attributes']['locale']:[l['attributes'].get('supportUrl')] for l in api('GET',f'v1/appStoreVersions/{VID}/appStoreVersionLocalizations')['data']}
 out['hatalar']=log
