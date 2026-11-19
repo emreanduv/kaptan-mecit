@@ -434,18 +434,18 @@ const onbellek=new Map();
 let fontDamga=0;
 if(G.document&&document.fonts&&document.fonts.addEventListener)document.fonts.addEventListener('loadingdone',()=>{fontDamga++;onbellek.clear();});
 
-function sigdir(c,t,boy,maxW,font){let fs=boy;do{c.font=fs+'px '+font;}while(c.measureText(t).width>maxW&&(fs-=0.5)>4);return fs;}
+function sigdir(c,t,boy,maxW,font,kal){let fs=boy;do{c.font=(kal||'')+fs+'px '+font;}while(c.measureText(t).width>maxW&&(fs-=0.5)>4);return fs;}
 
 /* A: [ad, sözTR, sözEN, zemin1, zemin2, yazı, vurgu, simge]; w,h: mantıksal ölçü; o.olcek: piksel/mantıksal; o.en: İngilizce
-   o.yaziFont / o.sozFont: oyunun yazı tipleri; o.imza: köşede "MR. ANDUV!" (varsayılan açık) */
+   o.yaziFont / o.sozFont: oyunun yazı tipleri; o.yaziKalin / o.sozKalin: kalınlık ön eki (ör. '900 '; sistem yazısında); o.imza: köşede "MR. ANDUV!" (varsayılan açık) */
 function afisTuval(A,w,h,o){
   o=o||{};const olcek=o.olcek||1,en=!!o.en;
   const pw=Math.max(1,Math.round(w*olcek)),ph=Math.max(1,Math.round(h*olcek));
-  const k=A[0]+'|'+pw+'x'+ph+'|'+(en?1:0)+'|'+fontDamga+'|'+(o.yaziFont||'');
+  const k=A[0]+'|'+pw+'x'+ph+'|'+(en?1:0)+'|'+fontDamga+'|'+(o.yaziFont||'')+(o.yaziKalin||'');
   let cv=onbellek.get(k);if(cv)return cv;
   cv=document.createElement('canvas');cv.width=pw;cv.height=ph;
   const c=cv.getContext('2d');c.scale(pw/w,ph/h);
-  const yf=o.yaziFont||'Bungee, Impact, sans-serif',sf=o.sozFont||'"Baloo 2", "Trebuchet MS", sans-serif';
+  const yf=o.yaziFont||'Bungee, Impact, sans-serif',sf=o.sozFont||'"Baloo 2", "Trebuchet MS", sans-serif',yk=o.yaziKalin||'',sk=o.sozKalin||'';
   // zemin
   c.fillStyle=dg(c,0,0,w,h,[[0,A[3]],[1,A[4]]]);c.fillRect(0,0,w,h);
   const sh=Math.min(h*1.75,w*0.36);       // sahne kutusu
@@ -460,14 +460,14 @@ function afisTuval(A,w,h,o){
   const tx=sh+h*0.2,tw=w-tx-h*0.25;
   const ad=A[0],soz=en?A[2]:A[1],imzali=o.imza!==false&&A[7]!=='imza'&&A[0].indexOf('MR. ANDUV')<0;
   c.textBaseline='alphabetic';c.textAlign='left';
-  let iw=0;if(imzali){c.font=(h*0.17)+'px '+yf;iw=c.measureText('MR. ANDUV!').width+h*0.25;}
-  let fs=sigdir(c,ad,h*0.42,tw-iw,yf);
+  let iw=0;if(imzali){c.font=yk+(h*0.17)+'px '+yf;iw=c.measureText('MR. ANDUV!').width+h*0.25;}
+  let fs=sigdir(c,ad,h*0.42,tw-iw,yf,yk);
   const koyu=parseInt(A[5].slice(1,3),16)<90;   // koyu yazıya açık gölge
   c.fillStyle=koyu?'rgba(255,255,255,0.35)':'rgba(0,0,0,0.45)';c.fillText(ad,tx+h*0.022,h*0.5+h*0.022);
   c.fillStyle=A[5];c.fillText(ad,tx,h*0.5);
-  fs=sigdir(c,soz,h*0.32,tw,sf);
+  fs=sigdir(c,soz,h*0.32,tw,sf,sk);
   c.globalAlpha=0.95;c.fillStyle=A[6];c.fillText(soz,tx,h*0.86);c.globalAlpha=1;
-  if(imzali){c.font=(h*0.17)+'px '+yf;c.textAlign='right';c.fillStyle='rgba(255,255,255,0.55)';c.fillText('MR. ANDUV!',w-h*0.12,h*0.22);}
+  if(imzali){c.font=yk+(h*0.17)+'px '+yf;c.textAlign='right';c.fillStyle='rgba(255,255,255,0.55)';c.fillText('MR. ANDUV!',w-h*0.12,h*0.22);}
   // LED dokusu ve parlaklık
   c.fillStyle='rgba(255,255,255,0.10)';c.fillRect(0,0,w,h*0.08);
   c.fillStyle='rgba(0,0,0,0.25)';c.fillRect(0,h*0.93,w,h*0.07);

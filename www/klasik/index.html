@@ -796,7 +796,8 @@ const ADS=[['MR. ANDUV!','#141414','#f3d35a'],['INSTAGRAM / MR. ANDUV!','#c13584
  ['YOUTUBE MUSIC / MR. ANDUV!','#ff0000','#ffffff'],['KURT YOLU','#1d2b38','#ffffff'],['KIRMIZI YALI','#b71c1c','#ffffff'],['CHAMPION BATTLE MANAGER','#2e9e44','#ffffff'],
  ['KAPTAN MECİT','#c8102e','#ffffff'],['MALAZGİRT AKINCILARI','#7a1f3d','#f2c230'],['HİSAR: KARA GECE','#1a1a2e','#e9b949'],['LEGEND HEADS','#ee7b30','#ffffff'],
  ['TOPÇULAR','#5b3a1e','#f2c230'],['TAMGA YOLU','#3a2412','#e8b04a'],['TULPAR','#1c130d','#e0b048'],['NUTUK SALONU','#132545','#ffffff'],['YAŞAM REHBERİ','#14171a','#e9d8a6'],['GEZİ PASAPORTU','#0b1e22','#4fd1c5'],['SAAT VİTRİNİ','#0b1e22','#ffb21e'],['EMREANDUV.GITHUB.IO','#1d2b38','#f3d35a'],['FUTBOL VİTRİNİ','#1f3b3c','#86d36e'],['BORSA VİTRİNİ','#0d1b3e','#f3d35a'],
- ['FIRSAT VİTRİNİ','#ed713c','#ffffff'],['BİLGİ VİTRİNİ','#2a4f8a','#ffffff']];
+ ['FIRSAT VİTRİNİ','#ed713c','#ffffff'],['BİLGİ VİTRİNİ','#2a4f8a','#ffffff'],
+ ['GÖKALP','#1a1440','#ffffff'],['DEMİR KAĞNI','#4a3018','#fff0d0'],['YOKUŞ YOLU','#1d3157','#f3c04d']];
 /* panolar: yalnız Mr. Anduv! markası, oyunları, uygulamaları ve sosyal medya hesapları (başka marka ya da kurum adı yok); Mr. Anduv! ve sosyal medya/müzik hesapları her maçta bolca döner */
 const ADS_MUST=['MR. ANDUV!','INSTAGRAM / MR. ANDUV!','TIKTOK / MR. ANDUV!','YOUTUBE / MR. ANDUV!','X / MR. ANDUV!','TWITCH / MR. ANDUV!','KICK / MR. ANDUV!','LINKEDIN / MR. ANDUV!','SPOTIFY / MR. ANDUV!','APPLE MUSIC / MR. ANDUV!','AMAZON MUSIC / MR. ANDUV!','YOUTUBE MUSIC / MR. ANDUV!'];
 function adPool(){const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -808,6 +809,11 @@ function adPool(){const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(
    Panolarda yalnız Mr. Anduv! markası, oyunları, uygulamaları ve sosyal medya hesapları; yarın sponsor eklemek için SPONSORLAR listesine bir satır yeter:
      {ad:'MARKA', renk:'#1d8a4a', yazi:'#ffffff', alt:'KAMPANYA METNİ'}   (alt boşsa yalnız ad gösterilir) */
 const SPONSORLAR=[];
+/* çizimli afişler (Çizim Planı F3): kaynak km3/veri/takimlar.json → "afisler"; çizici pano.js (MrPano, ortak dosya). Afişi olan panoda
+   solda oyunun küçük sahnesi + ad + söz, üstüne yine LED nokta ızgarası; afişi olmayan (ör. Twitch, Kick) eski yazılı LED. */
+const AFISLER=[["MR. ANDUV!", "Bir Mr. Anduv! yapımıdır", "A Mr. Anduv! production", "#141414", "#2a2410", "#f3d35a", "#f3d35a", "imza"], ["KAPTAN MECİT", "Sahaya çık, maçı sen çevir", "Take the pitch, turn the match", "#c8102e", "#7a0a1c", "#ffffff", "#ffd23f", "top"], ["CHAMPION BATTLE MANAGER", "Kulübünü kur, dünyayı yen", "Build your club, beat the world", "#2e9e44", "#16582a", "#ffffff", "#f3d35a", "kupa"], ["LEGEND HEADS", "Efsanelerle kafa kafaya", "Head to head with legends", "#ee7b30", "#a8431a", "#ffffff", "#fff2c2", "kafa"], ["TULPAR", "Kanatlı atla gökyüzü yolu", "A sky road on a winged horse", "#e0782a", "#5a2a10", "#fff4dc", "#ffd27a", "kanat"], ["KURT YOLU", "Bozbörü'yle bozkırda", "Across the steppe with the grey wolf", "#1d2b38", "#3e5468", "#ffffff", "#e8c070", "kurt"], ["GÖKALP", "Gök katlarında bir alp", "An alp across the sky layers", "#1a1440", "#3a2a6a", "#ffffff", "#9ad0ff", "gokalp"], ["DEMİR KAĞNI", "Yük ağır, yol uzun", "Heavy load, long road", "#4a3018", "#2a1a0c", "#fff0d0", "#e8b04a", "kagni"], ["TAMGA YOLU", "Basamak basamak bir yol", "One road, step by step", "#3a2412", "#7a4a1e", "#ffe9c2", "#e8b04a", "tamga"], ["HİSAR: KARA GECE", "Kale düşerse sabah olmaz", "If the keep falls, dawn never comes", "#1a1a2e", "#3a2a5e", "#f4e6c8", "#e9b949", "kale"], ["MALAZGİRT AKINCILARI", "1071'in akıncısı ol", "Ride with the raiders of 1071", "#7a1f3d", "#3e0e1e", "#ffffff", "#f2c230", "ok"], ["TOPÇULAR", "Nişan al, ateşle, fethet", "Aim, fire, conquer", "#5b3a1e", "#2e1c0e", "#fff0d0", "#f2c230", "gulle"], ["KIRMIZI YALI", "Boğaz'da bir gece, bir sır", "One night on the Bosphorus, one secret", "#b71c1c", "#4a0a0a", "#ffffff", "#ffcf9a", "yali"], ["NUTUK SALONU", "Nutuk'un tamamı, salonda", "The whole of Nutuk, in the hall", "#132545", "#2a4a7a", "#ffffff", "#e9c46a", "kursu"], ["YAŞAM REHBERİ", "Her gün bir sayfa", "A page every day", "#14171a", "#2e3a30", "#e9d8a6", "#e9d8a6", "kitap"], ["GEZİ PASAPORTU", "Gittiğin her yer bir mühür", "Every place you go, a stamp", "#0b1e22", "#14444a", "#ffffff", "#4fd1c5", "pusula"], ["SAAT VİTRİNİ", "Bileğine yakışanı bul", "Find the one for your wrist", "#0b1e22", "#3a2a0a", "#ffffff", "#ffb21e", "saat"], ["FUTBOL VİTRİNİ", "Maçlar tek vitrinde", "Every match in one window", "#1f3b3c", "#0e2020", "#ffffff", "#86d36e", "vitrin"], ["BORSA VİTRİNİ", "Piyasa tek bakışta", "The market at a glance", "#0d1b3e", "#1e3a7a", "#ffffff", "#f3d35a", "vitrin"], ["FIRSAT VİTRİNİ", "Günün fırsatları burada", "Today's deals, here", "#ed713c", "#9a3a14", "#ffffff", "#fff2c2", "vitrin"], ["BİLGİ VİTRİNİ", "Bilgi tek ekranda", "Knowledge on one screen", "#2a4f8a", "#14284a", "#ffffff", "#bfe0ff", "vitrin"], ["YOUTUBE · MR. ANDUV!", "Yapım günlükleri YouTube'da", "Making-of diaries on YouTube", "#c4302b", "#6a0e0a", "#ffffff", "#ffffff", "oynat"], ["INSTAGRAM · MR. ANDUV!", "Perde arkası Instagram'da", "Behind the scenes on Instagram", "#c13584", "#5b2a9a", "#ffffff", "#ffd27a", "kamera"], ["TIKTOK · MR. ANDUV!", "15 saniyede yeni bölüm", "New levels in 15 seconds", "#010101", "#1a1a1a", "#ffffff", "#25f4ee", "nota"], ["SPOTIFY · MR. ANDUV!", "Oyunların şarkıları Spotify'da", "The games' songs on Spotify", "#1db954", "#0b4a22", "#0b0b0b", "#0b0b0b", "nota"], ["X · MR. ANDUV!", "Yenilikler ilk burada", "News first, here", "#0f1419", "#2a3038", "#ffffff", "#9ad0ff", "imza"]];
+const AFIS_AD={};AFISLER.forEach(a=>AFIS_AD[a[0]]=a);
+const afisBul=ad=>window.MrPano&&ad?AFIS_AD[ad.replace(' / ',' · ')]||null:null;
 const LED={pool:null,cv:[],key:[],dirty:[],t0:0,T:6};
 function ledItems(){return SPONSORLAR.map(s=>({ad:s.ad,bg:s.renk,fg:s.yazi||'#ffffff',alt:s.alt||''})).concat(adPool().map(([ad,bg,fg])=>({ad,bg,fg,alt:''})))}
 function ledReset(){LED.pool=ledItems();LED.key=[];LED.dirty=[];LED.t0=performance.now()/1000}
@@ -816,7 +822,7 @@ function ledItem(i,k){const P=LED.pool,n=P.length+2,j=(i*5+k*3)%n;return j===P.l
 function ledTick(){if(!LED.pool)ledReset();const now=performance.now()/1000-LED.t0;for(let i=0;i<LED.cv.length;i++)if(LED.cv[i])ledDraw(i,LED.cv[i],now)}
 function ledDraw(i,c,now){
   const goal=M&&M.state==='goal',tt=now-i*.14,k=Math.max(0,Math.floor(tt/LED.T)),ph=tt-k*LED.T,flip=goal?1:Math.min(1,Math.max(0,ph)/.55);
-  const it=goal?{gol:1}:ledItem(i,k);
+  const it=goal?{gol:1}:ledItem(i,k);LED.afis=0;
   const key=goal?'g'+(Math.floor(now*3)%2):k+'|'+Math.round(flip*10)+(it.score&&M?'|'+M.T[0].score+M.T[1].score+minute():'');
   if(LED.key[i]===key)return;LED.key[i]=key;LED.dirty[i]=true;
   const g=c.getContext('2d'),w=c.width,h=c.height,F='system-ui,-apple-system,Segoe UI,Arial,sans-serif',FC="'Arial Narrow','Roboto Condensed',"+F;
@@ -835,6 +841,8 @@ function ledDraw(i,c,now){
     if(M){const kit=(T,x)=>{const gk=g.createLinearGradient(x,0,x+60,0);gk.addColorStop(0,T.kit.c1);gk.addColorStop(.78,T.kit.c1);gk.addColorStop(.78,T.kit.c2);gk.addColorStop(1,T.kit.c2);
         rr(x,9,60,22,5);g.fillStyle=gk;g.fill();g.font=`900 15px ${F}`;g.fillStyle=lum(T.kit.c1)>150?'#111':'#fff';g.textAlign='center';g.fillText(T.t.short,x+24,h/2+1,44)};
       kit(M.T[0],78);glow(`${M.T[0].score}-${M.T[1].score}`,w/2-10,h/2+1,30,'center');kit(M.T[1],w/2+40);glow(`${minTxt()}`,w-60,h/2+1,24,'center')}}
+  else if(!it.alt&&afisBul(it.ad)){g.drawImage(MrPano.afisTuval(afisBul(it.ad),w,h,{en:window.KM_DIL==='en',yaziFont:F,yaziKalin:'900 ',sozFont:FC,sozKalin:'700 '}),0,0);
+    g.fillStyle='rgba(255,255,255,.18)';g.fillRect(0,0,w,1.5);LED.afis=1}
   else{const bg=it.bg,strip=lum(bg)>225?it.fg:bg;
     g.fillStyle=strip;g.fillRect(4,4,8,h-8);g.fillRect(w-12,4,8,h-8);
     let fz=28;g.font=`900 ${fz}px ${F}`;while(g.measureText(it.ad).width>w-(it.alt?250:90)&&fz>14){fz--;g.font=`900 ${fz}px ${F}`}const tw=g.measureText(it.ad).width;
@@ -846,7 +854,7 @@ function ledDraw(i,c,now){
   g.restore();
   if(flip<1){g.fillStyle=`rgba(255,255,255,${.35*(1-flip)})`;g.fillRect(0,0,w,h)}
   /* LED nokta ızgarası + parlama */
-  g.fillStyle='rgba(5,16,14,.42)';for(let x=3;x<w;x+=4)g.fillRect(x,0,1,h);for(let y=3;y<h;y+=4)g.fillRect(0,y,w,1);
+  g.fillStyle=LED.afis?'rgba(5,16,14,.2)':'rgba(5,16,14,.42)';for(let x=3;x<w;x+=4)g.fillRect(x,0,1,h);for(let y=3;y<h;y+=4)g.fillRect(0,y,w,1);
   const gl=g.createLinearGradient(0,0,0,h);gl.addColorStop(0,'rgba(255,255,255,.08)');gl.addColorStop(.45,'rgba(255,255,255,0)');gl.addColorStop(1,'rgba(0,0,0,.18)');g.fillStyle=gl;g.fillRect(0,0,w,h);
   g.fillStyle='#0b1e22';g.fillRect(0,0,w,2);g.fillRect(0,h-2,w,2);
 }
@@ -2130,6 +2138,6 @@ if(/[?&#]demo/.test(location.href)){startMatch(team('tr','gs'),team('tr','fb'),n
 window.__RL={get M(){return M},startMatch,team,S:()=>S,step,draw,endMatch};
 </script>
 <script>window.SesKurtarici&&SesKurtarici.yenidenKur(()=>{SND.ctx=null});</script>
-<script src="yuz.js"></script><script src="arma.js"></script><script src="kumanda.js"></script>
+<script src="yuz.js"></script><script src="arma.js"></script><script src="pano.js"></script><script src="kumanda.js"></script>
 </body>
 </html>
