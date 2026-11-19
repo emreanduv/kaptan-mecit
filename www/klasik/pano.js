@@ -434,7 +434,7 @@ const onbellek=new Map();
 let fontDamga=0;
 if(G.document&&document.fonts&&document.fonts.addEventListener)document.fonts.addEventListener('loadingdone',()=>{fontDamga++;onbellek.clear();});
 
-function sigdir(c,t,boy,maxW,font,kal){let fs=boy;do{c.font=(kal||'')+fs+'px '+font;}while(c.measureText(t).width>maxW&&(fs-=0.5)>4);return fs;}
+function sigdir(c,t,boy,maxW,font,kal){let fs=boy;do{c.font=(kal||'')+fs+'px '+font;}while(c.measureText(t).width>maxW&&(fs-=0.25)>Math.min(4,boy*0.34));return fs;}   // dar tabelada (Tulpar) söz 4 pikselin altına da iner
 
 /* A: [ad, sözTR, sözEN, zemin1, zemin2, yazı, vurgu, simge]; w,h: mantıksal ölçü; o.olcek: piksel/mantıksal; o.en: İngilizce
    o.yaziFont / o.sozFont: oyunun yazı tipleri; o.yaziKalin / o.sozKalin: kalınlık ön eki (ör. '900 '; sistem yazısında); o.imza: köşede "MR. ANDUV!" (varsayılan açık) */
@@ -460,14 +460,16 @@ function afisTuval(A,w,h,o){
   const tx=sh+h*0.2,tw=w-tx-h*0.25;
   const ad=A[0],soz=en?A[2]:A[1],imzali=o.imza!==false&&A[7]!=='imza'&&A[0].indexOf('MR. ANDUV')<0;
   c.textBaseline='alphabetic';c.textAlign='left';
-  let iw=0;if(imzali){c.font=yk+(h*0.17)+'px '+yf;iw=c.measureText('MR. ANDUV!').width+h*0.25;}
-  let fs=sigdir(c,ad,h*0.42,tw-iw,yf,yk);
+  const dar=w/h<5;   // dar tabela (Tulpar 3:1): imza küçülür ve adın satırından çekilir, ad öne çıkar
+  const iB=dar?h*0.11:h*0.17,adY=dar?h*0.56:h*0.5;
+  let iw=0;if(imzali&&!dar){c.font=yk+iB+'px '+yf;iw=c.measureText('MR. ANDUV!').width+h*0.25;}
+  let fs=sigdir(c,ad,dar?h*0.36:h*0.42,tw-iw,yf,yk);const adFs=fs;
   const koyu=parseInt(A[5].slice(1,3),16)<90;   // koyu yazıya açık gölge
-  c.fillStyle=koyu?'rgba(255,255,255,0.35)':'rgba(0,0,0,0.45)';c.fillText(ad,tx+h*0.022,h*0.5+h*0.022);
-  c.fillStyle=A[5];c.fillText(ad,tx,h*0.5);
-  fs=sigdir(c,soz,h*0.32,tw,sf,sk);
+  c.fillStyle=koyu?'rgba(255,255,255,0.35)':'rgba(0,0,0,0.45)';c.fillText(ad,tx+h*0.022,adY+h*0.022);
+  c.fillStyle=A[5];c.fillText(ad,tx,adY);
+  fs=sigdir(c,soz,Math.min(h*0.32,adFs*(dar?0.8:1.2)),tw,sf,sk);
   c.globalAlpha=0.95;c.fillStyle=A[6];c.fillText(soz,tx,h*0.86);c.globalAlpha=1;
-  if(imzali){c.font=yk+(h*0.17)+'px '+yf;c.textAlign='right';c.fillStyle='rgba(255,255,255,0.55)';c.fillText('MR. ANDUV!',w-h*0.12,h*0.22);}
+  if(imzali){c.font=yk+iB+'px '+yf;c.textAlign='right';c.fillStyle='rgba(255,255,255,0.55)';c.fillText('MR. ANDUV!',w-h*0.12,dar?h*0.16:h*0.22);}
   // LED dokusu ve parlaklık
   c.fillStyle='rgba(255,255,255,0.10)';c.fillRect(0,0,w,h*0.08);
   c.fillStyle='rgba(0,0,0,0.25)';c.fillRect(0,h*0.93,w,h*0.07);
