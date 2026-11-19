@@ -5,6 +5,10 @@
 - iOS 1.7.5 (43) TestFlight'a gönderildi. App Store: reddedilen 1.0.0 sürümü 1.7.5'e çevrildi, derleme 43 bağlı, yeni TR/EN metinler, 26 görsel (iPhone 6.7" + iPad 13", Modern + Klasik), CBM'den farkı anlatan inceleme notu, fiyat 0 (`store/km/metin.json`, `araclar/asc_sayfa.py` artık KM'yi de doldurur).
 - Gönderim iki Çin anakarası uyum formunda (Security Assessment, AI Generated or Synthetic Content) durdu; Emre'nin kararıyla Çin anakarası satıştan çıkarıldı (174 ülke). **18 Kas: 1.7.5 (43) WAITING_FOR_REVIEW.** Emre TestFlight'ta 1.7.5'i gözle doğrulayacak; sorun çıkarsa `asc-durum.yml kip=iptal` ile geri çekilir. Not: bundan sonraki her yeni ürün başvurusunda Çin anakarası baştan kapalı tutulmalı (oyunlarda Çin oyun lisansı ve bu iki form gerekir).
 
+## 19 Kas (günlük görev): KM3 0.10.10 — Oyuncu karnesi
+- Kadro ekranında Maç · Gol · As · Not (EN Apps · Goals · Ast · Rtg) ve "Form oyuncusu"; kullanıcının lig maçlarındaki rapor notlarından (ekran + VR). İngilizcede Milletler Kupası kısaltmaları FIFA kodu (MAR, USA, ESP…). karne/lig/milli/kupagol denemeleri TAMAM; 844×390 TR/EN, 390×844 EN, VR ekran görüntüsü kontrol. Web güncellendi; mağaza derlemesi yok.
+- Meta KM3 v1 (0.7.5) hâlâ "Pending release" (Onaylandı 9 Kas; yayın tarihi Emre'de). Apple (19 Kas 10:38Z): Kaptan Mecit 1.7.5 ve CBM 4.23.7 WAITING_FOR_REVIEW; Kurt Yolu 1.6.0 yayında. Bu oturum hiçbir şey göndermedi.
+
 ## 18 Kas (günlük görev): KM3 0.10.9 — İngilizce tablo başlıkları
 - EN'de puan tablosu, kupa grup tabloları, tarihçe ve VR panelindeki O G B M A Y Av P başlıkları artık P W D L F A GD Pts; form ve fikstür sonuç harfleri W/D/L, iç saha/deplasman H/A, fikstür başlığı "10W 1D 1M" yerine W/D/L (`Dil.sutun()`, `Dil.harf()`, `Dil.yer()`; tek harfler genel sözlüğe konmadı, G kaleci de olabilir). lig/milli/kupa/ist denemeleri TAMAM; 844×390, 390×844, VR EN ekran görüntüsü kontrol. Meta KM3 v1 (0.7.5) hâlâ "Pending release" (Onaylandı 9 Kas; yayın tarihi Emre'de).
 

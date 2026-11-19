@@ -146,6 +146,8 @@ func _ready() -> void:
 		lig.sil(); lig.yeni_sezon(int(_arg.get("liglig", "0")), int(_arg.get("ligtakim", "0")))
 		for i in int(_arg.ligsezon):
 			if lig.bitti(): lig.sonraki_sezon()    # deneme: hafta sayısı sezonu aşarsa yeni sezona geç (tarihçe dolar)
+			if _arg.has("ligkarne"):   # deneme: oyuncu karnesini doldur (ilk 11 oynadı sayılır)
+				lig._karne_yaz(lig.kadro_satirlari().filter(func(x): return x[5]).map(func(x): return {"n": x[2], "not_": 5.5 + float(posmod(hash(x[2] + str(i)), 30)) / 10.0, "a": posmod(hash(str(i) + x[2]), 7) / 6}))
 			lig.haftayi_simule()
 	if _arg.has("molaac"): menu_goster.call_deferred(true)
 	if _arg.has("saat"): sec_saat.select(int(_arg.saat)); saat_uygula(int(_arg.saat))
@@ -1287,7 +1289,7 @@ func _lig_bitir() -> void:
 		rapor_goster()
 		return
 	son_rapor = M.rapor_metni(1 if M.kul_dep else 0); lig.son_rapor = son_rapor
-	lig.kullanici_sonuc(M.T[0].score, M.T[1].score, M.events)
+	lig.kullanici_sonuc(M.T[0].score, M.T[1].score, M.events, M.rapor().oy.filter(func(o): return int(o.team) == 0))
 	_gosterim_kur()
 	lig_goster(true)
 	rapor_goster()

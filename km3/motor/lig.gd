@@ -47,6 +47,7 @@ func yukle() -> void:
 	if not d.has("golcu") or (d.golcu as Array).size() != (d.takimlar as Array).size():   # gol krallığından önceki kayıt
 		d.golcu = _golcu_kur(li); d.goller = {}
 	if not d.has("goller"): d.goller = {}
+	if not d.has("oyn"): d.oyn = {}          # oyuncu karnesinden önceki kayıt
 	if not d.has("tarih"): d.tarih = []      # tarihçeden önceki kayıt
 	if not d.has("hedef"): d.hedef = _hedef_kur()   # yönetim beklentisinden önceki kayıt
 	if int(d.hafta) > 0: son_hafta = d.fikstur[int(d.hafta) - 1]
@@ -81,7 +82,7 @@ func yeni_sezon(lig: int, tk: int, sezon := 1, tarih: Array = []) -> void:
 		guc.append(snappedf(float(k.get("guc", 40.0 + 9.0 * float(t.str))), .01))
 		golcu.append(_golcu_listesi(k))
 	d = {"surum": SURUM, "lig": lig, "takim": tk, "sezon": sezon, "hafta": 0, "takimlar": range(n),
-		"guc": guc, "fikstur": gercek_fikstur(lig), "sampiyon": -1, "golcu": golcu, "goller": {}, "tarih": tarih}
+		"guc": guc, "fikstur": gercek_fikstur(lig), "sampiyon": -1, "golcu": golcu, "goller": {}, "oyn": {}, "tarih": tarih}
 	if d.fikstur.is_empty(): d.fikstur = fikstur_uret(n, randi())
 	d.hedef = _hedef_kur()
 	son_hafta = []
@@ -217,9 +218,11 @@ static func _poisson(l: float, rng: RandomNumberGenerator) -> int:
 # kullanıcının maçı bitti: biz / rakip golleri (maç motorunda kullanıcı her zaman T[0]). Haftanın kalanını simüle et, haftayı ilerlet.
 # golcuk: maç motorunun gol olayları [{"n": ad, "team": 0 biz / 1 rakip}] — gol krallığına yazılır (kendi kalesine gol sayılmaz);
 # boşsa goller kadrolara simüle maçtaki gibi dağıtılır.
-func kullanici_sonuc(g_biz: int, g_rakip: int, golcuk: Array = []) -> void:
+# oyuncular: maç raporundaki bizim oyuncular [{"n", "not_", "a"}, ...] — oyuncu karnesine (maç, asist, not ortalaması) yazılır.
+func kullanici_sonuc(g_biz: int, g_rakip: int, golcuk: Array = [], oyuncular: Array = []) -> void:
 	var mc := sonraki_mac()
 	if mc.is_empty(): return
+	_karne_yaz(oyuncular)
 	if int(mc[0]) == biz(): mc[2] = g_biz; mc[3] = g_rakip
 	else: mc[2] = g_rakip; mc[3] = g_biz
 	var rk: int = int(mc[1]) if int(mc[0]) == biz() else int(mc[0])
@@ -387,10 +390,34 @@ func kadro_satirlari() -> Array:
 	for grup in [[k.get("oy", []), true], [k.get("yedek", []), false]]:
 		var G: Array = []
 		for o in grup[0]:
-			G.append([int(o.get("no", 0)), str(o.get("mk", "")), str(o.n), yetenek(float(o.get("ca", 0.0))), int(d.goller.get(str(biz()) + "|" + str(o.n), 0)), grup[1]])
+			G.append([int(o.get("no", 0)), str(o.get("mk", "")), str(o.n), yetenek(float(o.get("ca", 0.0))), int(d.goller.get(str(biz()) + "|" + str(o.n), 0)), grup[1]] + karne(str(o.n)))
 		G.sort_custom(func(a, b): return MEVKI_SIRA.find(a[1]) < MEVKI_SIRA.find(b[1]) if a[1] != b[1] else a[3] > b[3])
 		r.append_array(G)
 	return r
+
+# ---------- oyuncu karnesi (menajer oyunlarındaki kadro ekranı: maç · asist · ortalama not) ----------
+# d.oyn: ad → [maç, asist, not toplamı ×10]; yalnız kullanıcının oynadığı lig maçlarından (simüle haftalar not üretmez).
+func _karne_yaz(oyuncular: Array) -> void:
+	if not d.has("oyn"): d.oyn = {}
+	for o in oyuncular:
+		var ad := str(o.get("n", ""))
+		if ad == "": continue
+		var k: Array = d.oyn.get(ad, [0, 0, 0])
+		d.oyn[ad] = [int(k[0]) + 1, int(k[1]) + int(o.get("a", 0)), int(k[2]) + roundi(float(o.get("not_", 6.0)) * 10.0)]
+
+func karne(ad: String) -> Array:    # [maç, asist, ortalama not (0 = oynamadı)]
+	var k: Array = d.get("oyn", {}).get(ad, [0, 0, 0])
+	return [int(k[0]), int(k[1]), (float(k[2]) / 10.0 / int(k[0])) if int(k[0]) > 0 else 0.0]
+
+# en yüksek ortalama (en az 3 maç, yoksa en az 1): [ad, ortalama, maç] ya da []
+func karne_en_iyi() -> Array:
+	var en := []
+	for alt in [3, 1]:
+		for ad in d.get("oyn", {}):
+			var k := karne(ad)
+			if k[0] >= alt and (en.is_empty() or k[2] > en[1]): en = [ad, k[2], k[0]]
+		if not en.is_empty(): break
+	return en
 
 # kadro başlığı: diziliş ve ilk 11'in ortalama yeteneği
 func kadro_ozet() -> String:
@@ -1169,7 +1196,7 @@ func grup_maclarim() -> Array:
 		for m in kupa.gm[r]:
 			if int(m.g) != g: continue
 			var s: Array = m.s
-			out.append([r + 1, str(kupa_takim(m.a).get("kisa", "?")), "–" if s.is_empty() else "%d-%d" % [int(s[0]), int(s[1])], str(kupa_takim(m.b).get("kisa", "?")), _ayni(m.a, kupa.ben) or _ayni(m.b, kupa.ben)])
+			out.append([r + 1, Dil.kisa(str(kupa_takim(m.a).get("kisa", "?"))), "–" if s.is_empty() else "%d-%d" % [int(s[0]), int(s[1])], Dil.kisa(str(kupa_takim(m.b).get("kisa", "?"))), _ayni(m.a, kupa.ben) or _ayni(m.b, kupa.ben)])
 	return out
 
 # grup maç günü bitti: sonraki gün ya da Son 16 eşleşmeleri (1A-2B, 1C-2D, 1E-2F, 1G-2H, 1B-2A, 1D-2C, 1F-2E, 1H-2G)
@@ -1308,7 +1335,7 @@ func kupa_satir_metni(s: String, sec: bool) -> String:
 		"MAÇA ÇIK":
 			var m = kupa_benim_mac()
 			var rk: Dictionary = kupa_takim(m.b if _ayni(m.a, kupa.ben) else m.a)
-			return ok + "MAÇA ÇIK  ·  " + kupa_tur_adi(int(kupa.tur)) + "  ·  " + str(kupa_takim(kupa.ben).kisa) + " - " + str(rk.kisa)
+			return ok + "MAÇA ÇIK  ·  " + kupa_tur_adi(int(kupa.tur)) + "  ·  " + Dil.kisa(str(kupa_takim(kupa.ben).kisa)) + " - " + Dil.kisa(str(rk.kisa))
 	return ok + s
 
 func kupa_bas(s: String, i: int) -> String:
@@ -1417,7 +1444,7 @@ func kupa_gol_krallari(n := 10) -> Array:
 	for k in mini(n, L.size()):
 		if k == 0 or L[k][2] != L[k - 1][2]: sira = k + 1
 		var t := kupa_takim(L[k][0])
-		r.append([sira, L[k][1], str(t.get("kisa", "?")), str(t.get("ad", "?")), L[k][2], _ayni(L[k][0], kupa.ben)])
+		r.append([sira, L[k][1], Dil.kisa(str(t.get("kisa", "?"))), str(t.get("ad", "?")), L[k][2], _ayni(L[k][0], kupa.ben)])
 	return r
 
 func kupa_gol_krali_metni() -> String:

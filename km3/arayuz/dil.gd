@@ -276,4 +276,11 @@ static func sutun(s: String) -> String: return SUTUN_EN.get(s, s) if en else s
 static func harf(s: String) -> String: return HARF_EN.get(s, s) if en else s
 static func yer(s: String) -> String: return YER_EN.get(s, s) if en else s
 
+# milli takım kısaltmaları (FIFA kodu): yalnız kısaltma yazılan yerlerde çağrılır; genel sözlüğe konmaz
+# (İSK aynı zamanda bir Türk kulübünün kısaltması). Düzenleme modunda değiştirilmiş kısaltma listede yoksa olduğu gibi kalır.
+const MILLI_EN := {"ING": "ENG", "ALM": "GER", "BRE": "BRA", "İSP": "ESP", "ARJ": "ARG", "HOL": "NED", "İTA": "ITA", "FAS": "MAR", "JAP": "JPN",
+	"HIR": "CRO", "İSÇ": "SWE", "AVU": "AUT", "ABD": "USA", "İSK": "SCO", "KOL": "COL", "FİL": "CIV", "TÜR": "TUR", "YUN": "GRE", "İSV": "SUI",
+	"DAN": "DEN", "CEZ": "ALG", "BOS": "BIH", "MAC": "HUN", "SIR": "SRB"}
+static func kisa(s: String, lig := "mt") -> String: return MILLI_EN.get(s, s) if en and lig == "mt" else s
+
 static func ad() -> String: return "English" if en else "Türkçe"
