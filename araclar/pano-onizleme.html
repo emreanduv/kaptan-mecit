@@ -1,0 +1,7 @@
+<!doctype html><meta charset=utf-8><title>Mr. Anduv! afiş panoları</title>
+<!-- Çizim Planı F3: kaynak km3/veri/takimlar.json → "afisler", çizici www/pano.js. Depo kökünden http.server ile aç: /araclar/pano-onizleme.html -->
+<body style="margin:0;background:#222"><canvas id=c></canvas><script src="../www/pano.js"></script><script>
+fetch('../km3/veri/takimlar.json').then(r=>r.json()).then(d=>{const A=d.afisler,W=160,H=22,S=4,cv=document.getElementById('c');
+cv.width=W*S*2+30;cv.height=(H*S+10)*Math.ceil(A.length/2)+10;const x=cv.getContext('2d');
+A.forEach((a,i)=>x.drawImage(MrPano.afisTuval(a,W,H,{olcek:S,en:location.hash==='#en'}),10+(i%2)*(W*S+10),10+Math.floor(i/2)*(H*S+10)));});
+</script>
