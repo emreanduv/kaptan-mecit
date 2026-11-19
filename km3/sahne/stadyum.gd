@@ -13,13 +13,16 @@ var seyirci: MultiMeshInstance3D
 var seyirci_mat: ShaderMaterial
 var panolar: Array = []     # [{mesh_mat, etiket, sira}]
 var pano_icerik: Array = [] # [[yazı, zemin, yazı rengi], ...]
+var afis_sira := {}          # afiş adı → takimlar.json "afisler" sırası (çizimli pano; Çizim Planı F3)
+static var _afis_doku := {}  # "03_tr" → Texture2D (bir kez yüklenir)
 var skor_etiketleri: Array = []
 var _pano_t := 0.0
 var _heyecan := 0.0
 var hafif := false   # Quest / telefon: daha az seyirci
 
-func kur(ev_kit: Dictionary, dep_kit: Dictionary, icerik: Array) -> void:
+func kur(ev_kit: Dictionary, dep_kit: Dictionary, icerik: Array, afisler: Array = []) -> void:
 	pano_icerik = icerik
+	for i in afisler.size(): afis_sira[str(afisler[i][0])] = i
 	_cim()
 	_cizgiler()
 	for uc in [-1.0, 1.0]: _kale(uc)
@@ -413,14 +416,40 @@ func _panolar() -> void:
 		lab.position = Vector3(0, 0, .13); lab.shaded = false; lab.double_sided = false
 		lab.width = d[2] / lab.pixel_size; lab.autowrap_mode = TextServer.AUTOWRAP_OFF
 		g.add_child(lab)
-		panolar.append({"mat": mat, "lab": lab, "i": i})
+		# çizimli afiş yüzü: ortak pano.js'in ürettiği doku (veri/afis/<sıra>_<tr|en>.webp; araclar/afis-uret.mjs)
+		var yuz := MeshInstance3D.new(); var qm := QuadMesh.new(); qm.size = Vector2(d[2] - .06, .89)
+		yuz.mesh = qm; yuz.position = Vector3(0, 0, .127); yuz.visible = false
+		yuz.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var ym := StandardMaterial3D.new(); ym.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		ym.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+		yuz.material_override = ym
+		g.add_child(yuz)
+		panolar.append({"mat": mat, "lab": lab, "i": i, "yuz": yuz, "ym": ym})
 	_pano_yenile(0)
+
+# Panodaki yazıya karşılık gelen çizimli afiş ("YOUTUBE / MR. ANDUV!" → "YOUTUBE · MR. ANDUV!"); yoksa null (eski LED yazı).
+func _afis(ad: String) -> Texture2D:
+	var a := ad.replace(" / ", " · ")
+	if not afis_sira.has(a): return null
+	var k := "%02d_%s" % [afis_sira[a], "en" if Dil.en else "tr"]
+	if not _afis_doku.has(k):
+		var yol := "res://veri/afis/%s.webp" % k
+		_afis_doku[k] = load(yol) if ResourceLoader.exists(yol) else null
+	return _afis_doku[k]
 
 func _pano_yenile(tur: int) -> void:
 	if pano_icerik.is_empty(): return
 	for p in panolar:
 		var k: Array = pano_icerik[(p.i * 5 + tur * 3) % pano_icerik.size()]
 		var zemin := Color(k[1])
+		var doku := _afis(str(k[0]))
+		p.yuz.visible = doku != null
+		if doku:
+			p.ym.albedo_texture = doku
+			p.ym.albedo_color = Color(1.55, 1.55, 1.55)   # LED parlaklığı (eski yazılı LED ile aynı göz parlaklığı)
+			p.mat.albedo_color = Color("#101214"); p.mat.emission = Color("#000000")
+			p.lab.text = ""
+			continue
 		p.mat.albedo_color = zemin * .6
 		p.mat.emission = zemin
 		p.lab.text = k[0]

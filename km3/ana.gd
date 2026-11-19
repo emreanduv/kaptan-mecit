@@ -267,7 +267,7 @@ func _dis_kur(d: Dictionary) -> void:
 	dis.kur(d); M = dis; _lig_bitis = 0.0
 	if stad: stad.queue_free()
 	stad = Stadyum.new(); stad.hafif = hafif; dunya.add_child(stad)
-	stad.kur(M.T[0].kit, M.T[1].kit, veri.panolar)
+	stad.kur(M.T[0].kit, M.T[1].kit, veri.panolar, veri.get("afisler", []))
 	Futbolcu.hafif = hafif
 	for f in oyuncular: f.queue_free()
 	oyuncular.clear()
@@ -422,7 +422,7 @@ func _mac_kur(ev: Dictionary, dep: Dictionary, sure: int, zor: int, gosterim: bo
 	if stad: stad.queue_free()
 	stad = Stadyum.new(); stad.hafif = hafif; dunya.add_child(stad)
 	# tribünler ve taraftar sesi gerçek ev sahibine göre: kullanıcı deplasmandaysa stat rakibin rengindedir
-	stad.kur(M.T[_y(0)].kit, M.T[_y(1)].kit, veri.panolar)
+	stad.kur(M.T[_y(0)].kit, M.T[_y(1)].kit, veri.panolar, veri.get("afisler", []))
 	Futbolcu.hafif = hafif
 	for f in oyuncular: f.queue_free()
 	oyuncular.clear()
