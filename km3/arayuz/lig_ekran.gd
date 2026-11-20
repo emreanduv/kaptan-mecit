@@ -655,6 +655,37 @@ func _kupa_panel() -> Control:
 				for j in range(2, 10): vals.append(("+" if j == 8 and int(r[j]) > 0 else "") + str(r[j]))
 				v.add_child(_tablo_satir(vals, int(r[0]), false, r[10], "", 0, r[11]))
 	if lig.grupta(): _kupa_gol_bolum(v)
+	_kupa_karne_bolum(v)
+	return p
+
+# kupa karnesi (0.10.11): kupada oynadığımız maçlarda oyuncularımız — maç · gol · asist · not ortalaması
+func _kupa_karne_bolum(v: VBoxContainer) -> void:
+	var KK := lig.kupa_karne()
+	if KK.is_empty(): return
+	v.add_child(_serit("KUPA KARNEMİZ  ·  " + str(lig.kupa_takim(lig.kupa.ben).get("ad", ""))))
+	v.add_child(_karne_satir(["#", "Oyuncu", "Apps" if Dil.en else "Maç", "Gol", "Ast" if Dil.en else "As", "Rtg" if Dil.en else "Not"], 0, true))
+	var k := 0
+	for r in KK:
+		v.add_child(_karne_satir([str(k + 1), r[0], str(r[1]), str(r[2]), str(r[3]), "%.1f" % r[4]], k, false)); k += 1
+
+func _karne_satir(vals: Array, k: int, baslik: bool) -> Control:
+	var p := PanelContainer.new()
+	var st := _kutu(SERIT if baslik else (SATIR_A if k % 2 == 0 else SATIR_B), 0, 0); st.content_margin_top = 3; st.content_margin_bottom = 3; st.content_margin_left = 8; st.content_margin_right = 8
+	p.add_theme_stylebox_override("panel", st)
+	var hb := HBoxContainer.new(); hb.add_theme_constant_override("separation", 8); p.add_child(hb)
+	for i in vals.size():
+		var renk := ALTIN if baslik else (SOLUK if i == 0 else YAZI)
+		if not baslik and (i == 3 or i == 4) and int(vals[i]) > 0: renk = ALTIN
+		if not baslik and i == 5:
+			var nt := float(vals[i]); renk = YESIL if nt >= 7.0 else (KIRMIZI if nt < 6.0 else YAZI)
+		if not baslik and k == 0 and i == 1: renk = ALTIN
+		var l := _etiket(str(vals[i]), 14 if baslik else 15, renk)
+		if i == 1:
+			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL; l.clip_text = true; l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			if not baslik: l.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED   # oyuncu adı çevrilmez
+		else:
+			l.custom_minimum_size = Vector2(34 if i == 0 else 44, 0); l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hb.add_child(l)
 	return p
 
 func _kupa_gol_bolum(v: VBoxContainer) -> void:

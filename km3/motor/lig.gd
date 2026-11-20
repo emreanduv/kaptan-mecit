@@ -1272,11 +1272,12 @@ func kupa_ilerle() -> void:
 	if kupa.elendi: kupa_ilerle()
 
 # kullanıcının kupa maçı bitti (biz motor T[0]); beraberlikte penaltılar güçlere göre
-func kupa_sonuc(g_biz: int, g_rakip: int, golcuk: Array = []) -> String:
+func kupa_sonuc(g_biz: int, g_rakip: int, golcuk: Array = [], oyuncular: Array = []) -> String:
 	var m = kupa_benim_mac()
 	if m == null: return ""
 	var biz_a := _ayni(m.a, kupa.ben)
 	_kupa_gol_biz(m, g_biz, g_rakip, golcuk)
+	_kupa_karne_yaz(oyuncular)
 	var rng := _krng
 	var A := kupa_takim(kupa.ben); var R := kupa_takim(m.b if biz_a else m.a)
 	if grupta():
@@ -1377,10 +1378,14 @@ func kupa_ozet() -> String:
 	if kupa.bitti:
 		var gk := kupa_gol_krali_metni()
 		gk = ("\nGol kralı: " + gk) if gk != "" else ""
+		var ko := kupa_karne_en_iyi()
+		gk += ("\nKupanın oyuncusu: %s (%.1f)" % [ko[0], ko[1]]) if not ko.is_empty() else ""
 		if kupa_kazandi(): return "ŞAMPİYONSUN!  " + str(ben.ad) + " · " + K.ad + gk
 		var f: Array = kupa.esle[(kupa.esle as Array).size() - 1]
 		return K.ad + " bitti · Şampiyon: " + str(kupa_takim(kupa_kazanan(f[0])).get("ad", "?")) + gk
-	if kupa.elendi: return str(ben.ad) + " elendi."
+	if kupa.elendi:
+		var ko := kupa_karne_en_iyi()
+		return str(ben.ad) + " elendi." + (("\nKupanın oyuncusu: %s (%.1f)" % [ko[0], ko[1]]) if not ko.is_empty() else "")
 	if grupta():
 		var T := grup_tablosu(grubum()); var s := 0
 		for k in T.size():
@@ -1451,3 +1456,34 @@ func kupa_gol_krali_metni() -> String:
 	var g := kupa_gol_krallari(1)
 	if g.is_empty(): return ""
 	return "%s (%s) %d" % [g[0][1], g[0][2], g[0][4]]
+
+# ---------- kupa karnesi (0.10.11): kupada oynadığımız maçlarda oyuncularımızın maç · gol · asist · not ortalaması ----------
+# kupa.oyn: ad → [maç, asist, not toplamı ×10]; yalnız kullanıcının oynadığı kupa maçlarından. Kupa silinince (Verilerimi sil dahil) gider.
+func _kupa_karne_yaz(oyuncular: Array) -> void:
+	if not kupa_var(): return
+	if not kupa.has("oyn"): kupa.oyn = {}
+	for o in oyuncular:
+		var ad := str(o.get("n", ""))
+		if ad == "": continue
+		var k: Array = kupa.oyn.get(ad, [0, 0, 0])
+		kupa.oyn[ad] = [int(k[0]) + 1, int(k[1]) + int(o.get("a", 0)), int(k[2]) + roundi(float(o.get("not_", 6.0)) * 10.0)]
+
+# [[oyuncu, maç, gol, asist, ortalama not], ...] — nota göre (eşitse maça, sonra ada göre)
+func kupa_karne() -> Array:
+	var L: Array = []
+	if not kupa_var(): return L
+	for ad in kupa.get("oyn", {}):
+		var k: Array = kupa.oyn[ad]
+		if int(k[0]) <= 0: continue
+		var gk := str(kupa.ben[0]) + "|" + str(kupa.ben[1]) + "|" + str(ad)
+		L.append([str(ad), int(k[0]), int(kupa.get("goller", {}).get(gk, 0)), int(k[1]), float(k[2]) / 10.0 / int(k[0])])
+	L.sort_custom(func(a, b): return a[4] > b[4] if absf(a[4] - b[4]) > .001 else (a[1] > b[1] if a[1] != b[1] else a[0] < b[0]))
+	return L
+
+# kupanın oyuncusu: en yüksek ortalama (en az 2 maç, yoksa en az 1) → [ad, ortalama, maç] ya da []
+func kupa_karne_en_iyi() -> Array:
+	var L := kupa_karne()
+	for alt in [2, 1]:
+		for r in L:
+			if r[1] >= alt: return [r[0], r[4], r[1]]
+	return []

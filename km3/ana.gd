@@ -164,7 +164,10 @@ func _ready() -> void:
 		# deneme: Milletler Kupası, katılım listesindeki takımla; n maçımızı simüle et (milli=21:2)
 		var mp := str(_arg.milli).split(":")
 		lig.kip = "kupa"; lig.kupa_basla("mil", lig.kupa_katilim("mil")[int(mp[0])])
-		for i in int(mp[1]) if mp.size() > 1 else 0: lig.kupa_sim_mac()
+		for i in int(mp[1]) if mp.size() > 1 else 0:
+			if _arg.has("kupakarne") and lig.kupa_benim_mac() != null:   # deneme: kupa karnesini doldur (ilk 11 oynadı sayılır)
+				lig._kupa_karne_yaz(Taktik.kadro_kur(lig.kupa_takim(lig.kupa.ben), str(lig.kupa.ben[0])).get("oy", []).map(func(x): return {"n": str(x.n), "not_": 5.6 + float(posmod(hash(str(x) + str(i)), 28)) / 10.0, "a": posmod(hash(str(i) + str(x)), 7) / 6}))
+			lig.kupa_sim_mac()
 	if _arg.has("lig"): lig_goster(true)
 	if _arg.has("ligmac"): lig_mac_basla()
 	if _arg.has("mac"):
@@ -1282,7 +1285,7 @@ func _lig_bitir() -> void:
 	if kupa_maci:
 		kupa_maci = false
 		son_rapor = M.rapor_metni(0); lig.son_rapor = son_rapor
-		lig.mesaj = lig.kupa_sonuc(M.T[0].score, M.T[1].score, M.events)
+		lig.mesaj = lig.kupa_sonuc(M.T[0].score, M.T[1].score, M.events, M.rapor().oy.filter(func(o): return int(o.team) == 0))
 		if lig.kupa_kazandi(): lig.mesaj = "ŞAMPİYONSUN!  " + lig.kupa_tanim(lig.kupa.id).ad
 		_gosterim_kur()
 		lig_goster(true)
