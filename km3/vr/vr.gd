@@ -307,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language", "Maç saati"]
-const SURUM := "0.10.11"
+const SURUM := "0.10.12"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -336,7 +336,7 @@ func _menu3d_kur() -> void:
 	zemin.material_override = zm; menu3d.add_child(zemin)
 	var bas := _yazi(96, Color.WHITE); bas.text = "Kaptan Mecit"; bas.position = Vector3(0, .44, .001); menu3d.add_child(bas); _bas = bas
 	var imza := _yazi(36, Color("#cfe3d6")); imza.text = "Bir Mr. Anduv! yapımıdır.  ·  sürüm " + SURUM; imza.position = Vector3(0, .36, .001); menu3d.add_child(imza); _imza = imza
-	for i in maxi(15, maxi(SATIRLAR.size(), Mola.SATIRLAR.size())):   # lig menüsü 14 satıra çıkabiliyor (Rakip raporu + Sezon seyri + Maç raporu + Kupalar)
+	for i in maxi(17, maxi(SATIRLAR.size(), Mola.SATIRLAR.size())):   # lig menüsü 14 satıra çıkabiliyor (Rakip raporu + Sezon seyri + Maç raporu + Kupalar)
 		var l := _yazi(52, Color.WHITE); l.position = Vector3(0, .25 - i * .085, .001); menu3d.add_child(l)
 		_menu_satirlar.append(l)
 	var ipucu := _yazi(32, Color(1, 1, 1, .75))
@@ -495,12 +495,13 @@ func _lig_ciz() -> void:
 		for x in L.sezonun_11i():
 			var v := ["", Lig.mevki_adi(x[1]) + "  ·  " + x[2] + "  ·  " + x[3], "", "", "", "", "", str(x[4])]
 			for j in v.size(): sutun[j] += "\n" + v[j]
-	elif L.var_mi() and L.gorunum in ["ist", "rakip", "seyir", "kulup"]:
-		var rk: bool = L.gorunum == "rakip"; var sy: bool = L.gorunum == "seyir"; var ku: bool = L.gorunum == "kulup"
-		if L.mesaj == "": _mesaj.text = ("KULÜP RAPORU  ·  " if ku else "SEZON SEYRİ  ·  " if sy else ("RAKİP RAPORU  ·  " if rk else "İSTATİSTİKLER  ·  ")) + L.lig_veri().ad + "  ·  " + L.sezon_adi()
-		sutun = ["", "KULÜP RAPORU" if ku else "SEZON SEYRİ" if sy else ("RAKİP RAPORU" if rk else "İSTATİSTİKLER"), "", "", "", "", "", ""]
-		for x in (L.kulup_raporu() if ku else L.sezon_seyri() if sy else (L.rakip_raporu() if rk else L.istatistik())).slice(0, 18):
+	elif L.var_mi() and L.gorunum in ["ist", "rakip", "seyir", "kulup", "haber"]:
+		var rk: bool = L.gorunum == "rakip"; var sy: bool = L.gorunum == "seyir"; var ku: bool = L.gorunum == "kulup"; var hb: bool = L.gorunum == "haber"
+		if L.mesaj == "": _mesaj.text = ("HABERLER  ·  " if hb else "KULÜP RAPORU  ·  " if ku else "SEZON SEYRİ  ·  " if sy else ("RAKİP RAPORU  ·  " if rk else "İSTATİSTİKLER  ·  ")) + L.lig_veri().ad + "  ·  " + L.sezon_adi()
+		sutun = ["", "HABERLER" if hb else "KULÜP RAPORU" if ku else "SEZON SEYRİ" if sy else ("RAKİP RAPORU" if rk else "İSTATİSTİKLER"), "", "", "", "", "", ""]
+		for x in (L.haberler(2).slice(0, 9) if hb else L.kulup_raporu() if ku else L.sezon_seyri() if sy else (L.rakip_raporu() if rk else L.istatistik())).slice(0, 18):
 			var v := ["", (("\u2014 " + x[1] + " \u2014") if x[0] == "b" else (x[1] if x[0] == "n" else x[1] + ":  " + x[2])), "", "", "", "", "", ""]
+			if hb and Dil.cevir(v[1]).length() > 58: v[1] = Dil.cevir(v[1]).left(57).strip_edges() + "…"   # haber satırı sağdaki menüye taşmasın
 			for j in v.size(): sutun[j] += "\n" + v[j]
 	elif L.var_mi() and L.gorunum == "goller":
 		sutun = ["#", "GOL KRALLIĞI", "", "", "", "", "", "Gol"]

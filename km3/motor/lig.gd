@@ -22,7 +22,7 @@ var mesaj := ""
 var _birak_onay := 0.0
 var son_hafta: Array = []       # en son oynanan haftanın maçları (ekranda "Haftanın sonuçları")
 var diz := ""                   # kullanıcının ana menüde seçtiği diziliş ("" = Otomatik); kadro görünümü maçtaki ilk 11'i gösterir
-var gorunum := "tablo"          # sol panel: "kadro" (kulübün kadrosu), "tablo" (puan durumu), "fikstur" (kulübün sezon fikstürü), "goller" (gol krallığı), "odul" (sezon ödülleri), "ist" (lig istatistikleri), "seyir" (sezon seyri: hafta hafta sıra) ya da "tarih" (kulübün sezon sezon tarihçesi)
+var gorunum := "tablo"          # sol panel: "kadro" (kulübün kadrosu), "tablo" (puan durumu), "fikstur" (kulübün sezon fikstürü), "goller" (gol krallığı), "odul" (sezon ödülleri), "ist" (lig istatistikleri), "seyir" (sezon seyri: hafta hafta sıra), "haber" (haberler) ya da "tarih" (kulübün sezon sezon tarihçesi)
 const GOL_AGIRLIK := {"F": 5.0, "O": 1.8, "D": .55, "G": 0.0}   # simüle maçta golü kimin attığı: mevkiye göre pay
 
 func _init(v: Dictionary) -> void:
@@ -301,7 +301,7 @@ func sezon_adi() -> String:
 func satirlar() -> Array:
 	if kip == "kupa": return kupa_satirlari()
 	if not var_mi(): return ["Lig", "Takımın", "SEZONA BAŞLA", "Kupalar", "Ana menü"]
-	var r: Array = ["YENİ SEZON", "Kulüp raporu", "Kadro", "Fikstür", "Gol krallığı", "İstatistik", "Sezon seyri", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Rakip raporu", "Kulüp raporu", "Kadro", "Fikstür", "Gol krallığı", "İstatistik", "Sezon seyri", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"]
+	var r: Array = ["YENİ SEZON", "Kulüp raporu", "Haberler", "Kadro", "Fikstür", "Gol krallığı", "İstatistik", "Sezon seyri", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Rakip raporu", "Kulüp raporu", "Haberler", "Kadro", "Fikstür", "Gol krallığı", "İstatistik", "Sezon seyri", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"]
 	if son_rapor != "": r.insert(r.find("Ana menü"), "Maç raporu")
 	r.insert(r.find("Ana menü"), "Kupalar")
 	return r
@@ -327,6 +327,7 @@ func satir_metni(i: int, sec := false) -> String:
 		"İstatistik": return ok + ("Puan durumu" if gorunum == "ist" else "İstatistik")
 		"Rakip raporu": return ok + ("Puan durumu" if gorunum == "rakip" else "Rakip raporu")
 		"Sezon seyri": return ok + ("Puan durumu" if gorunum == "seyir" else "Sezon seyri")
+		"Haberler": return ok + ("Puan durumu" if gorunum == "haber" else "Haberler")
 	return ok + s
 
 func kay(i: int, yon: int) -> void:
@@ -358,6 +359,7 @@ func bas(i: int) -> String:
 		"Rakip raporu": gorunum = "tablo" if gorunum == "rakip" else "rakip"
 		"Kulüp raporu": gorunum = "tablo" if gorunum == "kulup" else "kulup"
 		"Sezon seyri": gorunum = "tablo" if gorunum == "seyir" else "seyir"
+		"Haberler": gorunum = "tablo" if gorunum == "haber" else "haber"
 		"YENİ SEZON": sonraki_sezon()
 		"Ana menü": gorunum = "tablo"; return "menu"
 		"Maç raporu": return "rapor"
@@ -1025,6 +1027,90 @@ func sezon_seyri() -> Array:
 		if son == k + 1: et = hf.call(k + 1)
 		r.append(["s", et, "  ".join(parca), false])
 		k = son
+	return r
+
+# ---------- haberler (FM'deki gelen kutusu): hafta hafta kulüpten ve ligden haberler ----------
+# Kayıt gerekmez: fikstürdeki skorlardan ve sira_gecmisi()'nden kurulur; en yeni hafta en üstte.
+# Satırlar istatistik() biçiminde: ["b", "12. HAFTA", "", false], ["n", "• haber", "", bizi ilgilendiriyor mu]
+static func _hb(tr: String, en: String) -> String: return en if Dil.en else tr
+func haber_haftalari() -> Array:   # [[hafta, [[metin, biz], ...]], ...] eskiden yeniye
+	var r: Array = []
+	if not var_mi(): return r
+	var G := sira_gecmisi()
+	var F: Array = d.fikstur
+	var b := biz(); var n: int = (d.takimlar as Array).size()
+	var hs := clampi(hedef_sira(), 1, n)
+	var dus := maxi(2, n - 2)          # son üç: düşme hattı
+	var yari := hafta_sayisi() / 2
+	var sg := 0; var sy := 0; var sk := 0   # üst üste galibiyet, yenilmezlik, galibiyetsizlik
+	for w in G.size():
+		var H: Array = []
+		var S: Array = G[w].s
+		var Sp: Array = G[w - 1].s if w > 0 else []
+		# bizim maç
+		for mc in F[w]:
+			var e := int(mc[0]); var dp := int(mc[1])
+			if (e != b and dp != b) or int(mc[2]) < 0: continue
+			var ev := e == b; var rk := dp if ev else e
+			var a := int(mc[2]) if ev else int(mc[3]); var y := int(mc[3]) if ev else int(mc[2])
+			if a > y: sg += 1; sy += 1; sk = 0
+			elif a == y: sg = 0; sy += 1; sk += 1
+			else: sg = 0; sy = 0; sk += 1
+			var sonuc := _hb("galibiyet", "win") if a > y else (_hb("beraberlik", "draw") if a == y else _hb("yenilgi", "defeat"))
+			# ev sahibi önce (tabela ve fikstürdeki gibi)
+			var t := "%s%s %d-%d %s (%s): %s." % [_hb("Derbi · ", "Derby · ") if derbi_mi(e, dp) else "", takim(e).ad, int(mc[2]), int(mc[3]), takim(dp).ad, _hb("iç saha", "home") if ev else _hb("deplasman", "away"), sonuc]
+			if sg >= 3: t += _hb(" Üst üste %d galibiyet.", " %d wins in a row.") % sg
+			elif sy >= 5: t += _hb(" %d maçtır yenilmiyoruz.", " Unbeaten in %d.") % sy
+			elif sk >= 3: t += _hb(" %d maçtır kazanamıyoruz.", " %d without a win.") % sk
+			H.append([t, true])
+		# sıradaki yerimiz
+		if not Sp.is_empty():
+			var s := int(S[b]); var sp := int(Sp[b])
+			if s == 1 and sp != 1: H.append([_hb("Zirveye yerleştik!", "We are top of the league!"), true])
+			elif sp == 1 and s != 1: H.append([_hb("Zirveyi kaybettik; %d. sıraya geriledik.", "We lost top spot and dropped to %d.") % s, true])
+			if hs > 1 and s <= hs and sp > hs: H.append([_hb("Yönetimin hedefine girdik (%s · %d.).", "We are now within the board's target (%s · %d).") % [hedef_adi(), s], true])
+			elif hs > 1 and s > hs and sp <= hs: H.append([_hb("Yönetimin hedefinin dışına düştük (%s · %d.).", "We slipped outside the board's target (%s · %d).") % [hedef_adi(), s], true])
+			if s >= dus and sp < dus: H.append([_hb("Düşme hattına geriledik (%d.).", "We dropped into the relegation zone (%d).") % s, true])
+			elif s < dus and sp >= dus: H.append([_hb("Düşme hattından çıktık (%d.).", "We climbed out of the relegation zone (%d).") % s, true])
+		# lig: liderlik, en farklı skor, sürpriz
+		var lid := S.find(1); var lidp := Sp.find(1) if not Sp.is_empty() else -1
+		if lid != lidp and lid != b and lidp >= 0: H.append([_hb("Zirvede değişiklik: %s lider.", "New leaders: %s go top.") % takim(lid).ad, false])
+		var fark_mc: Array = []; var fark := 2
+		var sur_mc: Array = []; var sur := 7.0
+		for mc in F[w]:
+			if int(mc[2]) < 0: continue
+			var e := int(mc[0]); var dp := int(mc[1]); var ge := int(mc[2]); var gd := int(mc[3])
+			if absi(ge - gd) > fark: fark = absi(ge - gd); fark_mc = mc
+			if ge == gd or e == b or dp == b: continue
+			var kaz := e if ge > gd else dp; var kay := dp if ge > gd else e
+			var gf := float(d.guc[kay]) - float(d.guc[kaz])
+			if gf > sur: sur = gf; sur_mc = mc
+		if not fark_mc.is_empty():
+			H.append([_hb("Haftanın en farklı skoru: %s %d-%d %s.", "Biggest win of the week: %s %d-%d %s.") % [takim(int(fark_mc[0])).ad, int(fark_mc[2]), int(fark_mc[3]), takim(int(fark_mc[1])).ad], int(fark_mc[0]) == b or int(fark_mc[1]) == b])
+		if not sur_mc.is_empty() and sur_mc != fark_mc:
+			var ek := int(sur_mc[2]) > int(sur_mc[3])
+			var kaz := int(sur_mc[0]) if ek else int(sur_mc[1]); var kay := int(sur_mc[1]) if ek else int(sur_mc[0])
+			H.append([_hb("Sürpriz: %s, %s karşısında %d-%d kazandı.", "Upset: %s beat %s %d-%d.") % [takim(kaz).ad, takim(kay).ad, maxi(int(sur_mc[2]), int(sur_mc[3])), mini(int(sur_mc[2]), int(sur_mc[3]))], false])
+		# devre arası ve sezon sonu
+		if w + 1 == yari and w + 1 < hafta_sayisi():
+			H.append([_hb("Devre arası: %s lider; biz %d. sıradayız (hedef: %s).", "Half-way: %s lead; we are %d (target: %s).") % [takim(lid).ad, int(S[b]), hedef_adi()], true])
+		if w + 1 == hafta_sayisi():
+			H.append([_hb("Sezon bitti: şampiyon %s.", "Season over: %s are champions.") % takim(lid).ad, lid == b])
+			if gol_krali_metni() != "": H.append([_hb("Gol kralı: %s.", "Top scorer: %s.") % gol_krali_metni(), false])
+		r.append([w + 1, H])
+	return r
+
+func haberler(en_cok := 8) -> Array:
+	var r: Array = []
+	var W := haber_haftalari()
+	if W.is_empty(): return r
+	# en yeni haftaya yönetimin ve basının sesi
+	var son: Array = W[W.size() - 1][1]
+	var cs := camia_sozu(); if cs != "" and int(d.get("camia_hafta", 0)) == int(d.hafta): son.append([cs, true])
+	var ms := manset(); if ms != "": son.append([ms, true])
+	for k in range(W.size() - 1, maxi(-1, W.size() - 1 - en_cok), -1):
+		r.append(["b", _hb("%d. HAFTA", "WEEK %d") % int(W[k][0]), "", false])
+		for x in W[k][1]: r.append(["n", "• " + str(x[0]), "", bool(x[1])])
 	return r
 
 # kulübün sezon fikstürü (ekran ve VR): her hafta için [hafta, iç saha mı, rakip, bizim gol, rakip gol] (oynanmadıysa gol -1)

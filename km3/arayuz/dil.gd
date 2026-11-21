@@ -125,6 +125,7 @@ const SOZLUK := {
 	"Maç başına attığı · yediği": "Scored · conceded per match", "En golcüsü": "Top scorer", "Dizilişi": "Formation", "Yıldızı": "Star player", "Güç (biz · rakip)": "Strength (us · them)",
 	"Galibiyet · beraberlik · yenilgi": "Win · draw · defeat", "Beklenen puan": "Expected points", "İlk devredeki maç": "Reverse fixture", "Asistanın önerisi": "Assistant's advice",
 	"iç saha": "home", "deplasman": "away", "Maç": "Match",
+	"Haberler": "News", "HABERLER": "NEWS", "Haberler ilk hafta oynanınca gelir.": "News arrives after the first week.",
 	"Sezon seyri": "Season progress", "SEZON SEYRİ": "SEASON PROGRESS", "Sezon seyri ilk hafta oynanınca başlar.": "Season progress starts after the first week.",
 	"Şu anki sıra · puan": "Current position · points", "En iyi sıra": "Highest position", "En kötü sıra": "Lowest position", "Zirvede geçen hafta": "Weeks at the top",
 	"Lidere fark (puan)": "Gap to leader (points)", "Puan ortalaması · sezon sonu tahmini": "Points per match · projected total", "HAFTA HAFTA SIRA": "POSITION WEEK BY WEEK",
