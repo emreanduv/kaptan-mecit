@@ -255,6 +255,16 @@ func _ready() -> void:
 var dis: DisMac = null
 var _dis_bekle := 0.0
 var _dis_hiz := 1.0
+# Mr. Anduv! FM film müziği (FIFA gibi): menülerde Mr. Anduv! şarkıları çalar, maça çıkınca susar. Çalan sayfadaki JS radyodur
+# (export_presets head_include: mranduv-fm.js); Godot yalnız "menüdeyiz / maçtayız" bilgisini değişince bir kez verir.
+var _muzik_menu := -1
+func _muzik_bildir() -> void:
+	if not OS.has_feature("web"): return
+	var m := 1 if (menu_acik and (M == null or M.demo)) else 0
+	if m == _muzik_menu: return
+	_muzik_menu = m
+	JavaScriptBridge.eval("window.kmMuzik&&kmMuzik(%d)" % m)
+
 func _dis_mi() -> bool:
 	if _arg.has("cbmdene"): return true
 	return OS.has_feature("web") and str(JavaScriptBridge.eval("location.search", true)).contains("cbm=1")
@@ -438,6 +448,7 @@ func _mac_kur(ev: Dictionary, dep: Dictionary, sure: int, zor: int, gosterim: bo
 # ---------- döngü ----------
 func _process(dt: float) -> void:
 	if dis: _dis_kare(dt); return
+	_muzik_bildir()
 	_girdi()
 	var tekrarda := tekrar.kare(dt) if (M != null and vr == null) else false
 	if _tekrar_kutu: _tekrar_kutu.visible = tekrarda
