@@ -245,6 +245,7 @@ func hafta_bitir() -> void:
 			mc[2] = s[0]; mc[3] = s[1]
 			_gol_dagit(int(mc[0]), s[0], rng); _gol_dagit(int(mc[1]), s[1], rng)
 	son_hafta = h
+	_gk_yaz()
 	d.hafta = int(d.hafta) + 1
 	_camia_ses()
 	if bitti():
@@ -258,6 +259,30 @@ func hafta_bitir() -> void:
 	else:
 		mesaj = ""
 	kaydet()
+
+# haftalık gol krallığı kaydı (haberler için): d.gk[hafta] = [[kulüp, ad, gol] lider, [ad, gol] bizim en golcümüz]
+# eski kayıtlarda gk yoktur ya da kısadır: o haftalar için gol haberi çıkmaz
+func _gk_yaz() -> void:
+	if not d.has("gk"): d.gk = []
+	var gk: Array = d.gk
+	while gk.size() < int(d.hafta): gk.append([])
+	var lid: Array = []; var bz: Array = []
+	var g := gol_krallari(1)
+	if not g.is_empty(): lid = [_kulup_i(str(g[0][3])), str(g[0][1]), int(g[0][4])]
+	var en := 0
+	for k in d.get("goller", {}):
+		var p := (k as String).split("|", true, 1)
+		if int(p[0]) != biz(): continue
+		var n := int(d.goller[k])
+		if n > en or (n == en and not bz.is_empty() and p[1] < str(bz[0])): en = n; bz = [p[1], n]
+	gk.append([lid, bz])
+
+func _kulup_i(ad: String) -> int:
+	for i in (d.takimlar as Array).size():
+		if str(takim(i).ad) == ad: return i
+	return -1
+
+const GOL_ESIK := [10, 15, 20, 25, 30, 40]
 
 # kullanıcının maçını da simüle et (Maçı simüle et)
 func haftayi_simule() -> void:
@@ -1091,6 +1116,18 @@ func haber_haftalari() -> Array:   # [[hafta, [[metin, biz], ...]], ...] eskiden
 			var ek := int(sur_mc[2]) > int(sur_mc[3])
 			var kaz := int(sur_mc[0]) if ek else int(sur_mc[1]); var kay := int(sur_mc[1]) if ek else int(sur_mc[0])
 			H.append([_hb("Sürpriz: %s, %s karşısında %d-%d kazandı.", "Upset: %s beat %s %d-%d.") % [takim(kaz).ad, takim(kay).ad, maxi(int(sur_mc[2]), int(sur_mc[3])), mini(int(sur_mc[2]), int(sur_mc[3]))], false])
+		# gol krallığı: liderde değişiklik, en golcümüzün eşikleri
+		var GK: Array = d.get("gk", [])
+		if w > 0 and w < GK.size() and not (GK[w] as Array).is_empty() and not (GK[w - 1] as Array).is_empty():
+			var l: Array = GK[w][0]; var lp: Array = GK[w - 1][0]
+			if not l.is_empty() and (lp.is_empty() or str(l[1]) != str(lp[1]) or int(l[0]) != int(lp[0])) and int(l[2]) >= 3:
+				H.append([_hb("Gol krallığında yeni lider: %s (%s) · %d gol.", "New top scorer: %s (%s) · %d goals.") % [str(l[1]), takim(int(l[0])).kisa if int(l[0]) >= 0 else "", int(l[2])], int(l[0]) == b])
+			var o: Array = GK[w][1]; var op: Array = GK[w - 1][1]
+			if not o.is_empty():
+				var onc := int(op[1]) if not op.is_empty() else 0
+				for e in GOL_ESIK:
+					if int(o[1]) >= e and onc < e:
+						H.append([_hb("%s sezonun %d. golüne ulaştı.", "%s reached %d league goals.") % [str(o[0]), e], true])
 		# devre arası ve sezon sonu
 		if w + 1 == yari and w + 1 < hafta_sayisi():
 			H.append([_hb("Devre arası: %s lider; biz %d. sıradayız (hedef: %s).", "Half-way: %s lead; we are %d (target: %s).") % [takim(lid).ad, int(S[b]), hedef_adi()], true])
