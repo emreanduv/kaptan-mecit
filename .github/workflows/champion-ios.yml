@@ -61,6 +61,14 @@ jobs:
             MARKETING_VERSION=${{ inputs.version_name }} CURRENT_PROJECT_VERSION=${{ inputs.build_number }} \
             archive 2>&1 | tee $RUNNER_TEMP/archive.log || { grep -E "error:|error -|\*\* ARCHIVE FAILED" $RUNNER_TEMP/archive.log | sort -u | head -25 | while read -r l; do echo "::error::$l"; done; exit 1; }
           grep -q "ARCHIVE SUCCEEDED" $RUNNER_TEMP/archive.log || { grep -E "error:" $RUNNER_TEMP/archive.log | sort -u | head -25 | while read -r l; do echo "::error::$l"; done; exit 1; }
+      - name: Eşitleme yetkisi arşive işlenir (iCloud)
+        working-directory: ios/App
+        shell: bash
+        run: |
+          # Arşiv imzasız alınır; yetkiler (App.entitlements: iCloud kapsayıcısı) ancak burada geçici imzayla işlenir,
+          # dağıtım imzası dışa aktarımda bunları korur (champion-ios-imza-deneme ile doğrulandı, 24 Kas 2026).
+          A=$(ls -d $RUNNER_TEMP/ChampionChess.xcarchive/Products/Applications/*.app)
+          if [ -f App/App.entitlements ]; then codesign --force --sign - --entitlements App/App.entitlements "$A" && codesign -d --entitlements - "$A" 2>&1 | grep -i icloud | head -5; fi
       - name: App Store Connect'e yükle
         run: |
           cat > $RUNNER_TEMP/export.plist <<PL
