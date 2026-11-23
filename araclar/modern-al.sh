@@ -8,6 +8,8 @@ git clone -q --depth 1 --filter=blob:none --sparse https://github.com/emreanduv/
 git -C "$T/site" sparse-checkout set kaptan-mecit-3
 rm -rf www/modern && mkdir -p www/modern
 cp "$T/site/kaptan-mecit-3/"index.* www/modern/
+# Mr. Anduv! FM film müziği (menülerde çalar): radyo modülü ve şarkı listesi; yoksa sayfa sessiz çalışır
+for f in mranduv-fm.js fm-liste.js; do [ -f "$T/site/kaptan-mecit-3/$f" ] && cp "$T/site/kaptan-mecit-3/$f" www/modern/ || true; done
 rm -rf "$T"
 ls -la www/modern
 test -s www/modern/index.wasm && test -s www/modern/index.pck

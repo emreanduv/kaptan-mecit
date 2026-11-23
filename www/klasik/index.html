@@ -357,7 +357,7 @@ let UI={screen:'home',qlg:'tr',qh:'gs',qa:'fb',clg:'tr',cteam:null,tab:'tablo',q
 
 /* ===================== REHBER · PUAN · PAYLAŞ · BİZE YAZ · VERİLERİMİ SİL (test ekibinin önerileri, Malazgirt Akıncıları 1.6 ile aynı paket) =====================
    Hiçbir veri toplanmaz: puan ve paylaşım telefonun/mağazanın kendi ekranlarıyla yapılır; ilerleme yalnız bu cihazda (km.rehber, km.puan). */
-const KM_SURUM='1.7.6',KM_IOS_ID=''; /* App Store'da yayımlanınca uygulama numarası yazılır (ör. '67…'); boşken iOS'ta mağaza araması açılır */
+const KM_SURUM='1.7.7',KM_IOS_ID=''; /* App Store'da yayımlanınca uygulama numarası yazılır (ör. '67…'); boşken iOS'ta mağaza araması açılır */
 const KM_GOMULU=/[?&](mac|vr)=1/.test(window.__KM_Q||location.search); /* Champion Battle maç modu ya da VR motoru: rehber/puan gösterilmez */
 const KM_KABUK=!KM_GOMULU&&/\/klasik\//.test(location.pathname); /* mobil uygulamada Klasik / Modern seçicisinin içinden açıldı */
 const kmOku=(k,v)=>{try{return JSON.parse(localStorage.getItem(k))??v}catch(e){return v}},kmYaz=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
@@ -729,7 +729,7 @@ function kitFor(A,B){ /* deplasman forması çakışırsa ikinci renk */
   if(cdist(a.c1,b.c1)<120){b={c1:B.c2,c2:B.c1};if(cdist(a.c1,b.c1)<120)b={c1:'#f4f4f4',c2:'#222222'};if(cdist(a.c1,b.c1)<120)b={c1:'#222222',c2:'#f4f4f4'}}
   return[a,b];
 }
-function startMatch(me,opp,career,demo,opts){opts=opts||{};ledReset();
+function startMatch(me,opp,career,demo,opts){opts=opts||{};try{window.kmMuzik&&kmMuzik(demo?1:0)}catch(e){}ledReset();
   const temel=[me,opp];me=kadroKur(me,demo||opts.mac?null:(S.set.dz&&S.set.dz!=='oto'?S.set.dz:null));opp=kadroKur(opp,null);
   SND.init();
   const [k0,k1]=kitFor(me,opp);
@@ -1668,7 +1668,7 @@ function raporHtml(rp,tak,tk){if(!rp)return '';const [h,a]=tak,I=rp.ist,sat=(ad,
    ${rp.kartlar.length?`<h3>KARTLAR</h3><div class="res">${rp.kartlar.map(k=>`<div><span>${k.team===h?esc(k.n):''}</span><b>${k.k==='S'?'🟨':'🟥'}</b><span>${k.team===a?esc(k.n):''}</span></div>`).join('')}</div>`:''}
    <h3>OYUNCU NOTLARI</h3><div class="notlar"><ul>${not(h)}</ul><ul>${not(a)}</ul></div>
    <p class="dim" style="font-size:12px;margin:6px 0 0">⚽ gol · 👟 asist · ⭐ maçın yıldızı · yanındaki dakika: oyuna giriş · oyuncuya dokun: kariyeri</p></div>`}
-function endMatch(quit){
+function endMatch(quit){try{window.kmMuzik&&kmMuzik(1)}catch(e){}
   if(!M)return;const m=M;M=null;SND.ambStop();
   $('#game').hidden=true;$('#app').hidden=false;$('#pmenu').hidden=true;hideBanner();document.documentElement.style.overflow='';joyId=null;joyV={x:0,y:0};joy.hidden=true;
   if(m.demo){render();return}
@@ -2118,5 +2118,11 @@ window.__RL={get M(){return M},startMatch,team,S:()=>S,step,draw,endMatch};
 </script>
 <script>window.SesKurtarici&&SesKurtarici.yenidenKur(()=>{SND.ctx=null});</script>
 <script src="kumanda.js"></script>
+
+<!-- Mr. Anduv! FM film müziği (KM3 ile aynı): menülerde çalar, maçta susar; üstte FM düğmesi -->
+<script src='mranduv-fm.js'></script>
+<script src='fm-liste.js'></script>
+<script>(function(){var F=window.MrAnduvFM;if(!F||!window.KM_FM_LISTE)return;var b,t,tt=0,lp=null,lpF=0,menude=0;function kur(){var st=document.createElement('style');st.textContent='#kmFM{position:fixed;z-index:50;top:calc(env(safe-area-inset-top) + 6px);left:50%;transform:translateX(-50%);padding:4px 12px;border-radius:14px;background:rgba(15,26,19,.85);border:1px solid #c9b894;color:#f3ead6;font:700 14px sans-serif;cursor:pointer;display:none;user-select:none;-webkit-user-select:none}#kmFM.on{color:#ffcf4a;border-color:#ffcf4a;box-shadow:0 0 10px rgba(255,207,74,.45)}#kmFMt{position:fixed;z-index:50;bottom:calc(env(safe-area-inset-bottom) + 34px);left:50%;transform:translateX(-50%);max-width:80vw;padding:5px 12px;border-radius:8px;background:rgba(15,26,19,.9);border:1px solid #ffcf4a;color:#ffcf4a;font:700 14px sans-serif;opacity:0;transition:opacity .4s;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}';document.head.appendChild(st);b=document.createElement('div');b.id='kmFM';b.textContent='\u266B\uFE0E Mr. Anduv! FM';document.body.appendChild(b);t=document.createElement('div');t.id='kmFMt';document.body.appendChild(t);b.addEventListener('click',function(e){e.stopPropagation();if(lpF){lpF=0;return}F.degistir()});b.addEventListener('pointerdown',function(e){e.stopPropagation();lp=setTimeout(function(){lp=null;lpF=1;F.sonraki()},550)});b.addEventListener('pointerup',function(){if(lp)clearTimeout(lp)})}F.kur({taban:'data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(KM_FM_LISTE))+'#',ekran:function(d){if(!b)return;b.style.display=menude&&d.var?'block':'none';b.classList.toggle('on',d.acik&&d.mod==='radyo');if(d.mod==='radyo'&&d.ad&&menude){t.textContent='\u266B\uFE0E Mr. Anduv! FM \u00B7 '+d.ad;t.style.opacity=1;clearTimeout(tt);tt=setTimeout(function(){t.style.opacity=0},4500)}}});window.kmMuzik=function(m){menude=m;if(!b)kur();b.style.display=m&&F.hazir()?'block':'none';if(m)F.oyunBasladi();else{F.oyunBitti();t.style.opacity=0}}})();</script>
+<script>addEventListener('load',function(){window.kmMuzik&&kmMuzik(1)})</script>
 </body>
 </html>
