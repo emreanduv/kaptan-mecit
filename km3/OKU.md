@@ -128,3 +128,9 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Haberlere iki yeni tür: **gol krallığında yeni lider** (lider en az 3 golle değişince; oyuncu ve kulüp kısa adı, gol sayısı) ve **en golcümüzün eşikleri** (sezonun 10., 15., 20., 25., 30., 40. golü; her eşik bir kez). Bizden olanlar altın. TR/EN, ekran + VR (aynı `haberler()`).
 - Kayıt: her hafta sonunda `d.gk[hafta] = [[kulüp, ad, gol] lider, [ad, gol] bizim en golcümüz]` (`Lig._gk_yaz()`, `user://km3-lig.json`; Verilerimi sil / Ligi bırak siler). Eski kayıtta `gk` yoksa o haftalar için gol haberi çıkmaz, oyun açılır.
 - Deneme: `godot --headless --path km3 -s dene/haber_dene.gd` (gk boyu = hafta sayısı, eşik tekrarı yok, en az bir lider haberi, EN'de Türkçe kalıp yok), `--ligsezon=20 --lig --lighaber --ekran=x.png` (`--dil=en`).
+
+## 0.10.14 — Maçın adamı
+- Haberlerde bizim maçın altına **Maçın adamı** (EN Player of the match): kullanıcının oynadığı lig maçında rapordaki en yüksek notlu bizim oyuncu (eşit notta gol+asisti çok olan), not ve golüyle ("Maçın adamı: ad (not 8,4, 1 gol)."). Simüle edilen haftalarda çıkmaz. Altın (bizi ilgilendiriyor). Ekran + VR (aynı `haberler()`).
+- "Haftanın en farklı skoru" bizim maçımızsa artık tekrar yazılmaz (bizim maç haberi zaten üstte).
+- Kayıt: `d.mo["hafta"] = [ad, not×10, gol]` (`Lig._mo_yaz()`, `Lig.mac_adami(w)`; `user://km3-lig.json`, Verilerimi sil / Ligi bırak siler). Eski kayıtta `mo` yoksa haber çıkmaz, oyun açılır.
+- Deneme: `godot --headless --path km3 -s dene/macadami_dene.gd` (oynanan haftada var, simülede yok, eşitlikte gol+asist, en farklı skor tekrarı yok, kayıt, EN, eski kayıt), `--ligsezon=12 --ligkarne --lig --lighaber --ekran=x.png` (`--ligkarne` artık maçın adamını da yazar; `--dil=en`).

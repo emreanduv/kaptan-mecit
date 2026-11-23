@@ -223,6 +223,7 @@ func kullanici_sonuc(g_biz: int, g_rakip: int, golcuk: Array = [], oyuncular: Ar
 	var mc := sonraki_mac()
 	if mc.is_empty(): return
 	_karne_yaz(oyuncular)
+	_mo_yaz(oyuncular)
 	if int(mc[0]) == biz(): mc[2] = g_biz; mc[3] = g_rakip
 	else: mc[2] = g_rakip; mc[3] = g_biz
 	var rk: int = int(mc[1]) if int(mc[0]) == biz() else int(mc[0])
@@ -431,6 +432,23 @@ func _karne_yaz(oyuncular: Array) -> void:
 		if ad == "": continue
 		var k: Array = d.oyn.get(ad, [0, 0, 0])
 		d.oyn[ad] = [int(k[0]) + 1, int(k[1]) + int(o.get("a", 0)), int(k[2]) + roundi(float(o.get("not_", 6.0)) * 10.0)]
+
+# maçın adamı (haberler için): d.mo["hafta"] = [ad, not ×10, gol] — kullanıcının oynadığı haftalarda en yüksek notlu bizim oyuncu
+# (eşit notta asisti/golü çok olan); simüle haftalarda ve eski kayıtlarda yoktur, haber çıkmaz.
+func _mo_yaz(oyuncular: Array) -> void:
+	var en: Dictionary = {}
+	for o in oyuncular:
+		if str(o.get("n", "")) == "": continue
+		if en.is_empty() or float(o.get("not_", 0.0)) > float(en.get("not_", 0.0)) \
+				or (is_equal_approx(float(o.get("not_", 0.0)), float(en.get("not_", 0.0))) and int(o.get("g", 0)) + int(o.get("a", 0)) > int(en.get("g", 0)) + int(en.get("a", 0))):
+			en = o
+	if en.is_empty(): return
+	if not d.has("mo"): d.mo = {}
+	d.mo[str(int(d.hafta))] = [str(en.n), roundi(float(en.get("not_", 6.0)) * 10.0), int(en.get("g", 0))]
+
+func mac_adami(w: int) -> Array:   # [ad, not, gol] ya da []
+	var m: Array = d.get("mo", {}).get(str(w), [])
+	return [] if m.is_empty() else [str(m[0]), float(m[1]) / 10.0, int(m[2])]
 
 func karne(ad: String) -> Array:    # [maç, asist, ortalama not (0 = oynamadı)]
 	var k: Array = d.get("oyn", {}).get(ad, [0, 0, 0])
@@ -1088,6 +1106,10 @@ func haber_haftalari() -> Array:   # [[hafta, [[metin, biz], ...]], ...] eskiden
 			elif sy >= 5: t += _hb(" %d maçtır yenilmiyoruz.", " Unbeaten in %d.") % sy
 			elif sk >= 3: t += _hb(" %d maçtır kazanamıyoruz.", " %d without a win.") % sk
 			H.append([t, true])
+			var ma := mac_adami(w)
+			if not ma.is_empty():
+				var gt := (_hb(", %d gol", ", %d goals") % int(ma[2])) if int(ma[2]) > 1 else (_hb(", 1 gol", ", 1 goal") if int(ma[2]) == 1 else "")
+				H.append([_hb("Maçın adamı: %s (not %s%s).", "Player of the match: %s (rating %s%s).") % [str(ma[0]), ("%.1f" % float(ma[1])) if Dil.en else ("%.1f" % float(ma[1])).replace(".", ","), gt], true])
 		# sıradaki yerimiz
 		if not Sp.is_empty():
 			var s := int(S[b]); var sp := int(Sp[b])
@@ -1110,7 +1132,8 @@ func haber_haftalari() -> Array:   # [[hafta, [[metin, biz], ...]], ...] eskiden
 			var kaz := e if ge > gd else dp; var kay := dp if ge > gd else e
 			var gf := float(d.guc[kay]) - float(d.guc[kaz])
 			if gf > sur: sur = gf; sur_mc = mc
-		if not fark_mc.is_empty():
+		# bizim maçımız en farklı skorsa yukarıda zaten yazıldı: tekrar etme
+		if not fark_mc.is_empty() and int(fark_mc[0]) != b and int(fark_mc[1]) != b:
 			H.append([_hb("Haftanın en farklı skoru: %s %d-%d %s.", "Biggest win of the week: %s %d-%d %s.") % [takim(int(fark_mc[0])).ad, int(fark_mc[2]), int(fark_mc[3]), takim(int(fark_mc[1])).ad], int(fark_mc[0]) == b or int(fark_mc[1]) == b])
 		if not sur_mc.is_empty() and sur_mc != fark_mc:
 			var ek := int(sur_mc[2]) > int(sur_mc[3])
