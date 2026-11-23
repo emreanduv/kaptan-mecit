@@ -7,7 +7,7 @@
 
 ## 23 Kas: 1.7.7 — Mr. Anduv! FM film müziği uygulamada
 - Modern'de FM (cf31548, web) vardı ama `modern-al.sh` yalnız `index.*` aldığından uygulamaya girmiyordu; artık `mranduv-fm.js` ve `fm-liste.js` de alınır. Klasik'e aynı FM: `www/klasik/` (menülerde çalar, `startMatch` maçta susturur, `endMatch` geri açar; demo maçta çalar). 844×390 / 390×844 denendi.
-- iOS 1.7.7 (46) TestFlight'a gönderildi. App Store'a gönderim: Emre TestFlight'ta denedikten sonra.
+- iOS 1.7.7 (46) TestFlight'a gönderildi; Emre denedi, sorun yok. 23 Kas: App Store'a gönderildi, WAITING_FOR_REVIEW (yenilikler: Mr. Anduv! FM).
 
 ## 22 Kas (günlük görev): KM3 0.10.13 — Haberlerde gol krallığı
 - Haberlerde gol krallığında lider değişimi ve en golcümüzün 10/15/20/25/30/40. golü (haftalık `d.gk` kaydı). haber/lig denemeleri TAMAM; 1280×720 TR/EN ve 844×390 ekran görüntüsü kontrol. Web km3-web.yml (zorla=1); mağaza derlemesi yok.
