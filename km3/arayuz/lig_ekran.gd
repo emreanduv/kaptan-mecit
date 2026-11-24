@@ -300,6 +300,11 @@ func _odul_panel() -> Control:
 	var tdl := _etiket(("YILIN TEKNİK DİREKTÖRÜ:  " if bitti else "TEKNİK DİREKTÖR YARIŞINDA ÖNDE:  ") + td, 15, ALTIN)
 	tdl.custom_minimum_size = Vector2(0, 30); tdl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(_ic(tdl))
+	var mo := lig.mo_lideri_metni()
+	if mo != "":
+		var mol := _etiket(("SEZONUN MAÇIN ADAMI:  " if bitti else "MAÇIN ADAMI SEÇİLMEDE ÖNDE:  ") + mo, 14, YAZI)
+		mol.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		v.add_child(_ic(mol))
 	v.add_child(_odul_satir(["#", "YILIN OYUNCUSU" if bitti else "YILIN OYUNCUSU YARIŞI", "Mevki", "Kulüp", "Gol", "Puan"], 0, true, false))
 	var k := 0
 	for x in Y:

@@ -450,6 +450,23 @@ func mac_adami(w: int) -> Array:   # [ad, not, gol] ya da []
 	var m: Array = d.get("mo", {}).get(str(w), [])
 	return [] if m.is_empty() else [str(m[0]), float(m[1]) / 10.0, int(m[2])]
 
+# sezonun maçın adamı (0.10.15): d.mo'dan kim kaç kez maçın adamı oldu — [[ad, kez], ...] çoktan aza (eşitlikte ad)
+func mo_sayilari() -> Array:
+	var say := {}
+	for w in d.get("mo", {}):
+		var m: Array = d.mo[w]
+		if m.is_empty(): continue
+		say[str(m[0])] = int(say.get(str(m[0]), 0)) + 1
+	var r: Array = []
+	for ad in say: r.append([ad, int(say[ad])])
+	r.sort_custom(func(a, b): return a[1] > b[1] if a[1] != b[1] else a[0] < b[0])
+	return r
+
+func mo_lideri_metni() -> String:   # "Veli Tan · 7 kez" ya da ""
+	var r := mo_sayilari()
+	if r.is_empty(): return ""
+	return _hb("%s · %d kez", "%s · %d times") % [r[0][0], r[0][1]]
+
 func karne(ad: String) -> Array:    # [maç, asist, ortalama not (0 = oynamadı)]
 	var k: Array = d.get("oyn", {}).get(ad, [0, 0, 0])
 	return [int(k[0]), int(k[1]), (float(k[2]) / 10.0 / int(k[0])) if int(k[0]) > 0 else 0.0]
@@ -584,7 +601,7 @@ func _tarihe_yaz() -> void:
 		if r.i == biz(): b = r
 	d.tarih.append({"s": int(d.sezon), "sira": sira_biz(), "n": (d.takimlar as Array).size(), "P": b.P, "G": b.G, "B": b.B, "M": b.M,
 		"A": b.A, "Y": b.Y, "sam": int(d.sampiyon), "kral": gol_krali_metni(), "hd": hedef_adi(), "hs": hedef_sira(),
-		"yo": yilin_oyuncusu_metni(), "td": not yilin_td().is_empty() and int(yilin_td()[0]) == biz()})
+		"yo": yilin_oyuncusu_metni(), "mo": mo_lideri_metni(), "td": not yilin_td().is_empty() and int(yilin_td()[0]) == biz()})
 
 func sonraki_sezon() -> void:
 	if not var_mi(): return

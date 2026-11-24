@@ -1,6 +1,6 @@
 extends SceneTree
 # maçın adamı (0.10.14): kullanıcının oynadığı haftalarda haberlerde "Maçın adamı" (en yüksek not; eşitlikte gol+asist),
-# simüle haftalarda yok; "Haftanın en farklı skoru" bizim maçımızı tekrar etmez; kayıt d.mo yüklenince aynı; eski kayıt (mo yok) açılır.
+# simüle haftalarda yok; 0.10.15: mo_sayilari/mo_lideri_metni (sezonun maçın adamı) ve tarihçe 'mo'; "Haftanın en farklı skoru" bizim maçımızı tekrar etmez; kayıt d.mo yüklenince aynı; eski kayıt (mo yok) açılır.
 func _init() -> void:
 	var veri: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://veri/takimlar.json"))
 	var hata := 0; var ma_say := 0
@@ -30,6 +30,10 @@ func _init() -> void:
 				if t.begins_with("Haftanın en farklı skoru") and (t.find(L.takim(b).ad + " ") >= 0 or t.ends_with(" " + L.takim(b).ad + ".")):
 					hata += 1; print("HATA en farklı skor bizim maç ", t)
 			if var_ma != oynanan.has(w): hata += 1; print("HATA hafta ", w, " oynandı=", oynanan.has(w), " ma=", var_ma)
+		# 0.10.15 sezonun maçın adamı: Veli Tan oynanan her haftada seçildi
+		var ms := L.mo_sayilari()
+		if ms.is_empty() or ms[0] != ["Veli Tan", oynanan.size()]: hata += 1; print("HATA mo_sayilari ", ms)
+		if L.mo_lideri_metni() != "Veli Tan · %d kez" % oynanan.size(): hata += 1; print("HATA mo metni ", L.mo_lideri_metni())
 		# kayıt: yükleyince aynı; EN
 		var L2 := Lig.new(veri); L2.yukle()
 		if L2.mac_adami(0) != L.mac_adami(0): hata += 1; print("HATA kayıt ", L2.mac_adami(0))
@@ -40,6 +44,14 @@ func _init() -> void:
 			if str(x[1]).find("Maçın") >= 0: hata += 1; print("HATA EN ", x[1])
 		Dil.en = false
 		if not en_var: hata += 1; print("HATA EN yok")
+		Dil.en = true
+		if L2.mo_lideri_metni() != "Veli Tan · %d times" % oynanan.size(): hata += 1; print("HATA mo EN ", L2.mo_lideri_metni())
+		if Dil.cevir("SEZONUN MAÇIN ADAMI:  x").find("MAÇIN") >= 0: hata += 1; print("HATA mo başlık EN")
+		Dil.en = false
+		# tarihçeye yazılır
+		L2.sonraki_sezon()
+		if str(L2.d.tarih[-1].get("mo", "")) != "Veli Tan · %d kez" % oynanan.size(): hata += 1; print("HATA tarih mo ", L2.d.tarih[-1].get("mo", ""))
+		if not L2.mo_sayilari().is_empty(): hata += 1; print("HATA yeni sezonda mo boş değil")
 		# eski kayıt: mo yok
 		L2.d.erase("mo")
 		for hw in L2.haber_haftalari():

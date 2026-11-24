@@ -134,7 +134,7 @@ const SOZLUK := {
 	"Gol krallığı": "Top scorers", "GOL KRALLIĞI": "TOP SCORERS", "Gol kralı:": "Top scorer:", "Oyuncu": "Player", "Kulüp": "Club", "Gol": "Goals", "gol": "goals",
 	"Ödüller": "Awards", "SEZON ÖDÜLLERİ": "SEASON AWARDS", "ÖDÜL YARIŞI": "AWARDS RACE",
 	"YILIN OYUNCUSU YARIŞI": "PLAYER OF THE YEAR RACE", "YILIN OYUNCUSU": "PLAYER OF THE YEAR", "Yılın oyuncusu:": "Player of the year:",
-	"SEZONUN 11'İ": "TEAM OF THE SEASON", "YILIN TEKNİK DİREKTÖRÜ:": "MANAGER OF THE YEAR:", "TEKNİK DİREKTÖR YARIŞINDA ÖNDE:": "LEADING THE MANAGER RACE:",
+	"SEZONUN 11'İ": "TEAM OF THE SEASON", "EN ÇOK MAÇIN ADAMI:": "MOST POTM AWARDS:", "SEZONUN MAÇIN ADAMI:": "MOST PLAYER OF THE MATCH AWARDS:", "MAÇIN ADAMI SEÇİLMEDE ÖNDE:": "MOST PLAYER OF THE MATCH AWARDS SO FAR:", "YILIN TEKNİK DİREKTÖRÜ:": "MANAGER OF THE YEAR:", "TEKNİK DİREKTÖR YARIŞINDA ÖNDE:": "LEADING THE MANAGER RACE:",
 	"kez yılın teknik direktörü": "× manager of the year", "güç sırası": "strength rank", "ligde": "finish", "Sen": "You", "Puan": "Pts",
 	"Ödül yarışı ilk hafta oynanınca başlar: yetenek, kulübün puanı, goller ve yenilen goller sayılır.": "The awards race starts after the first week: ability, club points, goals and goals conceded all count.",
 	"Tarihçe": "History", "TARİHÇE": "HISTORY", "Sezon": "Season", "Sıra": "Pos.", "Şampiyon": "Champions", "Gol kralı": "Top scorer", "sürüyor": "in progress",

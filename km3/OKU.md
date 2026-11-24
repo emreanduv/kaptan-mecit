@@ -134,3 +134,8 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - "Haftanın en farklı skoru" bizim maçımızsa artık tekrar yazılmaz (bizim maç haberi zaten üstte).
 - Kayıt: `d.mo["hafta"] = [ad, not×10, gol]` (`Lig._mo_yaz()`, `Lig.mac_adami(w)`; `user://km3-lig.json`, Verilerimi sil / Ligi bırak siler). Eski kayıtta `mo` yoksa haber çıkmaz, oyun açılır.
 - Deneme: `godot --headless --path km3 -s dene/macadami_dene.gd` (oynanan haftada var, simülede yok, eşitlikte gol+asist, en farklı skor tekrarı yok, kayıt, EN, eski kayıt), `--ligsezon=12 --ligkarne --lig --lighaber --ekran=x.png` (`--ligkarne` artık maçın adamını da yazar; `--dil=en`).
+
+## 0.10.15 — Sezonun maçın adamı
+- Ödüller ekranında yılın teknik direktörünün altında **en çok maçın adamı seçilen oyuncumuz** ve kaç kez seçildiği: sezon sürerken "Maçın adamı seçilmede önde", sezon bitince "Sezonun maçın adamı" (EN Most Player of the Match awards). VR panelinde yılın oyuncusu yarışının altında kısa satır ("En çok maçın adamı", EN Most POTM awards).
+- Kod: `Lig.mo_sayilari()` ([[ad, kez]] çoktan aza, eşitlikte ad), `Lig.mo_lideri_metni()` ("ad · 7 kez" / "ad · 7 times"), `LigEkran._odul_panel()`, `vr._lig_ciz()`. Tarihçeye sezon sonunda `"mo"` yazılır. Yeni kayıt alanı yok (`d.mo`'dan sayılır); eski kayıtta satır çıkmaz.
+- Deneme: `dene/macadami_dene.gd` (sayı = oynanan hafta, TR/EN metin, tarihçe, yeni sezonda sıfır), `--ligsezon=20 --ligkarne --lig --ligodul --ekran=x.png` (`--vrsahte`, `--dil=en`).
