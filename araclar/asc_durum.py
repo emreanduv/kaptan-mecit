@@ -10,7 +10,7 @@ def api(m,p,b=None):
         with urllib.request.urlopen(r) as f: t=f.read(); return json.loads(t) if t else {}
     except urllib.error.HTTPError as e: log.append(f'{m} {p} -> {e.code} {e.read().decode()[:6000]}'); return None
 app=api('GET',f'v1/apps?filter[bundleId]={BUNDLE}')['data'][0]; AID=app['id']
-out={'app':app['attributes']['name'],'kip':KIP,'surumler':[]}
+out={'app':app['attributes']['name'],'id':AID,'kip':KIP,'surumler':[]}
 vs=api('GET',f'v1/apps/{AID}/appStoreVersions?limit=8&include=build')
 bld={x['id']:x['attributes'].get('version') for x in vs.get('included',[]) if x['type']=='builds'}
 for v in vs['data']:
