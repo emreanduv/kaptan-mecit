@@ -7,7 +7,7 @@
 <title>Kaptan Mecit</title>
 <script>/* uygulama içinde ekran yönü: açılış ve Klasik dik */try{var so=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.ScreenOrientation;if(so)so.lock({orientation:'portrait'}).catch(function(){})}catch(e){}</script>
 <style>
-/* Kaptan Mecit — açılış: önce dil (Türkçe / English), sonra oyun (Klasik / Modern). Klasik: klasik/index.html, Modern: modern/ (Kaptan Mecit 3 web derlemesi). */
+/* Kaptan Mecit — açılış: önce dil (Türkçe / English), sonra oyun (Klasik / Modern / Kafa Topu). Klasik: klasik/index.html, Modern: modern/ (Kaptan Mecit 3 web derlemesi), Kafa Topu: kafatopu/ (Legend Heads, araclar/kafatopu-al.sh). */
 :root{--night:#0d2416;--grass:#2f7a34;--grass-2:#378a3b;--gold:#f0b232;--gold-d:#9a5f0e;--navy:#1d3f6e;--navy-d:#122a4b;--paper:#fff8ea;--ink:#16202e;
   --f:'Trebuchet MS','Arial Rounded MT Bold',system-ui,-apple-system,sans-serif;--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -35,6 +35,7 @@ button{font-family:var(--f);color:inherit;cursor:pointer;border:0}
 .oyun small{display:block;font-size:14px;font-weight:700;margin-top:6px;opacity:.92}
 .oyun.klasik{background:linear-gradient(135deg,#ffd15c,var(--gold) 60%,#d98f17);color:var(--ink)}
 .oyun.modern{background:linear-gradient(135deg,#3c78c2,var(--navy) 60%,#0f2442);color:#fff}
+.oyun.kafa{background:linear-gradient(135deg,#ff4fa3,#c2307f 55%,#5a1f6e);color:#fff}
 .oyun i{position:absolute;right:-8px;bottom:-18px;font-style:normal;font-size:96px;opacity:.18;pointer-events:none}
 .oyun.son::after{content:'';position:absolute;inset:0;border:3px solid #fff;border-radius:18px;opacity:.75}
 .alt{background:rgba(0,0,0,.28);color:#fff;border-radius:12px;min-height:46px;font-weight:800;font-size:15px}
@@ -58,6 +59,7 @@ button{font-family:var(--f);color:inherit;cursor:pointer;border:0}
     <p class="hata" id="hata" hidden></p>
     <button class="oyun klasik" data-oyun="klasik"><b data-m="kb"></b><strong data-m="ka"></strong><small data-m="ks"></small><i>⚽</i></button>
     <button class="oyun modern" data-oyun="modern"><b data-m="mb"></b><strong data-m="ma"></strong><small data-m="ms"></small><i>🏟️</i></button>
+    <button class="oyun kafa" data-oyun="kafa"><b data-m="tb"></b><strong data-m="ta"></strong><small data-m="ts"></small><i>🧔</i></button>
     <button class="alt" id="dilDon" data-m="dil"></button>
   </div>
   <p class="credit" data-m="credit"></p>
@@ -66,9 +68,9 @@ button{font-family:var(--f);color:inherit;cursor:pointer;border:0}
 <script>
 'use strict';
 const M={
-  tr:{sec:'Hangi oyunu açalım?',kb:'KAPTAN MECİT',ka:'Klasik',ks:'Üstten bakış · 28 lig · 496 kulüp',mb:'KAPTAN MECİT',ma:'Modern',ms:'3B stadyum · lig modu',
+  tr:{sec:'Hangi oyunu açalım?',kb:'KAPTAN MECİT',ka:'Klasik',ks:'Üstten bakış · 28 lig · 496 kulüp',mb:'KAPTAN MECİT',ma:'Modern',ms:'3B stadyum · lig modu',tb:'KAPTAN MECİT',ta:'Kafa Topu',ts:'1\'e 1 · Keloğlan efsanelere karşı · 55 maç',
     dil:'‹ Dil: Türkçe · Language',hata:'Modern bu cihazda açılamadı. Klasik ile devam edebilirsin.',credit:'Bir Mr. Anduv! yapımıdır.',yukle:'Yükleniyor…'},
-  en:{sec:'Which game shall we open?',kb:'KAPTAN MECIT',ka:'Classic',ks:'Top-down · 28 leagues · 496 clubs',mb:'KAPTAN MECIT',ma:'Modern',ms:'3D stadium · league mode',
+  en:{sec:'Which game shall we open?',kb:'KAPTAN MECIT',ka:'Classic',ks:'Top-down · 28 leagues · 496 clubs',mb:'KAPTAN MECIT',ma:'Modern',ms:'3D stadium · league mode',tb:'KAPTAN MECIT',ta:'Head Ball',ts:'1v1 · Keloğlan vs the legends · 55 matches',
     dil:'‹ Language: English · Dil',hata:'Modern could not start on this device. You can play Classic.',credit:'Bir Mr. Anduv! yapımıdır.',yukle:'Loading…'}
 };
 const oku=k=>{try{return localStorage.getItem(k)}catch(e){return null}},yaz=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -88,6 +90,7 @@ $('#dilDon').onclick=dilEkrani;
 document.querySelectorAll('.oyun').forEach(b=>b.onclick=()=>{
   const o=b.dataset.oyun;yaz('km.oyun',o);
   $('#yukle').textContent=M[dil].yukle;$('#yukle').hidden=false;
+  if(o==='kafa'){yaz('mranduv.dil',dil);location.href='kafatopu/index.html?km=1&dil='+dil;return;}
   location.href=o==='klasik'?'klasik/index.html?dil='+dil:'modern/index.html?dil='+dil+'&kabuk=1';
 });
 if(/[?&]sec=1/.test(location.search)&&oku('km.dil'))oyunEkrani();else dilEkrani();

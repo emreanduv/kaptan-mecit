@@ -1,5 +1,9 @@
 # Kaptan Mecit — Yayın durumu (6 Kasım 2026)
 
+## 25 Kas: 1.7.8 — Kafa Topu modu (Legend Heads)
+- Legend Heads App Store'da ayrı uygulama olarak ikinci kez 4.3(a) spam reddi aldı (24 Kas; Apple: tekrarında uzun inceleme, hesap uyarısı). Emre'nin kararıyla Kaptan Mecit'in içinde mod: açılışta Klasik / Modern / **Kafa Topu** (EN Head Ball). Oyun `www/kafatopu/` (legend-heads `www/` kopyası, `araclar/kafatopu-al.sh`), `?km=1` kipinde yatay kilit, ‹ Kaptan Mecit dönüş düğmesi, puan/paylaş Kaptan Mecit'e. Dil Kaptan Mecit'ten geçer (`mranduv.dil`). Klasik'te KM_IOS_ID=6824240380.
+- Legend Heads ayrı uygulama olarak App Store'a yeniden gönderilmeyecek (hesabı korumak için).
+
 ## 18 Kas: 1.7.5 / KM3 0.10.8 — App Store başvurusu yenileniyor
 - CBM'den: başkan ve teknik direktör adları gerçek veriden isim bozmayla (G78; `km-yaz.py` 5. adım, camia.json 5. alan), iOS'ta arka plandan dönünce Modern'de ses (G77, KM3 web kabuğu), güncel kadrolar (349f5b1). Oyun içi ad her yerde "Kaptan Mecit" (menü, VR, Bize yaz).
 - iOS 1.7.5 (43) TestFlight'a gönderildi. App Store: reddedilen 1.0.0 sürümü 1.7.5'e çevrildi, derleme 43 bağlı, yeni TR/EN metinler, 26 görsel (iPhone 6.7" + iPad 13", Modern + Klasik), CBM'den farkı anlatan inceleme notu, fiyat 0 (`store/km/metin.json`, `araclar/asc_sayfa.py` artık KM'yi de doldurur).
