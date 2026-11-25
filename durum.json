@@ -1,0 +1,36 @@
+{
+ "adimlar": [
+  "metin en-US",
+  "metin tr",
+  "alt başlık tr",
+  "alt başlık en-US",
+  "inceleme notu"
+ ],
+ "surum": [
+  "1.7.8",
+  "PREPARE_FOR_SUBMISSION"
+ ],
+ "gizlilik": "https://claude.ai/artifact/9dcY3CsGCnidaUkQRDUhHB",
+ "ad": {
+  "tr": "Kaptan Mecit",
+  "en-US": "Kaptan Mecit"
+ },
+ "inceleme_iletisim": {
+  "contactFirstName": true,
+  "contactLastName": true,
+  "contactPhone": true,
+  "contactEmail": true
+ },
+ "fiyat": [
+  "0.0"
+ ],
+ "urller": {
+  "en-US": [
+   "https://claude.ai/artifact/9dcY3CsGCnidaUkQRDUhHB"
+  ],
+  "tr": [
+   "https://claude.ai/artifact/9dcY3CsGCnidaUkQRDUhHB"
+  ]
+ },
+ "hatalar": []
+}
