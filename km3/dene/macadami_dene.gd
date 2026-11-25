@@ -34,6 +34,10 @@ func _init() -> void:
 		var ms := L.mo_sayilari()
 		if ms.is_empty() or ms[0] != ["Veli Tan", oynanan.size()]: hata += 1; print("HATA mo_sayilari ", ms)
 		if L.mo_lideri_metni() != "Veli Tan · %d kez" % oynanan.size(): hata += 1; print("HATA mo metni ", L.mo_lideri_metni())
+		# 0.10.16 tarihçede maçın adamı: süren sezonda şu anki lider (satırın 16. alanı); eski tarih kaydında (mo yok) boş
+		var TS0 := L.tarih_satirlari()
+		if TS0.is_empty() or TS0[0].size() != 16 or TS0[0][15] != L.mo_lideri_metni(): hata += 1; print("HATA tarihçe mo ", TS0[0] if not TS0.is_empty() else [])
+		if Dil.cevir("Maçın adamı") != "Maçın adamı": hata += 1; print("HATA TR çeviri")
 		# kayıt: yükleyince aynı; EN
 		var L2 := Lig.new(veri); L2.yukle()
 		if L2.mac_adami(0) != L.mac_adami(0): hata += 1; print("HATA kayıt ", L2.mac_adami(0))
@@ -46,6 +50,7 @@ func _init() -> void:
 		if not en_var: hata += 1; print("HATA EN yok")
 		Dil.en = true
 		if L2.mo_lideri_metni() != "Veli Tan · %d times" % oynanan.size(): hata += 1; print("HATA mo EN ", L2.mo_lideri_metni())
+		if Dil.cevir("Maçın adamı") != "Player of the match": hata += 1; print("HATA tarihçe başlık EN ", Dil.cevir("Maçın adamı"))
 		if Dil.cevir("SEZONUN MAÇIN ADAMI:  x").find("MAÇIN") >= 0: hata += 1; print("HATA mo başlık EN")
 		Dil.en = false
 		# tarihçeye yazılır

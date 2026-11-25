@@ -307,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language", "Maç saati"]
-const SURUM := "0.10.15"
+const SURUM := "0.10.16"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -470,7 +470,9 @@ func _lig_ciz() -> void:
 			for j in v.size(): sutun[j] += "\n" + v[j]
 			if int(x[0]) == simdi and not L.bitti(): biz_sira = k - dv * yari + 1
 	elif L.var_mi() and L.gorunum == "tarih":
-		if L.mesaj == "": _mesaj.text = "TARİHÇE  ·  " + L.tarih_ozet()
+		if L.mesaj == "":
+			_mesaj.text = "TARİHÇE  ·  " + L.tarih_ozet() + (("  ·  Maçın adamı: " + L.mo_lideri_metni()) if L.mo_lideri_metni() != "" else "")
+			if Dil.cevir(_mesaj.text).length() > 62: _mesaj.font_size = 32     # uzun satır panelden taşmasın
 		sutun = ["", "TARİHÇE", "Sıra", Dil.sutun("G"), Dil.sutun("B"), Dil.sutun("M"), Dil.sutun("Av"), Dil.sutun("P")]
 		for x in L.tarih_satirlari().slice(0, 18):
 			var sam: String = ("sürüyor  ·  hedef: " + x[14]) if x[13] else ("★ " if x[12] else "") + "Şampiyon: " + x[9] + (("  ·  " + x[14]) if x[14] != "" else "")

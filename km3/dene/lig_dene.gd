@@ -100,6 +100,9 @@ func _init() -> void:
 			hata += 1; print("  HATA tarihçe ", TS)
 		if JSON.stringify(Lig.new(veri).tarih_satirlari()) != JSON.stringify(TS): hata += 1; print("  HATA tarihçe kayıt")
 		if str(L.d.tarih[0].get("yo", "")) == "": hata += 1; print("  HATA tarihçede yılın oyuncusu yok")
+		if TS[1].size() != 16 or TS[1][15] != str(L.d.tarih[0].get("mo", "")): hata += 1; print("  HATA tarihçe maçın adamı ", TS[1])
+		var eski: Dictionary = (L.d.tarih[0] as Dictionary).duplicate(); eski.erase("mo"); L.d.tarih[0] = eski
+		if L.tarih_satirlari()[1][15] != "": hata += 1; print("  HATA eski tarihçe (mo yok)")
 		if TS[1][14] != Lig.hedef_sonuc(sira, int(L.d.tarih[0].hs)) or TS[1][14] == "" or TS[0][14] != L.hedef_adi(): hata += 1; print("  HATA tarihçe yönetim ", TS[1])
 		# eski kayıt (hedefsiz) açılınca hedef kurulur
 		L.d.erase("hedef"); L.kaydet()

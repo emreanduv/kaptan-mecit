@@ -139,3 +139,8 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Ödüller ekranında yılın teknik direktörünün altında **en çok maçın adamı seçilen oyuncumuz** ve kaç kez seçildiği: sezon sürerken "Maçın adamı seçilmede önde", sezon bitince "Sezonun maçın adamı" (EN Most Player of the Match awards). VR panelinde yılın oyuncusu yarışının altında kısa satır ("En çok maçın adamı", EN Most POTM awards).
 - Kod: `Lig.mo_sayilari()` ([[ad, kez]] çoktan aza, eşitlikte ad), `Lig.mo_lideri_metni()` ("ad · 7 kez" / "ad · 7 times"), `LigEkran._odul_panel()`, `vr._lig_ciz()`. Tarihçeye sezon sonunda `"mo"` yazılır. Yeni kayıt alanı yok (`d.mo`'dan sayılır); eski kayıtta satır çıkmaz.
 - Deneme: `dene/macadami_dene.gd` (sayı = oynanan hafta, TR/EN metin, tarihçe, yeni sezonda sıfır), `--ligsezon=20 --ligkarne --lig --ligodul --ekran=x.png` (`--vrsahte`, `--dil=en`).
+
+## 0.10.16 — Tarihçede maçın adamı
+- Tarihçe ekranında **Maçın adamı** sütunu (EN Player of the match), Gol kralı'nın yanında: biten sezonlarda o sezon en çok maçın adamı seçilen oyuncumuz, süren sezonda şu anki lider; dar sütunda "ad (7)" biçiminde. Eski tarih kaydında (`mo` yok) "–". VR panelinde tarihçe alt satırında "Maçın adamı: ad · n kez" (uzunsa yazı küçülür).
+- Kod: `Lig.tarih_satirlari()` 16. alan, `LigEkran._tarih_panel()` / `_mo_kisa()`, `vr._lig_ciz()`. Yeni kayıt alanı yok.
+- Deneme: `dene/macadami_dene.gd` + `dene/lig_dene.gd` (tarihçe alanı, eski kayıt), `--ligsezon=40 --ligkarne --lig --ligtarih --ekran=x.png` (`--vrsahte`, `--dil=en`, `--resolution 844x390`).

@@ -250,15 +250,21 @@ func _tarih_panel() -> Control:
 	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 0); p.add_child(v)
 	var biz: Dictionary = lig.takim(lig.biz())
 	v.add_child(_serit("TARİHÇE  ·  %s  ·  %s" % [biz.ad, lig.tarih_ozet()]))
-	v.add_child(_tarih_satir(["Sezon", "Sıra", Dil.sutun("O"), Dil.sutun("G"), Dil.sutun("B"), Dil.sutun("M"), Dil.sutun("Av"), Dil.sutun("P"), "Şampiyon", "Gol kralı", "Yönetim"], 0, true, false, false))
+	v.add_child(_tarih_satir(["Sezon", "Sıra", Dil.sutun("O"), Dil.sutun("G"), Dil.sutun("B"), Dil.sutun("M"), Dil.sutun("Av"), Dil.sutun("P"), "Şampiyon", "Gol kralı", "Maçın adamı", "Yönetim"], 0, true, false, false))
 	var k := 0
 	for x in lig.tarih_satirlari():
 		var sam: String = "sürüyor" if x[13] else x[10]
-		var vals := [x[0], "%d." % int(x[1]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), ("+" if int(x[7]) > 0 else "") + str(x[7]), str(x[8]), sam, x[11], ("Hedef: " + x[14]) if x[13] else x[14]]
+		var vals := [x[0], "%d." % int(x[1]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), ("+" if int(x[7]) > 0 else "") + str(x[7]), str(x[8]), sam, x[11], _mo_kisa(str(x[15])), ("Hedef: " + x[14]) if x[13] else x[14]]
 		v.add_child(_tarih_satir(vals, k, false, x[12], x[13])); k += 1
 	if lig.tarih_satirlari().size() <= 1:
-		v.add_child(_ic(_etiket("Sezon bitince karnesi buraya yazılır: sıra, puan, şampiyon ve gol kralı.", 15, SOLUK)))
+		v.add_child(_ic(_etiket("Sezon bitince karnesi buraya yazılır: sıra, puan, şampiyon, gol kralı ve maçın adamı.", 15, SOLUK)))
 	return p
+
+# "Veli Tan · 7 kez" → "Veli Tan (7)": dar sütunda ad kesilmesin
+static func _mo_kisa(m: String) -> String:
+	if m == "": return "–"
+	if m.find(" · ") < 0: return m
+	return "%s (%d)" % [m.get_slice(" · ", 0), m.get_slice(" · ", 1).to_int()]
 
 func _tarih_satir(vals: Array, k: int, baslik: bool, sampiyon: bool, suruyor: bool) -> Control:
 	var p := PanelContainer.new()
@@ -271,14 +277,14 @@ func _tarih_satir(vals: Array, k: int, baslik: bool, sampiyon: bool, suruyor: bo
 		if not baslik:
 			if i == 1 and sampiyon: renk = ALTIN
 			elif i == 7: renk = ALTIN
-			elif i == 10: renk = KIRMIZI if str(vals[i]) == "Hedefin altında" else (YESIL if str(vals[i]) in ["Hedef tuttu", "Beklentinin üstü"] else SOLUK)
+			elif i == 11: renk = KIRMIZI if str(vals[i]) == "Hedefin altında" else (YESIL if str(vals[i]) in ["Hedef tuttu", "Beklentinin üstü"] else SOLUK)
 			elif i >= 8: renk = ALTIN if (i == 8 and sampiyon) else SOLUK
 		var l := _etiket(str(vals[i]), 14 if baslik else 15, renk)
 		if i >= 8:
 			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL; l.clip_text = true
 			l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-			if i == 9: l.size_flags_stretch_ratio = 1.4
-			elif i == 10: l.size_flags_stretch_ratio = 1.1
+			if i == 9 or i == 10: l.size_flags_stretch_ratio = 1.3
+			elif i == 11: l.size_flags_stretch_ratio = 1.1
 		else:
 			l.custom_minimum_size = Vector2(TARIH_GEN[i], 0)
 			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if i == 0 else HORIZONTAL_ALIGNMENT_CENTER

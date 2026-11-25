@@ -752,7 +752,8 @@ static func sezon_adi_no(no: int) -> String:
 
 # tarihçe satırları (ekran ve VR), yeniden eskiye; süren sezon en üstte:
 # [sezon adı, sıra, takım sayısı, O, G, B, M, Av, P, şampiyon kısa, şampiyon ad, gol kralı, biz şampiyon mu, sürüyor mu,
-#  yönetim: süren sezonda hedefin adı, biten sezonda hedef sonucu (eski kayıtta "")]
+#  yönetim: süren sezonda hedefin adı, biten sezonda hedef sonucu (eski kayıtta ""),
+#  sezonun maçın adamı (0.10.16; süren sezonda şu anki lider, eski kayıtta "")]
 func tarih_satirlari() -> Array:
 	var r: Array = []
 	if not var_mi(): return r
@@ -760,7 +761,7 @@ func tarih_satirlari() -> Array:
 		var b: Dictionary = {}
 		for x in tablo():
 			if x.i == biz(): b = x
-		r.append([sezon_adi(), sira_biz(), (d.takimlar as Array).size(), b.O, b.G, b.B, b.M, b.Av, b.P, "", "", "", false, true, hedef_adi()])
+		r.append([sezon_adi(), sira_biz(), (d.takimlar as Array).size(), b.O, b.G, b.B, b.M, b.Av, b.P, "", "", "", false, true, hedef_adi(), mo_lideri_metni()])
 	var T: Array = d.get("tarih", []).duplicate()
 	T.reverse()
 	for x in T:
@@ -768,7 +769,7 @@ func tarih_satirlari() -> Array:
 		var sam := int(x.sam)
 		r.append([sezon_adi_no(int(x.s)), int(x.sira), int(x.n), o, int(x.G), int(x.B), int(x.M), int(x.A) - int(x.Y), int(x.P),
 			takim(sam).kisa if sam >= 0 else "", takim(sam).ad if sam >= 0 else "", str(x.get("kral", "")), sam == biz(), false,
-			hedef_sonuc(int(x.sira), int(x.hs)) if x.has("hs") else ""])
+			hedef_sonuc(int(x.sira), int(x.hs)) if x.has("hs") else "", str(x.get("mo", ""))])
 	return r
 
 # tarihçe özeti: "3 sezon · 1 şampiyonluk · en iyi 1."
