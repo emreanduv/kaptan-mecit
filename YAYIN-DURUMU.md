@@ -1,5 +1,10 @@
 # Kaptan Mecit — Yayın durumu (6 Kasım 2026)
 
+## 26 Kas (günlük görev): 1.7.8 YAYINDA · KM3 0.10.17 — VR tarihçe satırı sığar
+- **Apple (26 Kas 10:38Z): Kaptan Mecit 1.7.8 (Kafa Topu modu) READY_FOR_SALE** — onaylandı, App Store'da yayında; SON-SURUM 1.7.8. Tamga Yolu 1.0.0 da yayında. İncelemede bekleyen başvuru yok (sıra boş). KM'de içi boş bir READY_FOR_REVIEW inceleme kaydı duruyor (146afec5…); dokunulmadı. Bu oturum hiçbir şey göndermedi.
+- Meta: built-in tarayıcıda oturum açık; KM3 v1 (0.7.5) hâlâ "Onaylandı (9 Kas) / Pending release" — yayın tarihi Emre'de.
+- KM3 0.10.17: VR lig panelinde tarihçe satırları "Sıra" sütununa taşıyordu; kısa biçim "2026/27 · İSK ★ · hedef tuttu", başlık "TARİHÇE · ŞAMPİYON", 34 harf sınırı (`vr._tarih_vr_satir()`). lig/macadami denemeleri TAMAM; VR TR/EN ekran görüntüsü kontrol. Web km3-web.yml (zorla=1); mağaza derlemesi yok.
+
 ## 25 Kas: 1.7.8 — Kafa Topu modu (Legend Heads)
 - Legend Heads App Store'da ayrı uygulama olarak ikinci kez 4.3(a) spam reddi aldı (24 Kas; Apple: tekrarında uzun inceleme, hesap uyarısı). Emre'nin kararıyla Kaptan Mecit'in içinde mod: açılışta Klasik / Modern / **Kafa Topu** (EN Head Ball). Oyun `www/kafatopu/` (legend-heads `www/` kopyası, `araclar/kafatopu-al.sh`), `?km=1` kipinde yatay kilit, ‹ Kaptan Mecit dönüş düğmesi, puan/paylaş Kaptan Mecit'e. Dil Kaptan Mecit'ten geçer (`mranduv.dil`). Klasik'te KM_IOS_ID=6824240380.
 - Legend Heads ayrı uygulama olarak App Store'a yeniden gönderilmeyecek (hesabı korumak için).
