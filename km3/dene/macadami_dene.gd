@@ -38,6 +38,15 @@ func _init() -> void:
 		var TS0 := L.tarih_satirlari()
 		if TS0.is_empty() or TS0[0].size() != 16 or TS0[0][15] != L.mo_lideri_metni(): hata += 1; print("HATA tarihçe mo ", TS0[0] if not TS0.is_empty() else [])
 		if Dil.cevir("Maçın adamı") != "Maçın adamı": hata += 1; print("HATA TR çeviri")
+		# 0.10.17 VR tarihçe satırı dar sütuna sığar (bütün hedef sonuçları, en uzun kulüp kısa adı, TR/EN)
+		var VR = load("res://vr/vr.gd")
+		for en in [false, true]:
+			Dil.en = en
+			for hs in ["", "Hedef tuttu", "Beklentinin üstü", "Hedefin altında"]:
+				for sur in [true, false]:
+					var vs: String = VR._tarih_vr_satir(["2026/27", 1, 18, 34, 20, 8, 6, 30, 68, "İSK", "", "", true, sur, ("Ligde kalmak" if sur else hs), ""])
+					if vs.length() > VR.TARIH_VR_UZUNLUK or (en and (vs.find("hedef") >= 0 or vs.find("Ligde") >= 0)): hata += 1; print("HATA VR tarihçe ", vs)
+		Dil.en = false
 		# kayıt: yükleyince aynı; EN
 		var L2 := Lig.new(veri); L2.yukle()
 		if L2.mac_adami(0) != L.mac_adami(0): hata += 1; print("HATA kayıt ", L2.mac_adami(0))

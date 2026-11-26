@@ -144,3 +144,8 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Tarihçe ekranında **Maçın adamı** sütunu (EN Player of the match), Gol kralı'nın yanında: biten sezonlarda o sezon en çok maçın adamı seçilen oyuncumuz, süren sezonda şu anki lider; dar sütunda "ad (7)" biçiminde. Eski tarih kaydında (`mo` yok) "–". VR panelinde tarihçe alt satırında "Maçın adamı: ad · n kez" (uzunsa yazı küçülür).
 - Kod: `Lig.tarih_satirlari()` 16. alan, `LigEkran._tarih_panel()` / `_mo_kisa()`, `vr._lig_ciz()`. Yeni kayıt alanı yok.
 - Deneme: `dene/macadami_dene.gd` + `dene/lig_dene.gd` (tarihçe alanı, eski kayıt), `--ligsezon=40 --ligkarne --lig --ligtarih --ekran=x.png` (`--vrsahte`, `--dil=en`, `--resolution 844x390`).
+
+## 0.10.17 — VR tarihçe satırı sığar
+- VR lig panelinde tarihçe satırları "Sıra" sütununa taşıyordu ("★ Şampiyon: İSK · Hedef tuttu"). Artık kısa biçim: başlık "TARİHÇE · ŞAMPİYON", satır "2026/27 · İSK ★ · hedef tuttu" (hedef aşıldı / hedef tutmadı; EN target met / beaten / missed), süren sezon "2028/29 · hedef: Şampiyonluk"; çeviriden sonra en çok 34 harf (`TARIH_VR_UZUNLUK`, fazlası "…").
+- Kod: `vr._tarih_vr_satir()`, `TARIH_VR_HEDEF`; `Dil` sözlüğüne kısa hedef sonuçları ve "ŞAMPİYON". Yeni kayıt alanı yok.
+- Deneme: `dene/macadami_dene.gd` (bütün hedef sonuçları × süren/biten × TR/EN ≤ 34 harf, EN'de Türkçe kalmaz), `--ligsezon=90 --ligkarne --lig --ligtarih --vrsahte --ekran=x.png` (`--dil=en`).

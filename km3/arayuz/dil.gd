@@ -149,7 +149,7 @@ const SOZLUK := {
 	"Şu an hedefin gerisindesin.": "You are currently behind target.", "Şu an hedefi tutturuyorsun.": "You are currently on target.",
 	"YÖNETİM": "BOARD", "Yönetim": "Board", "Hedef:": "Target:", "hedef:": "target:", "Hedef": "Target", "şu an": "now",
 	"Şampiyonluk": "Title", "İlk üç": "Top three", "İlk altı": "Top six", "Orta sıra": "Mid-table", "Ligde kalmak": "Survival",
-	"Hedefin altında": "Below target", "Beklentinin üstü": "Exceeded expectations", "Hedef tuttu": "Target met",
+	"Hedefin altında": "Below target", "hedef tuttu": "target met", "hedef aşıldı": "target beaten", "hedef tutmadı": "target missed", "ŞAMPİYON": "CHAMPIONS", "Beklentinin üstü": "Exceeded expectations", "Hedef tuttu": "Target met",
 	"Çok memnun": "Delighted", "Memnun": "Pleased", "Kararsız": "Undecided", "Çok huzursuz": "Very unsettled", "Huzursuz": "Unsettled",
 }
 

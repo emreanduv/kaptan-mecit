@@ -307,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language", "Maç saati"]
-const SURUM := "0.10.16"
+const SURUM := "0.10.17"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -440,6 +440,16 @@ func _lig3d_kur() -> void:
 	_lig_alt = _yazi(30, Color("#cfe3d6")); _lig_alt.position = Vector3(.45, .25, .002); _lig_alt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_lig_alt.width = 520; _lig_alt.vertical_alignment = VERTICAL_ALIGNMENT_TOP; _lig3d.add_child(_lig_alt)
 
+# VR tarihçe satırı: dar sütuna sığan kısa biçim ("2026/27 · İSK ★ · hedef tuttu"); uzun satır "Sıra" sütununa taşıyordu
+const TARIH_VR_HEDEF := {"Hedef tuttu": "hedef tuttu", "Beklentinin üstü": "hedef aşıldı", "Hedefin altında": "hedef tutmadı"}
+const TARIH_VR_UZUNLUK := 34
+static func _tarih_vr_satir(x: Array) -> String:
+	var s: String = str(x[0]) + "  ·  " + (("hedef: " + str(x[14])) if x[13] else str(x[9]) + (" ★" if x[12] else ""))
+	if not x[13] and str(x[14]) != "": s += "  ·  " + str(TARIH_VR_HEDEF.get(str(x[14]), x[14]))
+	s = Dil.cevir(s)
+	if s.length() > TARIH_VR_UZUNLUK: s = s.left(TARIH_VR_UZUNLUK - 1).strip_edges() + "…"
+	return s
+
 func _lig_ciz() -> void:
 	var L: Lig = ana.lig
 	_yardim.visible = false; _yardim_alt.visible = false
@@ -473,10 +483,9 @@ func _lig_ciz() -> void:
 		if L.mesaj == "":
 			_mesaj.text = "TARİHÇE  ·  " + L.tarih_ozet() + (("  ·  Maçın adamı: " + L.mo_lideri_metni()) if L.mo_lideri_metni() != "" else "")
 			if Dil.cevir(_mesaj.text).length() > 62: _mesaj.font_size = 32     # uzun satır panelden taşmasın
-		sutun = ["", "TARİHÇE", "Sıra", Dil.sutun("G"), Dil.sutun("B"), Dil.sutun("M"), Dil.sutun("Av"), Dil.sutun("P")]
+		sutun = ["", "TARİHÇE  ·  ŞAMPİYON", "Sıra", Dil.sutun("G"), Dil.sutun("B"), Dil.sutun("M"), Dil.sutun("Av"), Dil.sutun("P")]
 		for x in L.tarih_satirlari().slice(0, 18):
-			var sam: String = ("sürüyor  ·  hedef: " + x[14]) if x[13] else ("★ " if x[12] else "") + "Şampiyon: " + x[9] + (("  ·  " + x[14]) if x[14] != "" else "")
-			var v := ["", x[0] + "  ·  " + sam, "%d." % int(x[1]), str(x[4]), str(x[5]), str(x[6]), ("+" if int(x[7]) > 0 else "") + str(x[7]), str(x[8])]
+			var v := ["", _tarih_vr_satir(x), "%d." % int(x[1]), str(x[4]), str(x[5]), str(x[6]), ("+" if int(x[7]) > 0 else "") + str(x[7]), str(x[8])]
 			for j in v.size(): sutun[j] += "\n" + v[j]
 			if x[13]: biz_sira = 1
 	elif L.var_mi() and L.gorunum == "kadro":
