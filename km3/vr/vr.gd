@@ -307,7 +307,7 @@ func _lazer_guncelle() -> void:
 
 # ---------- 3B menü ----------
 const SATIRLAR := ["Lig", "Senin takımın", "Rakip", "Diziliş", "Süre", "Zorluk", "Koltuk", "Nasıl oynanır", "MAÇA BAŞLA", "LİG VE KUPALAR", "Dil / Language", "Maç saati"]
-const SURUM := "0.10.17"
+const SURUM := "0.10.18"
 var _bas: Label3D
 var _ipucu: Label3D
 var _mesaj: Label3D
@@ -492,7 +492,7 @@ func _lig_ciz() -> void:
 		if L.mesaj == "": _mesaj.text = "KADRO  ·  " + L.kadro_ozet()
 		sutun = ["No", "KADRO", "", "", "Apps" if Dil.en else "Maç", "Rtg" if Dil.en else "Not", "Yet.", "Gol"]
 		for x in L.kadro_satirlari().slice(0, 18):
-			var v := [str(x[0]), Lig.mevki_adi(x[1]) + "  ·  " + x[2] + ("" if x[5] else "  (yedek)"), "", "", str(x[6]), ("%.1f" % float(x[8])) if int(x[6]) > 0 else "–", str(x[3]), str(x[4])]
+			var v := [str(x[0]), Lig.mevki_adi(x[1]) + "  ·  " + x[2] + L.kaptan_isareti(x[2]) + ("" if x[5] else "  (yedek)"), "", "", str(x[6]), ("%.1f" % float(x[8])) if int(x[6]) > 0 else "–", str(x[3]), str(x[4])]
 			for j in v.size(): sutun[j] += "\n" + v[j]
 	elif L.var_mi() and L.gorunum == "odul":
 		if L.mesaj == "": _mesaj.text = ("YILIN TEKNİK DİREKTÖRÜ:  " if L.bitti() else "TEKNİK DİREKTÖR YARIŞINDA ÖNDE:  ") + L.yilin_td_metni()

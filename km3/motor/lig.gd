@@ -330,6 +330,7 @@ func satirlar() -> Array:
 	var r: Array = ["YENİ SEZON", "Kulüp raporu", "Haberler", "Kadro", "Fikstür", "Gol krallığı", "İstatistik", "Sezon seyri", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"] if bitti() else ["MAÇA ÇIK", "Maçı simüle et", "Rakip raporu", "Kulüp raporu", "Haberler", "Kadro", "Fikstür", "Gol krallığı", "İstatistik", "Sezon seyri", "Ödüller", "Tarihçe", "Ana menü", "Ligi bırak"]
 	if son_rapor != "": r.insert(r.find("Ana menü"), "Maç raporu")
 	r.insert(r.find("Ana menü"), "Kupalar")
+	if gorunum == "kadro" and not kaptan().is_empty(): r.insert(r.find("Kadro") + 1, "Kaptan")   # 0.10.18: bandı kime verelim
 	return r
 
 func satir_metni(i: int, sec := false) -> String:
@@ -354,6 +355,7 @@ func satir_metni(i: int, sec := false) -> String:
 		"Rakip raporu": return ok + ("Puan durumu" if gorunum == "rakip" else "Rakip raporu")
 		"Sezon seyri": return ok + ("Puan durumu" if gorunum == "seyir" else "Sezon seyri")
 		"Haberler": return ok + ("Puan durumu" if gorunum == "haber" else "Haberler")
+		"Kaptan": return ("‹  " if sec else "") + _hb("Kaptan:  ", "Captain:  ") + str(kaptan()[0]) + ("  ›" if sec else "")
 	return ok + s
 
 func kay(i: int, yon: int) -> void:
@@ -366,13 +368,14 @@ func kay(i: int, yon: int) -> void:
 		kur_lig = posmod(kur_lig + yon, veri.ligler.size()); kur_takim = 0
 		if str(veri.ligler[kur_lig].id) == "mt": kur_lig = posmod(kur_lig + yon, veri.ligler.size())   # milli takımlar ligde değil, Milletler Kupası'nda
 	elif s == "Takımın": kur_takim = posmod(kur_takim + yon, veri.ligler[kur_lig].takimlar.size())
+	elif s == "Kaptan": kaptan_degistir(yon)
 
 # döndürür: "mac" (maça çık), "menu" (ana menüye dön) ya da ""
 func bas(i: int) -> String:
 	var s: String = satirlar()[i]
 	if kip == "kupa": return kupa_bas(s, i)
 	match s:
-		"Lig", "Takımın": kay(i, 1)
+		"Lig", "Takımın", "Kaptan": kay(i, 1)
 		"SEZONA BAŞLA": yeni_sezon(kur_lig, kur_takim)
 		"MAÇA ÇIK": return "mac"
 		"Maçı simüle et": haftayi_simule()
@@ -422,6 +425,65 @@ func kadro_satirlari() -> Array:
 		G.sort_custom(func(a, b): return MEVKI_SIRA.find(a[1]) < MEVKI_SIRA.find(b[1]) if a[1] != b[1] else a[3] > b[3])
 		r.append_array(G)
 	return r
+
+# ---------- kaptan (0.10.18): menajer oyunlarındaki kaptan ve yardımcı kaptan ----------
+# d.kap = [kaptan, yardımcı], ikisi de ilk 11'den. İlk açılışta asistan seçer (yetenek + bu sezonki maç sayısı);
+# kullanıcı Kadro görünümündeki "Kaptan" satırıyla ilk 11'de gezinerek bandı verir (yeni kaptan yardımcıysa eski kaptan yardımcı olur).
+# Kaptan ilk 11'den çıkarsa (diziliş değişti) bant yardımcıya geçer. d.kapg = [[hafta, ad], ...] bant değişiklikleri (haberler).
+func _ilk11_adlar() -> Array:
+	return kadro_satirlari().filter(func(x): return x[5]).map(func(x): return str(x[2]))
+
+func _kaptan_oner(haric := "") -> String:
+	var en := ""; var p := -1.0
+	for x in kadro_satirlari():
+		if not x[5] or str(x[2]) == haric: continue
+		var s := float(x[3]) + 1.5 * float(x[6])
+		if s > p or (is_equal_approx(s, p) and str(x[2]) < en): p = s; en = str(x[2])
+	return en
+
+func kaptan() -> Array:   # [kaptan, yardımcı] ya da []
+	if not var_mi(): return []
+	var I := _ilk11_adlar()
+	if I.size() < 2: return []
+	var k: Array = d.get("kap", [])
+	var ka := str(k[0]) if k.size() > 0 else ""
+	var ya := str(k[1]) if k.size() > 1 else ""
+	if not I.has(ka):
+		ka = ya if I.has(ya) else _kaptan_oner()
+	if not I.has(ya) or ya == ka: ya = _kaptan_oner(ka)
+	if k.size() != 2 or str(k[0]) != ka or str(k[1]) != ya: _kaptan_yaz(ka, ya)
+	return [ka, ya]
+
+func _kaptan_yaz(ka: String, ya: String) -> void:
+	var k: Array = d.get("kap", [])
+	var onceki := str(k[0]) if k.size() > 0 else ""
+	d.kap = [ka, ya]
+	if ka != onceki:
+		if not d.has("kapg"): d.kapg = []
+		var G: Array = d.kapg
+		if onceki == "": G.clear(); G.append([0, ka])   # ilk seçim (yeni sezon ya da kaptandan önceki kayıt): sezonun kaptanı, "değişti" haberi değil
+		elif not G.is_empty() and int(G[G.size() - 1][0]) == int(d.hafta): G[G.size() - 1] = [int(d.hafta), ka]   # aynı hafta içinde son seçim geçerli
+		else: G.append([int(d.hafta), ka])
+		if G.size() >= 2 and str(G[G.size() - 1][1]) == str(G[G.size() - 2][1]): G.pop_back()           # gezinip aynı kaptana dönüldü: haber yok
+	kaydet()
+
+func kaptan_degistir(yon: int) -> void:
+	var I := _ilk11_adlar(); var k := kaptan()
+	if k.is_empty(): return
+	var yeni: String = I[posmod(I.find(k[0]) + yon, I.size())]
+	_kaptan_yaz(yeni, str(k[0]) if yeni == str(k[1]) else str(k[1]))
+
+func kaptan_metni() -> String:   # "Kaptan: X  ·  Yardımcı: Y" ya da ""
+	var k := kaptan()
+	if k.is_empty(): return ""
+	return _hb("Kaptan: %s  ·  Yardımcı: %s", "Captain: %s  ·  Vice-captain: %s") % [k[0], k[1]]
+
+func kaptan_isareti(ad: String) -> String:   # kadro satırında adın yanına: " (K)" / " (Y)" — EN " (C)" / " (VC)"
+	var k := kaptan()
+	if k.is_empty(): return ""
+	if ad == str(k[0]): return _hb("  (K)", "  (C)")
+	if ad == str(k[1]): return _hb("  (Y)", "  (VC)")
+	return ""
 
 # ---------- oyuncu karnesi (menajer oyunlarındaki kadro ekranı: maç · asist · ortalama not) ----------
 # d.oyn: ad → [maç, asist, not toplamı ×10]; yalnız kullanıcının oynadığı lig maçlarından (simüle haftalar not üretmez).
@@ -606,7 +668,9 @@ func _tarihe_yaz() -> void:
 func sonraki_sezon() -> void:
 	if not var_mi(): return
 	if bitti(): _tarihe_yaz()
+	var kap: Array = d.get("kap", [])
 	yeni_sezon(int(d.lig), int(d.takim), int(d.sezon) + 1, d.get("tarih", []))
+	if kap.size() == 2: d.kap = kap; d.kapg = [[0, str(kap[0])]]; kaydet()   # kaptan yeni sezonda da bantta (ilk 11'de değilse kaptan() yenisini seçer)
 
 # ---------- camia (Champion Battle Manager ile aynı başkan; derbi ülkeye göre) ----------
 # veri/camia.json: "lig-kulüp" → [başkan, tarz, büyük kulüp mü (0/1), şehir]. Türkiye'de derbi yalnız dört büyük arasında;
@@ -1128,6 +1192,11 @@ func haber_haftalari() -> Array:   # [[hafta, [[metin, biz], ...]], ...] eskiden
 			if not ma.is_empty():
 				var gt := (_hb(", %d gol", ", %d goals") % int(ma[2])) if int(ma[2]) > 1 else (_hb(", 1 gol", ", 1 goal") if int(ma[2]) == 1 else "")
 				H.append([_hb("Maçın adamı: %s (not %s%s).", "Player of the match: %s (rating %s%s).") % [str(ma[0]), ("%.1f" % float(ma[1])) if Dil.en else ("%.1f" % float(ma[1])).replace(".", ","), gt], true])
+		# kaptanlık bandı (0.10.18): sezon başında kaptan, sonra her değişiklik
+		for kg in d.get("kapg", []):
+			var kh := int(kg[0])
+			if kh == 0 and w == 0: H.append([_hb("Sezonun kaptanı: %s.", "Club captain this season: %s.") % str(kg[1]), true])
+			elif kh > 0 and kh == w + 1: H.append([_hb("Kaptanlık bandı değişti. Yeni kaptan: %s.", "The armband changes hands. New captain: %s.") % str(kg[1]), true])
 		# sıradaki yerimiz
 		if not Sp.is_empty():
 			var s := int(S[b]); var sp := int(Sp[b])

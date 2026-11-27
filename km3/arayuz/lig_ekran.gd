@@ -199,6 +199,12 @@ func _kadro_panel() -> Control:
 		var es := _etiket(("In form: %s  ·  %.1f avg (%d apps)" if Dil.en else "Form oyuncusu: %s  ·  %.1f ort. (%d maç)") % [eni[0], eni[1], eni[2]], 13, SOLUK)
 		es.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED     # oyuncu adı çevrilmez
 		es.custom_minimum_size = Vector2(0, 22); v.add_child(_ic(es))
+	var km := lig.kaptan_metni()
+	if km != "":
+		var ks := _etiket(km, 13, ALTIN)
+		ks.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED     # oyuncu adı çevrilmez; metin dile göre Lig'de kurulur
+		ks.custom_minimum_size = Vector2(0, 22); ks.clip_text = true; ks.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		v.add_child(_ic(ks))
 	v.add_child(_kadro_satir(["No", "Mevki", "Oyuncu", "Yetenek", "Apps" if Dil.en else "Maç", "Gol", "Ast" if Dil.en else "As", "Rtg" if Dil.en else "Not"], 0, true, 0))
 	var k := 0; var yedek_yazildi := false
 	for x in lig.kadro_satirlari():
@@ -207,7 +213,7 @@ func _kadro_panel() -> Control:
 			var ys := _etiket("YEDEKLER", 13, SOLUK); ys.custom_minimum_size = Vector2(0, 22)
 			v.add_child(_ic(ys))
 		var ort: float = x[8]
-		v.add_child(_kadro_satir([str(x[0]), Lig.mevki_adi(x[1]), x[2], str(x[3]), str(x[6]), str(x[4]), str(x[7]), ("%.1f" % ort) if x[6] > 0 else "–"], k, false, int(x[3]))); k += 1
+		v.add_child(_kadro_satir([str(x[0]), Lig.mevki_adi(x[1]), x[2] + lig.kaptan_isareti(x[2]), str(x[3]), str(x[6]), str(x[4]), str(x[7]), ("%.1f" % ort) if x[6] > 0 else "–"], k, false, int(x[3]))); k += 1
 	return p
 
 func _kadro_satir(vals: Array, k: int, baslik: bool, yet: int) -> Control:

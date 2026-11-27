@@ -149,3 +149,10 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - VR lig panelinde tarihçe satırları "Sıra" sütununa taşıyordu ("★ Şampiyon: İSK · Hedef tuttu"). Artık kısa biçim: başlık "TARİHÇE · ŞAMPİYON", satır "2026/27 · İSK ★ · hedef tuttu" (hedef aşıldı / hedef tutmadı; EN target met / beaten / missed), süren sezon "2028/29 · hedef: Şampiyonluk"; çeviriden sonra en çok 34 harf (`TARIH_VR_UZUNLUK`, fazlası "…").
 - Kod: `vr._tarih_vr_satir()`, `TARIH_VR_HEDEF`; `Dil` sözlüğüne kısa hedef sonuçları ve "ŞAMPİYON". Yeni kayıt alanı yok.
 - Deneme: `dene/macadami_dene.gd` (bütün hedef sonuçları × süren/biten × TR/EN ≤ 34 harf, EN'de Türkçe kalmaz), `--ligsezon=90 --ligkarne --lig --ligtarih --vrsahte --ekran=x.png` (`--dil=en`).
+
+## 0.10.18 — Kaptan ve yardımcı kaptan
+- Kadro ekranında **Kaptan: X · Yardımcı: Y** (EN Captain / Vice-captain) ve oyuncu satırında "(K)" / "(Y)" (EN "(C)" / "(VC)"); VR kadro satırlarında da. İlk açılışta asistan ilk 11'den seçer (yetenek + bu sezonki maç); Kadro görünümünde menüye **Kaptan** satırı gelir, ‹ › ile ilk 11'de gezilerek bant verilir (yeni kaptan yardımcıysa eski kaptan yardımcı olur). Diziliş değişip kaptan ilk 11'den çıkarsa bant yardımcıya geçer. Yeni sezonda bant kalır.
+- Haberler: 1. haftada "Sezonun kaptanı: X.", sezon içinde değişince o hafta "Kaptanlık bandı değişti. Yeni kaptan: X." (aynı hafta gezinip geri dönülürse haber yok; eski kayıtta ilk seçim "değişti" sayılmaz).
+- Kayıt `d.kap` = [kaptan, yardımcı], `d.kapg` = [[hafta, ad], ...] (`user://km3-lig.json`; Verilerimi sil / Ligi bırak siler). "Kaptan" sözlüğe konmadı (oyunun adı "Kaptan Mecit" çevrilmesin); metinler `_hb()` ile dile göre kurulur.
+- Kod: `Lig.kaptan()`, `kaptan_degistir()`, `kaptan_metni()`, `kaptan_isareti()`, `_kaptan_yaz()`; `LigEkran._kadro_panel()`; `vr._lig_ciz()`.
+- Deneme: `godot --headless --path km3 -s dene/kaptan_dene.gd` (3 lig: seçim, satır yeri/metni, gezinti, kayıt, haberler, TR/EN işaret, yeni sezon, eski kayıt, silme), `--ligsezon=6 --ligkarne --ligkadro --lig --ekran=x.png` (`--dil=en`, `--vrsahte`, `--resolution 844x390`).
