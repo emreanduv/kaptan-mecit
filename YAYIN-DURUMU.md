@@ -1,5 +1,10 @@
 # Kaptan Mecit — Yayın durumu (6 Kasım 2026)
 
+## 27 Kas (günlük görev): KM3 0.10.18 — Kaptan ve yardımcı kaptan
+- Apple (27 Kas 10:38Z): Yaşam Rehberi 1.6.1 WAITING_FOR_REVIEW (sıra dolu); Kervan Yolu 1.1.3, Kaptan Mecit 1.7.8, CBM 4.24.0 yayında. Bu oturum hiçbir şey göndermedi.
+- Meta: KM3 v1 (0.7.5) hâlâ "Onaylandı (9 Kas) / Pending release" — yayın tarihi Emre'de.
+- KM3 0.10.18: kadro ekranında kaptan + yardımcı ("(K)/(Y)", EN "(C)/(VC)"), Kadro görünümünde menüde "Kaptan" satırıyla bant değiştirme, haberlerde sezonun kaptanı / bant değişti, yeni sezonda kalır (ekran + VR, TR/EN). kaptan/lig/haber/macadami/karne denemeleri TAMAM; 1600×900 TR/EN, 844×390, VR ekran görüntüsü kontrol. Web km3-web.yml (zorla=1); mağaza derlemesi yok.
+
 ## 26 Kas (günlük görev): 1.7.8 YAYINDA · KM3 0.10.17 — VR tarihçe satırı sığar
 - **Apple (26 Kas 10:38Z): Kaptan Mecit 1.7.8 (Kafa Topu modu) READY_FOR_SALE** — onaylandı, App Store'da yayında; SON-SURUM 1.7.8. Tamga Yolu 1.0.0 da yayında. İncelemede bekleyen başvuru yok (sıra boş). KM'de içi boş bir READY_FOR_REVIEW inceleme kaydı duruyor (146afec5…); dokunulmadı. Bu oturum hiçbir şey göndermedi.
 - Meta: built-in tarayıcıda oturum açık; KM3 v1 (0.7.5) hâlâ "Onaylandı (9 Kas) / Pending release" — yayın tarihi Emre'de.
