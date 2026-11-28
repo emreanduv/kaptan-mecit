@@ -156,3 +156,12 @@ Taktik: Champion Battle Manager'ın 34 dizilişi ve teknik direktör asistanı (
 - Kayıt `d.kap` = [kaptan, yardımcı], `d.kapg` = [[hafta, ad], ...] (`user://km3-lig.json`; Verilerimi sil / Ligi bırak siler). "Kaptan" sözlüğe konmadı (oyunun adı "Kaptan Mecit" çevrilmesin); metinler `_hb()` ile dile göre kurulur.
 - Kod: `Lig.kaptan()`, `kaptan_degistir()`, `kaptan_metni()`, `kaptan_isareti()`, `_kaptan_yaz()`; `LigEkran._kadro_panel()`; `vr._lig_ciz()`.
 - Deneme: `godot --headless --path km3 -s dene/kaptan_dene.gd` (3 lig: seçim, satır yeri/metni, gezinti, kayıt, haberler, TR/EN işaret, yeni sezon, eski kayıt, silme), `--ligsezon=6 --ligkarne --ligkadro --lig --ekran=x.png` (`--dil=en`, `--vrsahte`, `--resolution 844x390`).
+
+## 0.10.19 — Takım morali
+- FM'deki soyunma odası havası: **Takım morali** (EN Team morale) 5–99 · Çok yüksek / İyi / Normal / Düşük / Çok düşük (EN Superb / Good / Okay / Poor / Very poor). Kullanıcının son 5 lig maçından hesaplanır: yeni maç daha ağır, derbi 1,5 kat; galibiyet/yenilgi, güce göre beklenen puanın aşılması ve skor farkı. Sezon başında 60. Kayıt gerekmez (fikstürdeki skorlardan).
+- Kulüp raporunda (Teknik ekip) ve rakip raporunda (Maç analizi) satır; moral 35'in altındaysa "Senden beklenenler"de not. VR panelinde de.
+- Etki: simüle maçlarda (diğer haftalar ve "Maçı simüle et") bizim gücümüze −6,6…+4,7 (`moral_etki`); sıradaki maçın kazanma olasılığı ve beklenen puan moralle verilir. Yönetim güveni morale bakmaz.
+- Haberler: moral tavan / dibe vurdu / yerine geldi olduğu hafta yazılır.
+- Kulüp raporundaki manşet ve camia panelindeki 📰 / 🏛 işaretleri kaldırıldı (web yazısında kutu çıkıyordu).
+- Kod: `Lig.moral()`, `moral_seviye()`, `moral_adi()`, `moral_etki()`, `_guc_m()`; `olasiliklar(e, dp, moralli)`, `beklenen_puan(…, moralli)`. Ekran görüntüsü için `--ligkulup`.
+- Deneme: `godot --headless --path km3 -s dene/moral_dene.gd` (başlangıç 60, seri sonrası yükselme/düşme, olasılığa etki, rapor satırları, haberler, sezon boyu aralık), `--ligsezon=12 --lig --ligkulup --ekran=x.png` (`--ligrakip`, `--dil=en`, `--vrsahte`, `--resolution 844x390`).

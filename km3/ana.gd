@@ -162,6 +162,7 @@ func _ready() -> void:
 	if _arg.has("ligrakip"): lig.gorunum = "rakip"
 	if _arg.has("ligseyir"): lig.gorunum = "seyir"
 	if _arg.has("lighaber"): lig.gorunum = "haber"
+	if _arg.has("ligkulup"): lig.gorunum = "kulup"
 	if _arg.has("milli"):
 		# deneme: Milletler Kupası, katılım listesindeki takımla; n maçımızı simüle et (milli=21:2)
 		var mp := str(_arg.milli).split(":")

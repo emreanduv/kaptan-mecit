@@ -150,7 +150,7 @@ const SOZLUK := {
 	"YÖNETİM": "BOARD", "Yönetim": "Board", "Hedef:": "Target:", "hedef:": "target:", "Hedef": "Target", "şu an": "now",
 	"Şampiyonluk": "Title", "İlk üç": "Top three", "İlk altı": "Top six", "Orta sıra": "Mid-table", "Ligde kalmak": "Survival",
 	"Hedefin altında": "Below target", "hedef tuttu": "target met", "hedef aşıldı": "target beaten", "hedef tutmadı": "target missed", "ŞAMPİYON": "CHAMPIONS", "Beklentinin üstü": "Exceeded expectations", "Hedef tuttu": "Target met",
-	"Çok memnun": "Delighted", "Memnun": "Pleased", "Kararsız": "Undecided", "Çok huzursuz": "Very unsettled", "Huzursuz": "Unsettled",
+	"Takım morali": "Team morale", "Çok yüksek": "Superb", "İyi": "Good", "Normal": "Okay", "Düşük": "Poor", "Çok düşük": "Very poor", "Çok memnun": "Delighted", "Memnun": "Pleased", "Kararsız": "Undecided", "Çok huzursuz": "Very unsettled", "Huzursuz": "Unsettled",
 }
 
 const YARDIM_EN := """HOW TO PLAY

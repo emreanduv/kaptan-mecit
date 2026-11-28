@@ -1,5 +1,9 @@
 # Kaptan Mecit — Yayın durumu (6 Kasım 2026)
 
+## 28 Kas (günlük görev): KM3 0.10.19 — Takım morali
+- Meta (built-in tarayıcı): KM3 v1 (0.7.5) hâlâ "Onaylandı (9 Kas) / Pending release" — yayın tarihi Emre'de.
+- KM3 0.10.19: FM'deki soyunma odası havası gibi takım morali (son 5 maç, derbi, beklenenin aşılması); kulüp ve rakip raporunda, haberlerde; simüle maçlarda gücü oynatır, sıradaki maçın olasılıkları moralle. Manşetteki 📰 kutusu kaldırıldı. moral/lig/rapor/haber/kaptan/macadami denemeleri TAMAM; 1600×900 TR/EN, 844×390, VR ekran görüntüsü kontrol. Web km3-web.yml (zorla=1); mağaza derlemesi yok.
+
 ## 27 Kas (günlük görev): KM3 0.10.18 — Kaptan ve yardımcı kaptan
 - Apple (27 Kas 10:38Z): Yaşam Rehberi 1.6.1 WAITING_FOR_REVIEW (sıra dolu); Kervan Yolu 1.1.3, Kaptan Mecit 1.7.8, CBM 4.24.0 yayında. Bu oturum hiçbir şey göndermedi.
 - Meta: KM3 v1 (0.7.5) hâlâ "Onaylandı (9 Kas) / Pending release" — yayın tarihi Emre'de.

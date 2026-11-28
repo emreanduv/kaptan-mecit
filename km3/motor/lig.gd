@@ -203,7 +203,7 @@ func sonraki_mac() -> Array:
 
 # hızlı simülasyon: güç farkına göre beklenen gol (Poisson), ev sahibi avantajı
 func sim_mac(e: int, dp: int, rng: RandomNumberGenerator) -> Array:
-	var ge: float = d.guc[e]; var gd: float = d.guc[dp]
+	var ge: float = _guc_m(e); var gd: float = _guc_m(dp)
 	var le := 1.42 * exp(.016 * (ge - gd)); var ld := 1.12 * exp(.016 * (gd - ge))
 	return [_poisson(le, rng), _poisson(ld, rng)]
 
@@ -732,6 +732,38 @@ func manset() -> String:   # haftanın manşeti
 	if g >= 45: return "%s: \"%s istikrar arıyor\"" % [o, ad]
 	return "%s: \"%s için zor günler\"" % [o, ad]
 
+# ---------- takım morali (0.10.19; FM'deki soyunma odası havası) ----------
+# Kayıt gerekmez: kullanıcının son 5 maçından (yeni maç daha ağır, derbi 1,5 kat) ve güce göre beklenen sonucun aşılmasından hesaplanır.
+# Simüle maçlarda gücü −6…+5 oynatır (sim_mac); sıradaki maçın olasılıkları da moralle verilir. Yönetim güveni morale bakmaz.
+const MORAL_ADI := ["Çok yüksek", "İyi", "Normal", "Düşük", "Çok düşük"]
+func moral(kadar := -1) -> int:   # 5–99; kadar: o haftaya kadar oynanan maçlarla (haberler için)
+	if not var_mi(): return 0
+	var son := mini(int(d.hafta) if kadar < 0 else kadar, hafta_sayisi())
+	var S: Array = []
+	for w in son:
+		for mc in d.fikstur[w]:
+			var ev := int(mc[0]) == biz()
+			if (not ev and int(mc[1]) != biz()) or int(mc[2]) < 0: continue
+			var a := int(mc[2]) if ev else int(mc[3]); var y := int(mc[3]) if ev else int(mc[2])
+			S.append([a, y, derbi_mi(int(mc[0]), int(mc[1])), beklenen_puan(int(mc[0]), int(mc[1]), ev)])
+	S = S.slice(maxi(0, S.size() - 5))
+	var m := 60.0
+	for k in S.size():
+		var x: Array = S[k]
+		var agr := (.6 + .1 * (5 - S.size() + k)) * (1.5 if x[2] else 1.0)
+		var p := 3 if int(x[0]) > int(x[1]) else (1 if int(x[0]) == int(x[1]) else 0)
+		m += agr * ((7.0 if p == 3 else (0.0 if p == 1 else -7.0)) + 3.0 * (p - float(x[3])) + clampi(int(x[0]) - int(x[1]), -3, 3))
+	return clampi(roundi(m), 5, 99)
+static func moral_seviye(m: int) -> int:
+	if m >= 80: return 0
+	if m >= 65: return 1
+	if m >= 45: return 2
+	if m >= 30: return 3
+	return 4
+static func moral_adi(m: int) -> String: return MORAL_ADI[moral_seviye(m)]
+static func moral_etki(m: int) -> float: return (m - 60) * .12   # güce eklenen
+func _guc_m(i: int) -> float: return float(d.guc[i]) + (moral_etki(moral()) if i == biz() else 0.0)
+
 # ---------- yönetim beklentisi (FM'deki yönetim kurulu hedefi ve güveni) ----------
 # Sezon başında kulübün güç sırasına göre hedef konur; güven, oynanan maçlarda alınan puanın
 # güce göre beklenen puandan farkıyla oynar. Sezon sonunda hedef tuttu mu yazılır (tarihçede de).
@@ -767,8 +799,8 @@ static func hedef_sonuc(sira: int, hs: int) -> String:
 	return "Hedef tuttu"
 
 # güce göre beklenen puan (sim_mac'in Poisson modeliyle: 3 × galibiyet + beraberlik olasılığı)
-func beklenen_puan(e: int, dp: int, ev_biz: bool) -> float:
-	var ol := olasiliklar(e, dp)
+func beklenen_puan(e: int, dp: int, ev_biz: bool, moralli := false) -> float:
+	var ol := olasiliklar(e, dp, moralli)
 	return 3.0 * (ol[0] if ev_biz else ol[2]) + ol[1]
 
 static func _fakt(k: int) -> float:
@@ -949,8 +981,8 @@ func istatistik() -> Array:
 # Sıradaki rakip: sırası, formu, iç saha / deplasman karnesi, gol ortalamaları, en golcüsü, dizilişi ve yıldızı;
 # karşılaştırma: güç, sim_mac modeliyle galibiyet / beraberlik / yenilgi olasılığı, beklenen puan, ilk devredeki maç ve asistanın önerisi.
 # Biçim istatistik() ile aynı: [[tür, etiket, değer, vurgu], ...]. Ayrı kayıt yok.
-func olasiliklar(e: int, dp: int) -> Array:   # ev sahibinin [galibiyet, beraberlik, yenilgi] olasılığı (sim_mac'in Poisson modeli)
-	var ge: float = d.guc[e]; var gd: float = d.guc[dp]
+func olasiliklar(e: int, dp: int, moralli := false) -> Array:   # ev sahibinin [galibiyet, beraberlik, yenilgi] olasılığı (sim_mac'in Poisson modeli; moralli: takım moraliyle, sıradaki maç için)
+	var ge: float = _guc_m(e) if moralli else float(d.guc[e]); var gd: float = _guc_m(dp) if moralli else float(d.guc[dp])
 	var le := 1.42 * exp(.016 * (ge - gd)); var ld := 1.12 * exp(.016 * (gd - ge))
 	var pe: Array = []; var pd: Array = []
 	for k in 11:
@@ -1012,10 +1044,12 @@ func rakip_raporu() -> Array:
 	r.append(["b", "MAÇ ANALİZİ", "", true])
 	var gb: float = d.guc[biz()]; var gr: float = d.guc[rk]
 	r.append(["s", "Güç (biz · rakip)", "%d  ·  %d" % [roundi(gb), roundi(gr)], true])
-	var ol := olasiliklar(int(mc[0]), int(mc[1]))
+	var mo := moral()
+	r.append(["s", "Takım morali", "%s  ·  %s" % [moral_adi(mo), yuzde(mo)], true])
+	var ol := olasiliklar(int(mc[0]), int(mc[1]), true)
 	var bg: float = ol[0] if ev else ol[2]; var bm: float = ol[2] if ev else ol[0]
 	r.append(["s", "Galibiyet · beraberlik · yenilgi", "%s  ·  %s  ·  %s" % [yuzde(roundi(100 * bg)), yuzde(roundi(100 * ol[1])), yuzde(roundi(100 * bm))], true])
-	r.append(["s", "Beklenen puan", _ondalik(beklenen_puan(int(mc[0]), int(mc[1]), ev)), true])
+	r.append(["s", "Beklenen puan", _ondalik(beklenen_puan(int(mc[0]), int(mc[1]), ev, true)), true])
 	r.append(["s", "İlk devredeki maç", onceki if onceki != "" else "—", true])
 	var fark := gb - gr + (3.0 if ev else -3.0)
 	r.append(["s", "Asistanın önerisi", "Oyun anlayışı: " + ("Hücum" if fark >= 6.0 else ("Savunma" if fark <= -6.0 else "Dengeli")), true])
@@ -1041,11 +1075,13 @@ func kulup_raporu() -> Array:
 	for x in _son_sonuclar(99):
 		if x[2]: dk += 1; dg += 1 if int(x[0]) > int(x[1]) else 0
 	if dk > 0: r.append(["s", "Derbiler (kazanılan · oynanan)", "%d  ·  %d" % [dg, dk], false])
-	var ms := manset(); if ms != "": r.append(["n", "📰 " + ms, "", false])
+	var ms := manset(); if ms != "": r.append(["n", ms, "", false])
 	r.append(["b", "TEKNİK EKİP", "", true])
 	var K := kadro_satirlari(); var en_iyi := ""; var ey := -1
 	for x in K:
 		if int(x[3]) > ey: ey = int(x[3]); en_iyi = "%s · %s · %d" % [mevki_adi(str(x[1])), str(x[2]), int(x[3])]
+	var mo := moral()
+	r.append(["s", "Takım morali", "%s  ·  %s" % [moral_adi(mo), yuzde(mo)], true])
 	r.append(["s", "Diziliş · ilk 11", kadro_ozet() if kadro_ozet() != "" else "—", true])
 	r.append(["s", "Takımın yıldızı", en_iyi if en_iyi != "" else "—", true])
 	var gk := gol_krallari(999); var golcu := "—"
@@ -1055,13 +1091,14 @@ func kulup_raporu() -> Array:
 	var mc := sonraki_mac()
 	if not mc.is_empty():
 		var ev := int(mc[0]) == biz(); var rk: int = int(mc[1]) if ev else int(mc[0])
-		var ol := olasiliklar(int(mc[0]), int(mc[1]))
+		var ol := olasiliklar(int(mc[0]), int(mc[1]), true)
 		r.append(["s", "Sıradaki maç", "%s  ·  %s%s" % [takim(rk).ad, "iç saha" if ev else "deplasman", "  ·  ⚔ DERBİ" if derbi_mi(int(mc[0]), int(mc[1])) else ""], true])
 		r.append(["s", "Kazanma olasılığı", yuzde(roundi(100 * (ol[0] if ev else ol[2]))), true])
 	r.append(["b", "SENDEN BEKLENENLER", "", false])
 	var bek: Array = []
 	if int(d.hafta) >= 5 and sira > hs: bek.append(("We are %d places behind the target; the board expects a recovery." if Dil.en else "Hedefin %d sıra gerisindeyiz; yönetim toparlanma bekliyor.") % (sira - hs))
 	if g < 40: bek.append("Board confidence is low; the next matches are critical." if Dil.en else "Yönetimin güveni düşük; önümüzdeki maçlar kritik.")
+	if mo < 35: bek.append("Morale in the dressing room is low; a win would lift the squad." if Dil.en else "Soyunma odasında moral düşük; bir galibiyet takımı ayağa kaldırır.")
 	if t < 40: bek.append("The fans are restless; a home win is a must." if Dil.en else "Taraftar huzursuz; iç sahada galibiyet şart.")
 	if not mc.is_empty() and derbi_mi(int(mc[0]), int(mc[1])): bek.append("The next match is a derby: the game of the season for the club." if Dil.en else "Sıradaki maç derbi: camia için sezonun maçı.")
 	if bek.is_empty(): bek.append("Nothing pending; all in order." if Dil.en else "Şu an bekleyen bir şey yok; işler yolunda.")
@@ -1188,6 +1225,9 @@ func haber_haftalari() -> Array:   # [[hafta, [[metin, biz], ...]], ...] eskiden
 			elif sy >= 5: t += _hb(" %d maçtır yenilmiyoruz.", " Unbeaten in %d.") % sy
 			elif sk >= 3: t += _hb(" %d maçtır kazanamıyoruz.", " %d without a win.") % sk
 			H.append([t, true])
+			var mv0 := moral_seviye(moral(w)); var mv1 := moral_seviye(moral(w + 1))
+			if mv1 != mv0 and (mv1 == 0 or mv1 == 4 or (mv1 == 2 and mv0 == 3)):
+				H.append([[_hb("Soyunma odasında moral tavan.", "Morale in the dressing room is superb."), _hb("Takımın morali iyi.", "Morale is good."), _hb("Moral yerine geldi.", "Morale has recovered."), _hb("Takımın morali bozuk.", "Morale is poor."), _hb("Soyunma odasında moral dibe vurdu.", "Morale in the dressing room has hit rock bottom.")][mv1], true])
 			var ma := mac_adami(w)
 			if not ma.is_empty():
 				var gt := (_hb(", %d gol", ", %d goals") % int(ma[2])) if int(ma[2]) > 1 else (_hb(", 1 gol", ", 1 goal") if int(ma[2]) == 1 else "")

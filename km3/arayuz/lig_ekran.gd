@@ -589,7 +589,7 @@ func _yonetim_panel() -> Control:
 	tc.add_child(tz); tc.add_child(_etiket(Lig.yuzde(t), 14, SOLUK)); v.add_child(_ic(tc))
 	for x in [lig.camia_sozu(), lig.manset()]:
 		if x == "": continue
-		var e := _etiket(("🏛 " if x == lig.camia_sozu() else "📰 ") + x, 14, YAZI); e.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; v.add_child(_ic(e))
+		var e := _etiket(x, 14, YAZI); e.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; v.add_child(_ic(e))
 	return p
 
 func _serit(t: String) -> Control:
