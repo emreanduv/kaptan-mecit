@@ -109,6 +109,15 @@ Telefon değişince ya da iPhone, iPad, Mac arasında geçince oyunlar ve uygula
 - Android: `android:allowBackup="true"` (Google yedeği) açık kalır. Steam: Steam Cloud (Steamworks ayarı Emre'nin). Kayıt 1 MB'ı aşarsa (CBM kariyeri) iCloud Belgeler'e geçilir.
 - Gizlilik politikasında "Cihazlar arası kayıt" paragrafı (TR + EN) bulunur. Gelişim Defteri G84.
 
+### Oyunun dünyasından bildirim (Emre'nin kuralı, 28 Kasım 2026; bütün oyun ve uygulamalar)
+Kervan Yolu'nun "İç Anadolu: temel betonu dökülecek. Ankraj kafesi gecikirse beton ekibi boşa bekler. Yük seni bekliyor." bildirimi örnek alınır: her oyun ve uygulama, kapandıktan sonra **kendi dünyasından** kısa, gerçekçi haberler bırakır. Gelişim Defteri G109.
+- Yerel bildirim (`@capacitor/local-notifications`); sunucu, hesap, bildirim kimliği yok, veri gönderilmez. Ortak çekirdek birebir kopyalanır: emreanduv/kervan-yolu `www/bildirim-ortak.js` (`BildirimOrtak.kur({...})`). Oyuna özgü metinler ayrı bir paket dosyasında (`bildirim-paket.js`).
+- Uygulama arka plana gidince 1, 3 ve 6 gün sonrası için üç haber planlanır; öne gelince bekleyenler silinir. Günde en çok bir, yalnız akşamüstü/öğlen saatleri.
+- Metinler oyunun sesiyle ve dünyasından (karakter, yer, olay); TR + EN. Reklam, "seni özledik", "geri dön" yalvarması, sahte aciliyet ya da para teklifi yok. Kutsal ve dinî konular bildirime konmaz. Uygulamalarda karşılığı işe yarar hatırlatmadır (Yaşam Rehberi, Nutuk Salonu, Denge'deki gibi).
+- İzin **açılışta ya da oyunun ortasında sorulmaz**: başarı anında (puan sorusunun bağlandığı yerde) `BildirimOrtak.basari()` çağrılır, ikinci başarıdan sonra bir kez kibarca sorulur. Ayarlar'da "Bildirimler" aç/kapa satırı her zaman vardır (çekirdek kendisi ekler). "Verilerimi sil" planlananları da iptal eder.
+- Bildirime dokununca mümkünse o habere bağlı iş açılır (Kervan Yolu: o yük tipinde acil sefer, +%25 prim).
+- Gizlilik politikasında (vitrindeki kopya dahil) "Bildirimler" paragrafı (TR + EN) bulunur. Yayın öncesi kontrol `bildirim-ortak.js`'i arar.
+
 ### Repolar private, vitrin public (Emre'nin kuralı, 28 Kasım 2026)
 - **Bütün repolar private.** Kalıcı public olanlar: `emreanduv/emreanduv` (profil), `emreanduv/emreanduv.github.io` (vitrin) ve her zaman ücretsiz kalacak kamu yararı uygulamaları `emreanduv/yasam-rehberi` ile `emreanduv/nutuk-akisi` (Emre, 28 Kasım 2026). Yeni bir oyun/uygulama reposu ilk günden private açılır.
 - Geçici public kaydı (ay dönünce, 1 Aralık 2026, private'a dönecek; Actions bütçesi kesildiği için, 28 Kasım 2026): `emreanduv/kervan-yolu`, `emreanduv/emreanduv-tamga-yolu`, `emreanduv/tulpar`, `emreanduv/malazgirt-akincilari`, `emreanduv/kurt-yolu`, `emreanduv/kaptan-mecit`, `emreanduv/legend-heads`.
