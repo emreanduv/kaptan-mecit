@@ -104,7 +104,7 @@
       else {
         var bd = k.querySelector('button,a,[role=button]') || k.lastElementChild, yz = null;
         Array.prototype.some.call(k.children, function (c) { if (c !== bd && !c.contains(bd)) { yz = c; return true; } return false; });
-        x = { d: bd, y: yz };
+        x = yz ? { d: bd, y: yz } : { d: bd, tek: 1 };   // satırda yazı yoksa düğme "Bildirimler: Açık" olur
       }
       x.d.addEventListener('click', function (e) { e.preventDefault(); e.stopImmediatePropagation(); degistir(); }, true);
       satirlar.push(x); hedef.parentNode.insertBefore(k, hedef.nextSibling);
